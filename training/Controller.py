@@ -2,6 +2,7 @@ from enum import Enum, auto
 from dataclasses_json import dataclass_json, DataClassJsonMixin
 from dataclasses import dataclass
 import json
+import UdpClient as udp
 
 class SectorName(Enum):
     UNDEF = "undef"
@@ -48,6 +49,12 @@ class DiffDriveValues:
 class CommandDto(DataClassJsonMixin):
     command: Command
 
-s = CommandDto(Command.START)
-j = s.to_json()
-print(j)
+def sendAndWait(cmd: Command, config: udp.Config) -> any:
+    j = cmd.to_json()
+    udp.sendAndWait(j, config)
+
+
+
+cmd = CommandDto(Command.START)
+config = udp.Config()
+sendAndWait(cmd, config)
