@@ -1,42 +1,53 @@
-from enum import Enum
+from enum import Enum, auto
+from dataclasses_json import dataclass_json, DataClassJsonMixin
+from dataclasses import dataclass
+import json
 
 class SectorName(Enum):
-    UNDEF,
-    LEFT,
-    CENTER,
-    RIGHT
+    UNDEF = "undef"
+    LEFT = "left"
+    CENTER = "center"
+    RIGHT = "right"
 
+class Command(Enum):
+    START = "start"
+    STOP = "stop"
+
+@dataclass_json
 @dataclass
 class Point2:
     xpos: float
     ypos: float
 
+@dataclass_json
 @dataclass
 class PosDir:
     pos: Point2
     dir: float
 
 @dataclass
+class Sensor(DataClassJsonMixin):
+    opponent_in_sector: SectorName
+    left_distance: float
+    front_distance: float
+    right_distance: float
+
+@dataclass_json
+@dataclass
 class RobotInfo:
     pos_dir: PosDir
     sensor: Sensor
 
+@dataclass_json
 @dataclass
 class DiffDriveValues:
     right_velo: float
     left_velo: float
 
 @dataclass
-class Sensor:
-    opponent_in_sector: SectorName
-    left_distance: float
-    front_distance: float
-    right_distance: float
+class CommandDto(DataClassJsonMixin):
+    command: Command
 
-class Controller:
-
-    def take_step(self, sensor: Sensor) -> DiffDriveValues:
-        pass
-
-def start_duel(controller1: Controller, controller2: Controller) -> None:
-    pass
+s = CommandDto(Command.START)
+j = s.to_json()
+print(j)
