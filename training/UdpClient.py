@@ -7,7 +7,7 @@ class Config():
     port: int = 4445
 
 def sendAndWait(data: str, config: Config) -> str:
-    print("---> Sendig: {data}")
+    print(f"---> Sendig: {data}")
     msgFromClient = "start"
     bytesToSend = str.encode(msgFromClient)
     serverAddressPort = (config.host, config.port)
