@@ -11,8 +11,8 @@ class SectorName(Enum):
     RIGHT = "right"
 
 class Command(Enum):
-    START = "start"
-    STOP = "stop"
+    START = "START"
+    STOP = "STOP"
 
 @dataclass_json
 @dataclass

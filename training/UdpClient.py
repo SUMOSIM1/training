@@ -8,8 +8,7 @@ class Config():
 
 def sendAndWait(data: str, config: Config) -> str:
     print(f"---> Sendig: {data}")
-    msgFromClient = "start"
-    bytesToSend = str.encode(msgFromClient)
+    bytesToSend = str.encode(data)
     serverAddressPort = (config.host, config.port)
     bufferSize = 1024
     client = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
