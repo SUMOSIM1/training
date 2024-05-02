@@ -14,36 +14,21 @@ class Command(Enum):
     START = "START"
     STOP = "STOP"
 
-@dataclass_json
 @dataclass
-class Point2:
+class SensorDto(DataClassJsonMixin):
     xpos: float
     ypos: float
+    direction: float
+    opponentinsector: SectorName
+    leftdistance: float
+    frontdistance: float
+    rightdistance: float
 
 @dataclass_json
 @dataclass
-class PosDir:
-    pos: Point2
-    dir: float
-
-@dataclass
-class Sensor(DataClassJsonMixin):
-    opponent_in_sector: SectorName
-    left_distance: float
-    front_distance: float
-    right_distance: float
-
-@dataclass_json
-@dataclass
-class RobotInfo:
-    pos_dir: PosDir
-    sensor: Sensor
-
-@dataclass_json
-@dataclass
-class DiffDriveValues:
-    right_velo: float
-    left_velo: float
+class DiffDriveValuesDto:
+    rightvelo: float
+    leftvelo: float
 
 @dataclass
 class CommandDto(DataClassJsonMixin):
