@@ -3,7 +3,6 @@ from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
 
-import UdpClient as udp
 from dataclasses_json import DataClassJsonMixin, dataclass_json
 
 
@@ -42,14 +41,9 @@ class CommandDto(DataClassJsonMixin):
     command: Command
 
 
-def sendAndWait(cmd: Command, config: udp.Config) -> any:
-    j = cmd.to_json()
-    udp.sendAndWait(j, config)
-
-
 cmd = CommandDto(Command.START)
-config = udp.Config()
-sendAndWait(cmd, config)
+
+start_port = 4000
 
 
 def run(path: Path):
@@ -60,5 +54,14 @@ def run(path: Path):
         raise RuntimeError(f"simpath {path} contains no 'build.sbt' file.")
     print(f"starting sim in {path}")
     sp.call(
-        ["sbt", "--supershell=false", "sumosimJVM/run udp --port 4000"], cwd=f"{path}"
+        ["sbt", "--supershell=false", f"sumosimJVM/run udp --port {start_port}"],
+        cwd=f"{path}",
     )
+
+
+def start(base_port: int):
+    robot1_port = base_port * 10 + 0
+    robot2_port = base_port * 10 + 1
+    result_port = base_port * 10 + 2
+    print(f"starting on {robot1_port}, {robot2_port}, {result_port}")
+    # TODO continue
