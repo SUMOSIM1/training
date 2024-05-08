@@ -1,10 +1,12 @@
 import socket
 from dataclasses import dataclass
 
+
 @dataclass
-class Config():
+class Config:
     host: str = "127.0.0.0"
     port: int = 4445
+
 
 def sendAndWait(data: str, config: Config) -> str:
     print(f"---> Sendig: {data}")
@@ -16,7 +18,7 @@ def sendAndWait(data: str, config: Config) -> str:
     try:
         client.sendto(bytesToSend, serverAddressPort)
         msgFromServer = client.recvfrom(bufferSize)
-        bmsg = msgFromServer[0].decode('ascii')
+        bmsg = msgFromServer[0].decode("ascii")
         print(f"---> Response from server {bmsg}")
     except socket.timeout:
         print("---- timeout closing socket")
@@ -35,9 +37,9 @@ if __name__ == "__main__":
         client.sendto(bytesToSend, serverAddressPort)
         while True:
             msgFromServer = client.recvfrom(bufferSize)
-            bmsg = msgFromServer[0].decode('ascii')
+            bmsg = msgFromServer[0].decode("ascii")
             print(bmsg)
-            if bmsg == 'stop':
+            if bmsg == "stop":
                 break
             answer = f"Answer for: [{bmsg}]"
             bytesToSend = str.encode(answer)
@@ -46,4 +48,3 @@ if __name__ == "__main__":
         print("timeout closing socket")
     finally:
         client.close()
-

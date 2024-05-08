@@ -11,6 +11,7 @@ python = "^3.10"
 jupyter = "^1.0.0"
 dataclasses-json = "^0.6.4"
 typer = "^0.12.3"
+ruff = "^0.4.3"
 
 
 [build-system]
