@@ -1,11 +1,10 @@
-from pathlib import Path
 import subprocess as sp
-
-from enum import Enum, auto
-from dataclasses_json import dataclass_json, DataClassJsonMixin
 from dataclasses import dataclass
-import json
+from enum import Enum
+from pathlib import Path
+
 import UdpClient as udp
+from dataclasses_json import DataClassJsonMixin, dataclass_json
 
 
 class SectorName(Enum):

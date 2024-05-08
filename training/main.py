@@ -1,7 +1,8 @@
+from pathlib import Path
+
+import simrunner as sr
 import typer
 from typing_extensions import Annotated
-from pathlib import Path
-import simrunner as sr
 
 app = typer.Typer()
 
@@ -21,7 +22,7 @@ def sim(
 
 @app.command()
 def tryout():
-    print(f"tryout")
+    print("tryout")
 
 
 if __name__ == "__main__":
