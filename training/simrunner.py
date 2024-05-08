@@ -55,4 +55,4 @@ def run(path: Path):
     if not sbtfile.exists():
         raise RuntimeError(f"simpath {path} contains no 'build.sbt' file.")
     print(f"starting sim in {path}")
-    sp.call(['sbt', '--supershell=false', 'sumosimJVM/run udp'], cwd=f"{path}")
+    sp.call(['sbt', '--supershell=false', 'sumosimJVM/run udp --port 4000'], cwd=f"{path}")
