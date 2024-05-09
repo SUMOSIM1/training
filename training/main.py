@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import Callable
 
 import simrunner as sr
+import tryout as to
 import typer
 from typing_extensions import Annotated
 
@@ -51,7 +52,7 @@ def _call(f: Callable[[], None], verbose: bool):
 
 @app.command()
 def tryout():
-    print("tryout")
+    to.main()
 
 
 if __name__ == "__main__":
