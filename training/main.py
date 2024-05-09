@@ -5,6 +5,7 @@ from typing import Callable
 import simrunner as sr
 import tryout as to
 import typer
+import util
 from typing_extensions import Annotated
 
 app = typer.Typer()
@@ -40,6 +41,13 @@ def start(
     _call(f, verbose)
 
 
+@app.command()
+def tryout(
+    verbose: Annotated[bool, typer.Option("-v", help="Verbose output")] = False,
+):
+    _call(to.main, verbose)
+
+
 def _call(f: Callable[[], None], verbose: bool):
     if verbose:
         f()
@@ -47,16 +55,8 @@ def _call(f: Callable[[], None], verbose: bool):
         try:
             f()
         except Exception as e:
-            msg = str(e)
-            if msg:
-                print(f"ERROR: {msg}")
-            else:
-                print(f"ERROR: {type(e)}")
-
-
-@app.command()
-def tryout():
-    to.main()
+            msg = util.message(e)
+            print(f"ERROR: {msg}")
 
 
 if __name__ == "__main__":
