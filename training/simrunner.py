@@ -1,9 +1,11 @@
 import subprocess as sp
 from dataclasses import dataclass
+from datetime import datetime
 from enum import Enum
 from pathlib import Path
 from typing import Optional
 
+import simdb as db
 from dataclasses_json import DataClassJsonMixin, dataclass_json
 
 
@@ -34,6 +36,7 @@ class DiffDriveValuesDto:
 
 @dataclass
 class StartCommand(DataClassJsonMixin):
+    id: str
     robot1_port: int
     robot2_port: int
     result_port: int
@@ -43,6 +46,14 @@ class StartCommand(DataClassJsonMixin):
 class StartResponse(DataClassJsonMixin):
     ok: bool
     message: Optional[str]
+
+
+@dataclass_json
+@dataclass
+class Simulation:
+    base_port: int
+    started_at: datetime = datetime.now()
+    status: str = "running"  # running, finished, timeout, error
 
 
 def run(simulation_port: int, path: Path):
@@ -59,9 +70,18 @@ def run(simulation_port: int, path: Path):
 
 
 def start(base_port: int):
-    command = StartCommand(
-        robot1_port=base_port * 10 + 0,
-        robot2_port=base_port * 10 + 1,
-        result_port=base_port * 10 + 2,
-    )
-    print(f"starting on {command}")
+    with db.create_client() as client:
+        running_sim = db.find_running(client, "running", base_port)
+        if running_sim:
+            raise RuntimeError(f"Baseport {base_port} is currently running")
+        sim = Simulation(
+            base_port=base_port,
+        )
+        id = db.insert(client, sim.to_dict())
+        command = StartCommand(
+            id=id,
+            robot1_port=base_port * 10 + 0,
+            robot2_port=base_port * 10 + 1,
+            result_port=base_port * 10 + 2,
+        )
+        print(f"---> starting on {command}")

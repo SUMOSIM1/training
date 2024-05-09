@@ -47,7 +47,11 @@ def _call(f: Callable[[], None], verbose: bool):
         try:
             f()
         except Exception as e:
-            print(f"ERROR: {e}")
+            msg = str(e)
+            if msg:
+                print(f"ERROR: {msg}")
+            else:
+                print(f"ERROR: {type(e)}")
 
 
 @app.command()
