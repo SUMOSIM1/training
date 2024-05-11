@@ -6,7 +6,7 @@ from enum import Enum
 from pathlib import Path
 
 import simdb as db
-import UdpClient
+import udp
 import util
 from dataclasses_json import DataClassJsonMixin, dataclass_json
 
@@ -82,7 +82,7 @@ def start(base_port: int):
                 resultport=base_port * 10 + 2,
             )
             print(f"---> sending {command}")
-            answer = UdpClient.send_and_wait(command.to_json(), 4444)
+            answer = udp.send_and_wait(command.to_json(), 4444)
             print(f"<--- {answer}")
             answer1 = dataclass_json(StartResponse).from_json(answer)
             print(f"<--- {answer1}")
