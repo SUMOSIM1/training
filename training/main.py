@@ -15,18 +15,6 @@ simpath_default = Path.home() / "prj" / "SUMOSIM" / "sumosim"
 
 
 @app.command()
-def sim(
-    simulation_port: Annotated[
-        int, typer.Option(help="The port on which the simulation is listening")
-    ],
-    simulation_path: Annotated[Path, typer.Option(help=simpath_help)] = simpath_default,
-    verbose: Annotated[bool, typer.Option("-v", help="Verbose output")] = False,
-):
-    f = ft.partial(sr.run, simulation_port, simulation_path)
-    _call(f, verbose)
-
-
-@app.command()
 def start(
     simulation_port: Annotated[
         int, typer.Option(help="The port on which the simulation is listening")

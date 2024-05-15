@@ -1,9 +1,7 @@
-import subprocess as sp
 from abc import ABC
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
-from pathlib import Path
 
 import simdb as db
 import udp
@@ -57,19 +55,6 @@ class Simulation:
     started_at: datetime = datetime.now()
     status: str = "running"  # running, finished, timeout, error
     message: str = ""
-
-
-def run(simulation_port: int, path: Path):
-    if not path.exists():
-        raise RuntimeError(f"simpath {path} does not exist.")
-    sbtfile = path / "build.sbt"
-    if not sbtfile.exists():
-        raise RuntimeError(f"simpath {path} contains no 'build.sbt' file.")
-    print(f"starting sim in {path}")
-    sp.call(
-        ["sbt", "--supershell=false", f"sumosimJVM/run udp --port {simulation_port}"],
-        cwd=f"{path}",
-    )
 
 
 def start(base_port: int):
