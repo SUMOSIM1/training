@@ -39,7 +39,6 @@ class StartCommand(DataClassJsonMixin):
     id: str
     robot1port: int
     robot2port: int
-    resultport: int
 
 
 @dataclass
@@ -57,34 +56,28 @@ class Simulation:
     message: str = ""
 
 
-def start(base_port: int):
-    def send(client: ABC, obj_id: str):
-        try:
-            command = StartCommand(
-                id=id,
-                robot1port=base_port * 10 + 0,
-                robot2port=base_port * 10 + 1,
-                resultport=base_port * 10 + 2,
-            )
-            print(f"---> sending {command}")
-            answer = udp.send_and_wait(command.to_json(), 4444)
-            print(f"<--- {answer}")
-            answer1 = dataclass_json(StartResponse).from_json(answer)
-            print(f"<--- {answer1}")
-            if not answer1.ok:
-                db.update_status(client, obj_id, "error", ", ".join(answer1.messages))
-            # TODO continue here
-        except BaseException as ex:
-            msg = util.message(ex)
-            print(f"ERROR: {msg}")
-            db.update_status(client, obj_id, "error", msg)
-
+def start(simulation_port, base_port: int):
     with db.create_client() as client:
         running_sim = db.find_running(client, "running", base_port)
+        print(f"--- Found running for {base_port} {running_sim}")
         if running_sim:
             raise RuntimeError(f"Baseport {base_port} is currently running")
         sim = Simulation(
             base_port=base_port,
         )
         id = db.insert(client, sim.to_dict())
-        send(client, id)
+        print(f"--- Wrote to databas id:{id} sim:{sim}")
+        try:
+            command = StartCommand(
+                id=id,
+                robot1port=base_port * 10 + 0,
+                robot2port=base_port * 10 + 1,
+            )
+            print(f"---> Sending {command}")
+            answer_str = udp.send_and_wait(command.to_json(), simulation_port, 5)
+            answer = dataclass_json(StartResponse).from_json(answer_str)
+            print(f"<--- Result {answer}")
+        except BaseException as ex:
+            msg = util.message(ex)
+            print(f"ERROR: {msg}")
+            db.update_status(client, id, "error", msg)

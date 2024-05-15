@@ -25,7 +25,7 @@ def start(
     ],
     verbose: Annotated[bool, typer.Option("-v", help="Verbose output")] = False,
 ):
-    f = ft.partial(sr.start, base_port)
+    f = ft.partial(sr.start, simulation_port, base_port)
     _call(f, verbose)
 
 
@@ -34,13 +34,6 @@ def tryout(
     verbose: Annotated[bool, typer.Option("-v", help="Verbose output")] = False,
 ):
     _call(to.main, verbose)
-
-
-@app.command()
-def tryoutserver(
-    verbose: Annotated[bool, typer.Option("-v", help="Verbose output")] = False,
-):
-    _call(to.tryout_server, verbose)
 
 
 def _call(f: Callable[[], None], verbose: bool):

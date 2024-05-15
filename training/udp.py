@@ -5,24 +5,20 @@ from typing import Callable
 host = "0.0.0.0"
 
 
-def send_and_wait(data: str, port: int) -> str:
+def send_and_wait(data: str, port: int, timeout_sec: int) -> str:
     server_address_port = (host, port)
     buffer_size = 1024
-    print(f"---> Sendig: {data}")
+    print(f"---> {port} Sendig: {data}")
     my_socket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
-    my_socket.settimeout(2)
+    my_socket.settimeout(timeout_sec)
     try:
-        for i in range(20):
-            data1 = f"{data} - {i}"
-            bytes_to_send = str.encode(data1)
-            my_socket.sendto(bytes_to_send, server_address_port)
-            msg_from_server = my_socket.recvfrom(buffer_size)
-            result = msg_from_server[0].decode("ascii")
-            print(f"---- Response from server {result}")
-        return "Sent 3 messages"
+        bytes_to_send = str.encode(data)
+        my_socket.sendto(bytes_to_send, server_address_port)
+        msg_from_server = my_socket.recvfrom(buffer_size)
+        return msg_from_server[0].decode("ascii")
     finally:
         my_socket.close()
-        print("---- Socket closed")
+        print(f"---- {port} Socket closed")
 
 
 def open_socket(port: int, handler: Callable[[str], str]) -> None:

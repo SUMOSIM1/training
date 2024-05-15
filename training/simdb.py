@@ -34,7 +34,6 @@ def update_status(client: pymongo.MongoClient, doc_id: str, status: str, message
     update_document = {"$set": {"status": status, "message": message}}
     obj_id = ObjectId(doc_id)
     result = sims.update_one({"_id": obj_id}, update_document)
-    print(f"### update {result}")
 
 
 def find_running(
