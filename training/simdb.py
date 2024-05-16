@@ -33,7 +33,7 @@ def update_status(client: pymongo.MongoClient, doc_id: str, status: str, message
     sims = _sim_collection(client)
     update_document = {"$set": {"status": status, "message": message}}
     obj_id = ObjectId(doc_id)
-    result = sims.update_one({"_id": obj_id}, update_document)
+    sims.update_one({"_id": obj_id}, update_document)
 
 
 def find_running(
@@ -45,3 +45,30 @@ def find_running(
         "base_port": base_port,
     }
     return list(sims.find(query))
+
+
+################## query #####################
+
+
+def count_running():
+    with create_client() as client:
+        sims = _sim_collection(client)
+        query = {
+            "status": "running",
+        }
+        cnt = len(list(sims.find(query)))
+        print(f"{cnt} simulations are currently running")
+
+
+def list_running():
+    with create_client() as client:
+        sims = _sim_collection(client)
+        query = {
+            "status": "running",
+        }
+        for i, r in enumerate(sims.find(query)):
+            print(f"{i} {r}")
+
+
+def list_older_one_day():
+    raise NotImplementedError()

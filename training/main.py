@@ -2,6 +2,7 @@ import functools as ft
 from pathlib import Path
 from typing import Callable
 
+import simdb
 import simrunner as sr
 import tryout as to
 import typer
@@ -34,6 +35,21 @@ def tryout(
     verbose: Annotated[bool, typer.Option("-v", help="Verbose output")] = False,
 ):
     _call(to.main, verbose)
+
+
+@app.command()
+def db(
+    query: Annotated[
+        str,
+        typer.Option(
+            help="Name of a query function in module 'simdb'. E.g. 'count_running'"
+        ),
+    ],
+    verbose: Annotated[bool, typer.Option("-v", help="Verbose output")] = False,
+):
+    callable = getattr(simdb, query)
+    print(f"# callable {callable}")
+    _call(callable, verbose)
 
 
 def _call(f: Callable[[], None], verbose: bool):
