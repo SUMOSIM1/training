@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from datetime import datetime
 from enum import Enum
 
 import simdb as db
@@ -47,22 +46,13 @@ class StartResponse(DataClassJsonMixin):
     messages: list[str]
 
 
-@dataclass_json
-@dataclass
-class Simulation:
-    base_port: int
-    started_at: datetime = datetime.now()
-    status: str = "running"  # running, finished, timeout, error
-    message: str = ""
-
-
 def start(simulation_port, base_port: int):
     with db.create_client() as client:
         running_sim = db.find_running(client, "running", base_port)
         print(f"--- Found running for {base_port} {running_sim}")
         if running_sim:
             raise RuntimeError(f"Baseport {base_port} is currently running")
-        sim = Simulation(
+        sim = db.Simulation(
             base_port=base_port,
         )
         id = db.insert(client, sim.to_dict())

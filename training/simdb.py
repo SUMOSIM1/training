@@ -1,8 +1,24 @@
 import datetime as dt
 from abc import ABC
+from dataclasses import dataclass
 
 import pymongo
 from bson import ObjectId
+from dataclasses_json import dataclass_json
+
+SIM_STATUS_RUNNING = "running"
+SIM_STATUS_FINISHED = "finished"
+SIM_STATUS_TIMEOUT = "timeout"
+SIM_STATUS_ERROR = "error"
+
+
+@dataclass_json
+@dataclass
+class Simulation:
+    base_port: int
+    started_at: dt.datetime = dt.datetime.now()
+    status: str = SIM_STATUS_RUNNING
+    message: str = ""
 
 
 def create_client() -> ABC:
@@ -55,7 +71,7 @@ def count_running():
     with create_client() as client:
         sims = _sim_collection(client)
         query = {
-            "status": "running",
+            "status": SIM_STATUS_RUNNING,
         }
         # Using count() on the Cursor does not work ?
         cnt = len(list(sims.find(query)))
@@ -66,7 +82,7 @@ def list_running():
     with create_client() as client:
         sims = _sim_collection(client)
         query = {
-            "status": "running",
+            "status": SIM_STATUS_RUNNING,
         }
         for i, r in enumerate(sims.find(query)):
             print(f"{i} {r}")
@@ -86,7 +102,7 @@ def delete_old_running():
         diff = dt.timedelta(days=1)
         minus = now - diff
 
-        query = {"status": "running", "started_at": {"$lt": minus}}
+        query = {"status": SIM_STATUS_RUNNING, "started_at": {"$lt": minus}}
         answer = sims.delete_many(query)
         if not answer.acknowledged:
             raise RuntimeError(f"Could not delete from mongo db {query}")
