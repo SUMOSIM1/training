@@ -74,7 +74,8 @@ def count_running():
             "status": SIM_STATUS_RUNNING,
         }
         # Using count() on the Cursor does not work ?
-        cnt = len(list(sims.find(query)))
+        cnt = sims.count_documents(query)
+        # cnt = len(list(sims.find(query)))
         print(f"{cnt} simulations are currently running")
 
 
