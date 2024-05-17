@@ -48,7 +48,6 @@ def db(
     verbose: Annotated[bool, typer.Option("-v", help="Verbose output")] = False,
 ):
     callable = getattr(simdb, query)
-    print(f"# callable {callable}")
     _call(callable, verbose)
 
 

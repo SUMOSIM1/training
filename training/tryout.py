@@ -1,3 +1,4 @@
+import datetime as dt
 from dataclasses import dataclass
 from time import sleep
 
@@ -89,6 +90,17 @@ def tryout_server():
     udp.open_socket(tryout_port, handler1)
 
 
+def tryout_date():
+    now = dt.datetime.now()
+    diff = dt.timedelta(days=5)
+    minus = now - diff
+
+    print(f"## now {now}")
+    print(f"## diff 5 days '{diff}'")
+    print(f"## before 5 days '{minus}'")
+
+
 def main():
     # tryout_all_sims()
-    tryout_client()
+    # tryout_client()
+    tryout_date()

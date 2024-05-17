@@ -1,3 +1,4 @@
+import datetime as dt
 from abc import ABC
 
 import pymongo
@@ -56,6 +57,7 @@ def count_running():
         query = {
             "status": "running",
         }
+        # Using count() on the Cursor does not work ?
         cnt = len(list(sims.find(query)))
         print(f"{cnt} simulations are currently running")
 
@@ -75,3 +77,17 @@ def list_latest():
         sims = _sim_collection(client)
         for i, r in enumerate(sims.find().sort({"started_at": -1}).limit(10)):
             print(f"{i} {r}")
+
+
+def delete_old_running():
+    with create_client() as client:
+        sims = _sim_collection(client)
+        now = dt.datetime.now()
+        diff = dt.timedelta(days=1)
+        minus = now - diff
+
+        query = {"status": "running", "started_at": {"$lt": minus}}
+        answer = sims.delete_many(query)
+        if not answer.acknowledged:
+            raise RuntimeError(f"Could not delete from mongo db {query}")
+        print(f"deleted {answer.deleted_count} using {query}")
