@@ -43,6 +43,7 @@ class StartCommand(DataClassJsonMixin):
 @dataclass
 class StartResponse(DataClassJsonMixin):
     ok: bool
+    id: str
     messages: list[str]
 
 
@@ -76,6 +77,11 @@ def start(simulation_port, base_port: int):
             answer_str = udp.send_and_wait(command.to_json(), simulation_port, 5)
             answer = dataclass_json(StartResponse).from_json(answer_str)
             print(f"<--- Result {answer}")
+            if not answer.ok:
+                msg = ", ".join(answer.messages)
+                db.update_status(client, answer.id, "error", msg)
+            else:
+                db.update_status(client, answer.id, "finished", "")
         except BaseException as ex:
             msg = util.message(ex)
             print(f"ERROR: {msg}")

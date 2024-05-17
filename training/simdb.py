@@ -70,5 +70,8 @@ def list_running():
             print(f"{i} {r}")
 
 
-def list_older_one_day():
-    raise NotImplementedError()
+def list_latest():
+    with create_client() as client:
+        sims = _sim_collection(client)
+        for i, r in enumerate(sims.find().sort({"started_at": -1}).limit(10)):
+            print(f"{i} {r}")
