@@ -8,7 +8,6 @@ from dataclasses_json import dataclass_json
 
 SIM_STATUS_RUNNING = "running"
 SIM_STATUS_FINISHED = "finished"
-SIM_STATUS_TIMEOUT = "timeout"
 SIM_STATUS_ERROR = "error"
 
 

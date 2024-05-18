@@ -87,7 +87,7 @@ def tryout_server():
         return f"response to <{msg}>"
 
     print("---> tryout server")
-    udp.open_socket(tryout_port, handler1)
+    udp.open_socket(tryout_port, 5, handler1)
 
 
 def tryout_date():
@@ -103,4 +103,5 @@ def tryout_date():
 def main():
     # tryout_all_sims()
     # tryout_client()
-    tryout_date()
+    # tryout_date()
+    tryout_server()

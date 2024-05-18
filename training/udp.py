@@ -21,26 +21,23 @@ def send_and_wait(data: str, port: int, timeout_sec: int) -> str:
         print(f"---- {port} Socket closed")
 
 
-def open_socket(port: int, handler: Callable[[str], str]) -> None:
+def open_socket(port: int, timeout_sec: int, handler: Callable[[str], str]) -> str:
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
         sock.bind((host, port))
-        print(f"---- Server listening on {host}:{port}")
-        TIMEOUT = 3
+        print(f"---- Server {port} listening")
         active = True
         while active:
-            # wait for request
-            readable, writable, exceptional = select.select([sock], [], [], TIMEOUT)
-            print(f"---- readable - {readable}, {type(readable)}")
-            print(f"---- writable - {writable}, {type(writable)}")
-            print(f"---- exeptional - {exceptional}, {type(exceptional)}")
+            print(f"---- Server {port} waitinng for request")
+            readable, writable, exceptional = select.select([sock], [], [], timeout_sec)
             if readable:
                 data, address = sock.recvfrom(1024)
                 msg = data.decode("utf-8")
-                print(f"---- Received data: {msg} from {address}")
+                print(f"---- Server {port} Received data: {msg} from {address}")
                 resp = handler(msg)
+                print(f"---- Server {port} Sending data: {resp} to {address}")
                 bytes_to_send = str.encode(resp)
                 sock.sendto(bytes_to_send, address)
-
             else:
-                print(f"---- No data received for {TIMEOUT} s --> EXIT")
+                print(f"---- Server {port} No data received for {timeout_sec} s")
                 active = False
+        return f"--- Server {port} closed"
