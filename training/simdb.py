@@ -14,13 +14,14 @@ SIM_STATUS_ERROR = "error"
 @dataclass_json
 @dataclass
 class Simulation:
-    base_port: int
+    port: int
     started_at: dt.datetime = dt.datetime.now()
     status: str = SIM_STATUS_RUNNING
     message: str = ""
 
 
 def create_client() -> ABC:
+    # noinspection PyTypeChecker
     return pymongo.MongoClient("mongodb://localhost:27017/")
 
 

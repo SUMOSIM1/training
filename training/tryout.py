@@ -1,17 +1,13 @@
-import datetime as dt
-from dataclasses import dataclass
 from time import sleep
 
-import simdb as db
-import udp
-import util
+import training.udp
 
 tryout_port = 6000
 
 
 def tryout_client():
     print("---> tryout client")
-    udp.send_and_wait("hallo", tryout_port)
+    training.udp.send_and_wait("hallo", tryout_port)
 
 
 def tryout_server():
@@ -20,7 +16,7 @@ def tryout_server():
         return f"response to <{msg}>"
 
     print("---> tryout server")
-    udp.open_socket(tryout_port, 5, handler1)
+    training.udp.open_socket(tryout_port, 5, handler1)
 
 
 def main():

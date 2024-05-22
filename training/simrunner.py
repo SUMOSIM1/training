@@ -1,10 +1,9 @@
 from dataclasses import dataclass
 from enum import Enum
 
-import simdb as db
-import udp
-import util
-from dataclasses_json import DataClassJsonMixin, dataclass_json
+import training.simdb as db
+import training.udp as udp
+import training.util as util
 
 
 class SectorName(Enum):
@@ -14,99 +13,160 @@ class SectorName(Enum):
     RIGHT = "right"
 
 
+class SendCommand:
+    pass
+
+
+class ReceiveCommand:
+    pass
+
+
 @dataclass
-class SensorDto(DataClassJsonMixin):
+class PosDir:
     xpos: float
     ypos: float
     direction: float
-    opponentinsector: SectorName
-    leftdistance: float
-    frontdistance: float
-    rightdistance: float
-
-
-@dataclass_json
-@dataclass
-class DiffDriveValuesDto:
-    rightvelo: float
-    leftvelo: float
 
 
 @dataclass
-class StartCommand(DataClassJsonMixin):
-    id: str
-    robot1port: int
-    robot2port: int
+class CombiSensor:
+    left_distance: float
+    front_distance: float
+    right_distance: float
+    opponent_in_sector: SectorName
 
 
 @dataclass
-class StartResponse(DataClassJsonMixin):
-    ok: bool
-    id: str
-    messages: list[str]
+class SensorDto:
+    pos_dir: PosDir
+    combi_sensor: CombiSensor
 
 
-def start(simulation_port, base_port: int):
+@dataclass
+class DiffDriveValues:
+    right_velo: float
+    left_velo: float
+
+
+@dataclass
+class StartCommand(SendCommand):
+    pass
+
+
+@dataclass
+class SensorCommand(ReceiveCommand):
+    robot1_sensor: SensorDto
+    robot2_sensor: SensorDto
+
+
+@dataclass
+class DiffDriveCommand(SendCommand):
+    robot1_diff_drive_values: DiffDriveValues
+    robot2_diff_drive_values: DiffDriveValues
+
+
+@dataclass
+class FinishedOkCommand(ReceiveCommand):
+    robot1_rewards: list[(str, str)]
+    robot2_rewards: list[(str, str)]
+
+
+@dataclass
+class FinishedErrorCommand(ReceiveCommand):
+    message: str
+
+
+def start(port: int):
     with db.create_client() as client:
 
         def check_running():
-            running_sim = db.find_running(client, "running", base_port)
-            print(f"--- Found running for {base_port} {running_sim}")
+            running_sim = db.find_running(client, "running", port)
+            print(f"--- Found running for {port} {running_sim}")
             if running_sim:
-                raise RuntimeError(f"Baseport {base_port} is currently running")
+                raise RuntimeError(f"Baseport {port} is currently running")
 
         def insert_new_sim() -> str:
             sim = db.Simulation(
-                base_port=base_port,
+                port=port,
             )
-            id = db.insert(client, sim.to_dict())
-            print(f"--- Wrote to databas id:{id} sim:{sim}")
-            return id
+            _obj_id = db.insert(client, sim.to_dict())
+            print(f"--- Wrote to database id:{_obj_id} sim:{sim}")
+            return _obj_id
 
-        def start_sim_and_wait(
-            id: str, timeout_sec: int, robot1port: int, robot2port: int
-        ) -> str:
-            command = StartCommand(
-                id=id,
-                robot1port=robot1port,
-                robot2port=robot2port,
-            )
-            print(f"---> Sending {command}")
-            resp_str = udp.send_and_wait(
-                command.to_json(), simulation_port, timeout_sec
-            )
-            resp = dataclass_json(StartResponse).from_json(resp_str)
-            print(f"<--- Result {resp}")
-            if not resp.ok:
-                msg = ", ".join(resp.messages)
-                db.update_status(client, resp.id, db.SIM_STATUS_ERROR, msg)
-                return f"Not OK: {msg}"
-            else:
-                db.update_status(client, resp.id, db.SIM_STATUS_FINISHED, "")
-                return ""
-
-        def robot1handler(data: str) -> str:
-            return "# robo 1 #"
-
-        def robot2handler(data: str) -> str:
-            return "# robo 2 #"
+        def send_command_and_wait(command: SendCommand) -> ReceiveCommand:
+            send_str = format_command(command)
+            print(f"---> Sending {command} - {send_str}")
+            resp_str = udp.send_and_wait(send_str, port, 10)
+            resp = parse_command(resp_str)
+            print(f"<--- Result {resp} {resp_str}")
+            return resp
 
         check_running()
-        id = insert_new_sim()
+        obj_id = insert_new_sim()
         try:
-            robot1port = base_port * 10 + 0
-            robot2port = base_port * 10 + 1
-            # start concurrent here
-            functions = [
-                (start_sim_and_wait, id, 4, robot1port, robot2port),
-                (udp.open_socket, robot1port, 5, robot1handler),
-                (udp.open_socket, robot2port, 5, robot2handler),
-            ]
-            results = util.run_concurrent(functions, 10)
-            if results:
-                for result in results:
-                    print(f"## Error calling concurrent [{result}]")
+            command = StartCommand()
+            cnt = 0
+            while True:
+                cnt += 1
+                print("")
+                response: ReceiveCommand = send_command_and_wait(command)
+                match response:
+                    case SensorCommand(r1, r2):
+                        print("sensors", r1, r2)
+                        # TODO Call the controller implementations here + save the
+                        #  posdirs in a list to save it later in the database
+                        raise NotImplementedError()
+                    case FinishedOkCommand(r1, r2):
+                        print("rewards", r1, r2)
+                        # TODO save the rewards in the database and set the the
+                        #  status to finished
+                        raise NotImplementedError()
+                    case FinishedErrorCommand(msg):
+                        db.update_status(client, obj_id, db.SIM_STATUS_ERROR, msg)
+                        print(f"Finished with ERROR: {obj_id} {msg}")
+                        break
+
         except BaseException as ex:
             msg = util.message(ex)
             print(f"ERROR: {msg}")
-            db.update_status(client, id, db.SIM_STATUS_ERROR, msg)
+            db.update_status(client, obj_id, db.SIM_STATUS_ERROR, msg)
+
+
+def format_command(cmd: SendCommand) -> str:
+    def format_float(value: float) -> str:
+        return f"{value:.4f}"
+
+    def format_diff_drive_values(values: DiffDriveValues) -> str:
+        return f"{format_float(values.left_velo)};{format_float(values.right_velo)}"
+
+    match cmd:
+        case StartCommand():
+            return "A|"
+        case DiffDriveCommand(r1, r2):
+            return f"C|{format_diff_drive_values(r1)}#{format_diff_drive_values(r2)}"
+        case _:
+            raise NotImplementedError(f"format_command {cmd}")
+
+
+def parse_command(data: str) -> ReceiveCommand:
+    def parse_sensor_dto(sensor_data: str) -> SensorDto:
+        ds = sensor_data.split(";")
+        return SensorDto(
+            pos_dir=PosDir(float(ds[0]), float(ds[1]), float(ds[2])),
+            combi_sensor=CombiSensor(
+                left_distance=float(ds[3]),
+                front_distance=float(ds[4]),
+                right_distance=float(ds[5]),
+                opponent_in_sector=SectorName[ds[6]],
+            )
+        )
+
+    (h, d) = data.split("|")
+    match h:
+        case "E":
+            return FinishedErrorCommand(d)
+        case "B":
+            (r1, r2) = d.split("#")
+            return SensorCommand(parse_sensor_dto(r1), parse_sensor_dto(r2))
+        case _:
+            raise NotImplementedError(f"parse_command {data}")

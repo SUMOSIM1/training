@@ -2,12 +2,13 @@ import functools as ft
 from pathlib import Path
 from typing import Callable
 
-import simdb
-import simrunner as sr
-import tryout as to
 import typer
-import util
 from typing_extensions import Annotated
+
+import training.simdb
+import training.simrunner as sr
+import training.tryout as to
+import training.util
 
 app = typer.Typer()
 
@@ -17,16 +18,12 @@ simpath_default = Path.home() / "prj" / "SUMOSIM" / "sumosim"
 
 @app.command()
 def start(
-    simulation_port: Annotated[
+    port: Annotated[
         int, typer.Option(help="The port on which the simulation is listening")
-    ],
-    base_port: Annotated[
-        int,
-        typer.Option(help="base port. E.g 455 will use ports 4550, 4551, 4552, ..."),
     ],
     verbose: Annotated[bool, typer.Option("-v", help="Verbose output")] = False,
 ):
-    f = ft.partial(sr.start, simulation_port, base_port)
+    f = ft.partial(sr.start, port)
     _call(f, verbose)
 
 
@@ -47,7 +44,7 @@ def db(
     ],
     verbose: Annotated[bool, typer.Option("-v", help="Verbose output")] = False,
 ):
-    callable = getattr(simdb, query)
+    callable = getattr(training.simdb, query)
     _call(callable, verbose)
 
 
@@ -58,7 +55,7 @@ def _call(f: Callable[[], None], verbose: bool):
         try:
             f()
         except Exception as e:
-            msg = util.message(e)
+            msg = training.util.message(e)
             print(f"ERROR: {msg}")
 
 
