@@ -11,14 +11,10 @@ def send_and_wait(data: str, port: int, timeout_sec: int) -> str:
     print(f"---> {port} Sendig: {data}")
     my_socket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
     my_socket.settimeout(timeout_sec)
-    try:
-        bytes_to_send = str.encode(data)
-        my_socket.sendto(bytes_to_send, server_address_port)
-        msg_from_server = my_socket.recvfrom(buffer_size)
-        return msg_from_server[0].decode("ascii")
-    finally:
-        my_socket.close()
-        print(f"---- {port} Socket closed")
+    bytes_to_send = str.encode(data)
+    my_socket.sendto(bytes_to_send, server_address_port)
+    msg_from_server = my_socket.recvfrom(buffer_size)
+    return msg_from_server[0].decode("ascii")
 
 
 def open_socket(port: int, timeout_sec: int, handler: Callable[[str], str]) -> str:

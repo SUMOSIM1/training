@@ -113,9 +113,9 @@ def start(port: int):
                 match response:
                     case SensorCommand(r1, r2):
                         print("sensors", r1, r2)
-                        # TODO Call the controller implementations here + save the
-                        #  posdirs in a list to save it later in the database
-                        raise NotImplementedError()
+                        r1 = DiffDriveValues(0.5, 0.4)
+                        r2 = DiffDriveValues(0.3, 0.4)
+                        command = DiffDriveCommand(r1, r2)
                     case FinishedOkCommand(r1, r2):
                         print("rewards", r1, r2)
                         # TODO save the rewards in the database and set the the
