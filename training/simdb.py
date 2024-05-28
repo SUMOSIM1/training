@@ -46,9 +46,16 @@ def find_all(client: pymongo.MongoClient) -> dict:
     return list(sims.find())
 
 
-def update_status(client: pymongo.MongoClient, doc_id: str, status: str, message: str):
+def update_status_error(client: pymongo.MongoClient, doc_id: str, message: str):
     sims = _sim_collection(client)
-    update_document = {"$set": {"status": status, "message": message}}
+    update_document = {"$set": {"status": SIM_STATUS_ERROR, "message": message}}
+    obj_id = ObjectId(doc_id)
+    sims.update_one({"_id": obj_id}, update_document)
+
+
+def update_status_finished(client: pymongo.MongoClient, doc_id: str, events: dict):
+    sims = _sim_collection(client)
+    update_document = {"$set": {"status": SIM_STATUS_FINISHED, "events": events}}
     obj_id = ObjectId(doc_id)
     sims.update_one({"_id": obj_id}, update_document)
 

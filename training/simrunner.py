@@ -117,19 +117,19 @@ def start(port: int):
                         r2 = DiffDriveValues(0.3, 0.4)
                         command = DiffDriveCommand(r1, r2)
                     case FinishedOkCommand(r1, r2):
-                        print("rewards", r1, r2)
-                        # TODO save the rewards in the database and set the the
-                        #  status to finished
-                        raise NotImplementedError()
+                        events_dict = {"r1": r1, "r2": r2}
+                        db.update_status_finished(client, obj_id, events_dict)
+                        print(f"Finished with OK: {obj_id} {events_dict}")
+                        break
                     case FinishedErrorCommand(msg):
-                        db.update_status(client, obj_id, db.SIM_STATUS_ERROR, msg)
+                        db.update_status_error(client, obj_id, msg)
                         print(f"Finished with ERROR: {obj_id} {msg}")
                         break
 
         except BaseException as ex:
             msg = util.message(ex)
             print(f"ERROR: {msg}")
-            db.update_status(client, obj_id, db.SIM_STATUS_ERROR, msg)
+            db.update_status_error(client, obj_id, msg)
 
 
 def format_command(cmd: SendCommand) -> str:
@@ -158,8 +158,16 @@ def parse_command(data: str) -> ReceiveCommand:
                 front_distance=float(ds[4]),
                 right_distance=float(ds[5]),
                 opponent_in_sector=SectorName[ds[6]],
-            )
+            ),
         )
+
+    def parse_finished(data: str) -> SensorDto:
+        print(f"--- data '{data}'")
+        if data:
+            ds = data.split(";")
+            return [(d.split("!")[0], d.split("!")[1]) for d in ds]
+        else:
+            return []
 
     (h, d) = data.split("|")
     match h:
@@ -168,5 +176,8 @@ def parse_command(data: str) -> ReceiveCommand:
         case "B":
             (r1, r2) = d.split("#")
             return SensorCommand(parse_sensor_dto(r1), parse_sensor_dto(r2))
+        case "D":
+            (r1, r2) = d.split("#")
+            return FinishedOkCommand(parse_finished(r1), parse_finished(r2))
         case _:
             raise NotImplementedError(f"parse_command {data}")
