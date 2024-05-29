@@ -53,9 +53,9 @@ def update_status_error(client: pymongo.MongoClient, doc_id: str, message: str):
     sims.update_one({"_id": obj_id}, update_document)
 
 
-def update_status_finished(client: pymongo.MongoClient, doc_id: str, events: dict):
+def update_status_finished(client: pymongo.MongoClient, doc_id: str, events: dict, states: list):
     sims = _sim_collection(client)
-    update_document = {"$set": {"status": SIM_STATUS_FINISHED, "events": events}}
+    update_document = {"$set": {"status": SIM_STATUS_FINISHED, "events": events, "states": states}}
     obj_id = ObjectId(doc_id)
     sims.update_one({"_id": obj_id}, update_document)
 

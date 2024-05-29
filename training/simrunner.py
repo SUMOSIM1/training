@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from dataclasses_json import dataclass_json
 from enum import Enum
 
 import training.simdb as db
@@ -21,6 +22,7 @@ class ReceiveCommand:
     pass
 
 
+@dataclass_json
 @dataclass
 class PosDir:
     xpos: float
@@ -70,6 +72,11 @@ class FinishedOkCommand(ReceiveCommand):
     robot1_rewards: list[(str, str)]
     robot2_rewards: list[(str, str)]
 
+@dataclass_json
+@dataclass
+class SimulationState:
+    robot1: PosDir
+    robot2: PosDir
 
 @dataclass
 class FinishedErrorCommand(ReceiveCommand):
@@ -77,6 +84,9 @@ class FinishedErrorCommand(ReceiveCommand):
 
 
 def start(port: int):
+
+    simulation_states = []
+
     with db.create_client() as client:
 
         def check_running():
@@ -113,13 +123,19 @@ def start(port: int):
                 match response:
                     case SensorCommand(r1, r2):
                         print("sensors", r1, r2)
+                        state = SimulationState(r1.pos_dir, r2.pos_dir)
+                        simulation_states.append(state)
+
+                        # This will be a controller class
                         r1 = DiffDriveValues(0.5, 0.4)
                         r2 = DiffDriveValues(0.3, 0.4)
+                        
                         command = DiffDriveCommand(r1, r2)
                     case FinishedOkCommand(r1, r2):
                         events_dict = {"r1": r1, "r2": r2}
-                        db.update_status_finished(client, obj_id, events_dict)
-                        print(f"Finished with OK: {obj_id} {events_dict}")
+                        state_list = [state.to_json() for state in simulation_states]
+                        db.update_status_finished(client, obj_id, events_dict, state_list)
+                        print(f"Finished with OK: {obj_id} {events_dict} {state_list[:5]}...")
                         break
                     case FinishedErrorCommand(msg):
                         db.update_status_error(client, obj_id, msg)
