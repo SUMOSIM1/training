@@ -126,7 +126,13 @@ def start(port: int):
                         state = SimulationState(r1.pos_dir, r2.pos_dir)
                         simulation_states.append(state)
 
-                        # This will be a controller class
+                        # Continue here
+                        # Create controller which implement name and description and store
+                        # a name and description for all simulations in the database
+                        # name = c1.name + c2.name
+                        # desc = yaml: r1.desc + r2.desc
+                        # robot desc: name of the robot + optional parameter
+                        #             desc of the controller + optional parameters
                         r1 = DiffDriveValues(0.5, 0.4)
                         r2 = DiffDriveValues(0.3, 0.4)
                         
