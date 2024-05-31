@@ -43,7 +43,7 @@ def find(client: pymongo.MongoClient, id: str) -> dict:
     raise NotImplementedError()
 
 
-def find_all(client: pymongo.MongoClient) -> dict:
+def find_all(client: pymongo.MongoClient) -> list:
     sims = _sim_collection(client)
     return list(sims.find())
 
@@ -56,7 +56,7 @@ def update_status_error(client: pymongo.MongoClient, doc_id: str, message: str):
 
 
 def update_status_finished(
-    client: pymongo.MongoClient, doc_id: str, events: dict, states: list
+        client: pymongo.MongoClient, doc_id: str, events: dict, states: list
 ):
     sims = _sim_collection(client)
     update_document = {
@@ -67,7 +67,7 @@ def update_status_finished(
 
 
 def find_running(
-    client: pymongo.MongoClient, status: str, base_port: int
+        client: pymongo.MongoClient, status: str, base_port: int
 ) -> list[dict]:
     sims = _sim_collection(client)
     query = {
@@ -110,7 +110,8 @@ def list_latest_full():
 def list_latest():
     with create_client() as client:
         sims = _sim_collection(client)
-        for i, r in enumerate(sims.find({}, {"started_at": 1, "status": 1, "name": 1, "description": 1}).sort({"started_at": -1, }).limit(10)):
+        for i, r in enumerate(sims.find({}, {"started_at": 1, "status": 1, "name": 1, "description": 1}).sort(
+                {"started_at": -1, }).limit(10)):
             print(f"{i} {r}")
 
 
@@ -122,6 +123,20 @@ def delete_old_running():
         minus = now - diff
 
         query = {"status": SIM_STATUS_RUNNING, "started_at": {"$lt": minus}}
+        answer = sims.delete_many(query)
+        if not answer.acknowledged:
+            raise RuntimeError(f"Could not delete from mongo db {query}")
+        print(f"deleted {answer.deleted_count} using {query}")
+
+
+def delete_old():
+    with create_client() as client:
+        sims = _sim_collection(client)
+        now = dt.datetime.now()
+        diff = dt.timedelta(hours=24)
+        minus = now - diff
+
+        query = {"started_at": {"$lt": minus}}
         answer = sims.delete_many(query)
         if not answer.acknowledged:
             raise RuntimeError(f"Could not delete from mongo db {query}")
