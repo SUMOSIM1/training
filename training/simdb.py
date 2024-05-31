@@ -15,6 +15,8 @@ SIM_STATUS_ERROR = "error"
 @dataclass
 class Simulation:
     port: int
+    name: str
+    description: dict
     started_at: dt.datetime = dt.datetime.now()
     status: str = SIM_STATUS_RUNNING
     message: str = ""
@@ -53,9 +55,13 @@ def update_status_error(client: pymongo.MongoClient, doc_id: str, message: str):
     sims.update_one({"_id": obj_id}, update_document)
 
 
-def update_status_finished(client: pymongo.MongoClient, doc_id: str, events: dict, states: list):
+def update_status_finished(
+    client: pymongo.MongoClient, doc_id: str, events: dict, states: list
+):
     sims = _sim_collection(client)
-    update_document = {"$set": {"status": SIM_STATUS_FINISHED, "events": events, "states": states}}
+    update_document = {
+        "$set": {"status": SIM_STATUS_FINISHED, "events": events, "states": states}
+    }
     obj_id = ObjectId(doc_id)
     sims.update_one({"_id": obj_id}, update_document)
 
@@ -94,10 +100,17 @@ def list_running():
             print(f"{i} {r}")
 
 
-def list_latest():
+def list_latest_full():
     with create_client() as client:
         sims = _sim_collection(client)
         for i, r in enumerate(sims.find().sort({"started_at": -1}).limit(10)):
+            print(f"{i} {r}")
+
+
+def list_latest():
+    with create_client() as client:
+        sims = _sim_collection(client)
+        for i, r in enumerate(sims.find({}, {"started_at": 1, "status": 1, "name": 1, "description": 1}).sort({"started_at": -1, }).limit(10)):
             print(f"{i} {r}")
 
 

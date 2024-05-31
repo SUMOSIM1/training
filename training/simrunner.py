@@ -1,17 +1,13 @@
 from dataclasses import dataclass
-from dataclasses_json import dataclass_json
 from enum import Enum
+
+from dataclasses_json import dataclass_json
 
 import training.simdb as db
 import training.udp as udp
 import training.util as util
 
-
-class SectorName(Enum):
-    UNDEF = "undef"
-    LEFT = "left"
-    CENTER = "center"
-    RIGHT = "right"
+import training.controller as ctl
 
 
 class SendCommand:
@@ -31,23 +27,9 @@ class PosDir:
 
 
 @dataclass
-class CombiSensor:
-    left_distance: float
-    front_distance: float
-    right_distance: float
-    opponent_in_sector: SectorName
-
-
-@dataclass
 class SensorDto:
     pos_dir: PosDir
-    combi_sensor: CombiSensor
-
-
-@dataclass
-class DiffDriveValues:
-    right_velo: float
-    left_velo: float
+    combi_sensor: ctl.CombiSensor
 
 
 @dataclass
@@ -63,8 +45,8 @@ class SensorCommand(ReceiveCommand):
 
 @dataclass
 class DiffDriveCommand(SendCommand):
-    robot1_diff_drive_values: DiffDriveValues
-    robot2_diff_drive_values: DiffDriveValues
+    robot1_diff_drive_values: ctl.DiffDriveValues
+    robot2_diff_drive_values: ctl.DiffDriveValues
 
 
 @dataclass
@@ -72,11 +54,13 @@ class FinishedOkCommand(ReceiveCommand):
     robot1_rewards: list[(str, str)]
     robot2_rewards: list[(str, str)]
 
+
 @dataclass_json
 @dataclass
 class SimulationState:
     robot1: PosDir
     robot2: PosDir
+
 
 @dataclass
 class FinishedErrorCommand(ReceiveCommand):
@@ -84,6 +68,8 @@ class FinishedErrorCommand(ReceiveCommand):
 
 
 def start(port: int):
+    controller1 = ctl.ControllerProvider.get("slow-circle")
+    controller2 = ctl.ControllerProvider.get("fast-circle")
 
     simulation_states = []
 
@@ -96,8 +82,15 @@ def start(port: int):
                 raise RuntimeError(f"Baseport {port} is currently running")
 
         def insert_new_sim() -> str:
+            sim_name = f"{controller1.name()}|{controller2.name()}"
+            sim_description = {
+                "controller1": controller1.description(),
+                "controller2": controller2.description(),
+            }
             sim = db.Simulation(
                 port=port,
+                name=sim_name,
+                description=sim_description,
             )
             _obj_id = db.insert(client, sim.to_dict())
             print(f"--- Wrote to database id:{_obj_id} sim:{sim}")
@@ -121,27 +114,25 @@ def start(port: int):
                 print("")
                 response: ReceiveCommand = send_command_and_wait(command)
                 match response:
-                    case SensorCommand(r1, r2):
-                        print("sensors", r1, r2)
-                        state = SimulationState(r1.pos_dir, r2.pos_dir)
+                    case SensorCommand(s1, s2):
+                        print("sensors", s1, s2)
+                        state = SimulationState(s1.pos_dir, s2.pos_dir)
                         simulation_states.append(state)
 
-                        # Continue here
-                        # Create controller which implement name and description and store
-                        # a name and description for all simulations in the database
-                        # name = c1.name + c2.name
-                        # desc = yaml: r1.desc + r2.desc
-                        # robot desc: name of the robot + optional parameter
-                        #             desc of the controller + optional parameters
-                        r1 = DiffDriveValues(0.5, 0.4)
-                        r2 = DiffDriveValues(0.3, 0.4)
-                        
+                        r1 = controller1.take_step(s1)
+                        r2 = controller1.take_step(s2)
+
                         command = DiffDriveCommand(r1, r2)
                     case FinishedOkCommand(r1, r2):
                         events_dict = {"r1": r1, "r2": r2}
                         state_list = [state.to_json() for state in simulation_states]
-                        db.update_status_finished(client, obj_id, events_dict, state_list)
-                        print(f"Finished with OK: {obj_id} {events_dict} {state_list[:5]}...")
+                        db.update_status_finished(
+                            client, obj_id, events_dict, state_list
+                        )
+                        print(
+                            f"Finished with OK: {obj_id} {events_dict}"
+                            f"{state_list[:5]}..."
+                        )
                         break
                     case FinishedErrorCommand(msg):
                         db.update_status_error(client, obj_id, msg)
@@ -158,7 +149,7 @@ def format_command(cmd: SendCommand) -> str:
     def format_float(value: float) -> str:
         return f"{value:.4f}"
 
-    def format_diff_drive_values(values: DiffDriveValues) -> str:
+    def format_diff_drive_values(values: ctl.DiffDriveValues) -> str:
         return f"{format_float(values.left_velo)};{format_float(values.right_velo)}"
 
     match cmd:
@@ -175,11 +166,11 @@ def parse_command(data: str) -> ReceiveCommand:
         ds = sensor_data.split(";")
         return SensorDto(
             pos_dir=PosDir(float(ds[0]), float(ds[1]), float(ds[2])),
-            combi_sensor=CombiSensor(
+            combi_sensor=ctl.CombiSensor(
                 left_distance=float(ds[3]),
                 front_distance=float(ds[4]),
                 right_distance=float(ds[5]),
-                opponent_in_sector=SectorName[ds[6]],
+                opponent_in_sector=ctl.SectorName[ds[6]],
             ),
         )
 
