@@ -82,7 +82,7 @@ def start(port: int):
                 raise RuntimeError(f"Baseport {port} is currently running")
 
         def insert_new_sim() -> str:
-            sim_name = f"{controller1.name()}|{controller2.name()}"
+            sim_name = f"{controller1.name()} : {controller2.name()}"
             sim_description = {
                 "controller1": controller1.description(),
                 "controller2": controller2.description(),
