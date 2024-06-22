@@ -48,7 +48,7 @@ class ControllerProvider:
 
 def _circle_description(left: float, right: float) -> dict:
     return {
-        "description": "Drives with a constant speed for each weel",
+        "description": "Drives with a constant speed for each wheel",
         "left wheel": left,
         "right wheel": right,
     }

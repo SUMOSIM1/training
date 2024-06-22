@@ -1,4 +1,5 @@
 import datetime as dt
+import pprint
 from abc import ABC
 from dataclasses import dataclass
 
@@ -13,10 +14,18 @@ SIM_STATUS_ERROR = "error"
 
 @dataclass_json
 @dataclass
+class SimulationRobot:
+    name: str
+    description: dict
+
+
+@dataclass_json
+@dataclass
 class Simulation:
     port: int
     name: str
-    description: dict
+    robot1: SimulationRobot
+    robot2: SimulationRobot
     started_at: dt.datetime = dt.datetime.now()
     status: str = SIM_STATUS_RUNNING
     message: str = ""
@@ -56,7 +65,7 @@ def update_status_error(client: pymongo.MongoClient, doc_id: str, message: str):
 
 
 def update_status_finished(
-        client: pymongo.MongoClient, doc_id: str, events: dict, states: list
+    client: pymongo.MongoClient, doc_id: str, events: dict, states: list
 ):
     sims = _sim_collection(client)
     update_document = {
@@ -67,7 +76,7 @@ def update_status_finished(
 
 
 def find_running(
-        client: pymongo.MongoClient, status: str, base_port: int
+    client: pymongo.MongoClient, status: str, base_port: int
 ) -> list[dict]:
     sims = _sim_collection(client)
     query = {
@@ -107,12 +116,28 @@ def list_latest_full():
             print(f"{i} {r}")
 
 
+def list_all():
+    with create_client() as client:
+        sims = _sim_collection(client)
+        for i, r in enumerate(sims.find().sort({"started_at": -1}).limit(10)):
+            print(f"--- {i} ---------------------------------")
+            pprint.pprint(r)
+
+
 def list_latest():
     with create_client() as client:
         sims = _sim_collection(client)
-        for i, r in enumerate(sims.find({}, {"started_at": 1, "status": 1, "name": 1, "description": 1}).sort(
-                {"started_at": -1, }).limit(10)):
-            print(f"{i} {r}")
+        for i, r in enumerate(
+            sims.find({}, {"started_at": 1, "status": 1, "name": 1, "description": 1})
+            .sort(
+                {
+                    "started_at": -1,
+                }
+            )
+            .limit(10)
+        ):
+            print(f"--- {i} ---------------------------------")
+            pprint.pprint(r)
 
 
 def delete_old_running():
@@ -140,4 +165,5 @@ def delete_old():
         answer = sims.delete_many(query)
         if not answer.acknowledged:
             raise RuntimeError(f"Could not delete from mongo db {query}")
-        print(f"deleted {answer.deleted_count} using {query}")
+        qstr = pprint.pformat(query)
+        print(f"deleted {answer.deleted_count} using {qstr}")

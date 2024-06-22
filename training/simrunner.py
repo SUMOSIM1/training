@@ -1,13 +1,11 @@
 from dataclasses import dataclass
-from enum import Enum
 
 from dataclasses_json import dataclass_json
 
+import training.controller as ctl
 import training.simdb as db
 import training.udp as udp
 import training.util as util
-
-import training.controller as ctl
 
 
 class SendCommand:
@@ -67,7 +65,7 @@ class FinishedErrorCommand(ReceiveCommand):
     message: str
 
 
-def start(port: int):
+def start(port: int, sim_name: str = "TEST01"):
     controller1 = ctl.ControllerProvider.get("slow-circle")
     controller2 = ctl.ControllerProvider.get("fast-circle")
 
@@ -82,23 +80,27 @@ def start(port: int):
                 raise RuntimeError(f"Baseport {port} is currently running")
 
         def insert_new_sim() -> str:
-            sim_name = f"{controller1.name()} : {controller2.name()}"
-            sim_description = {
-                "controller1": controller1.description(),
-                "controller2": controller2.description(),
-            }
+            sim_robot1 = db.SimulationRobot(
+                name=controller1.name(),
+                description=controller1.description(),
+            )
+            sim_robot2 = db.SimulationRobot(
+                name=controller2.name(),
+                description=controller2.description(),
+            )
             sim = db.Simulation(
                 port=port,
                 name=sim_name,
-                description=sim_description,
+                robot1=sim_robot1,
+                robot2=sim_robot2,
             )
             _obj_id = db.insert(client, sim.to_dict())
             print(f"--- Wrote to database id:{_obj_id} sim:{sim}")
             return _obj_id
 
-        def send_command_and_wait(command: SendCommand) -> ReceiveCommand:
-            send_str = format_command(command)
-            print(f"---> Sending {command} - {send_str}")
+        def send_command_and_wait(cmd: SendCommand) -> ReceiveCommand:
+            send_str = format_command(cmd)
+            print(f"---> Sending {cmd} - {send_str}")
             resp_str = udp.send_and_wait(send_str, port, 10)
             resp = parse_command(resp_str)
             print(f"<--- Result {resp} {resp_str}")
@@ -125,13 +127,12 @@ def start(port: int):
                         command = DiffDriveCommand(r1, r2)
                     case FinishedOkCommand(r1, r2):
                         events_dict = {"r1": r1, "r2": r2}
-                        state_list = [state.to_json() for state in simulation_states]
                         db.update_status_finished(
-                            client, obj_id, events_dict, state_list
+                            client, obj_id, events_dict, simulation_states
                         )
                         print(
                             f"Finished with OK: {obj_id} {events_dict}"
-                            f"{state_list[:5]}..."
+                            f"{simulation_states[:5]}..."
                         )
                         break
                     case FinishedErrorCommand(msg):
