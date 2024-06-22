@@ -65,6 +65,7 @@ class FinishedErrorCommand(ReceiveCommand):
     message: str
 
 
+# noinspection PyUnresolvedReferences
 def start(port: int, sim_name: str = "TEST01"):
     controller1 = ctl.ControllerProvider.get("slow-circle")
     controller2 = ctl.ControllerProvider.get("fast-circle")
@@ -127,9 +128,8 @@ def start(port: int, sim_name: str = "TEST01"):
                         command = DiffDriveCommand(r1, r2)
                     case FinishedOkCommand(r1, r2):
                         events_dict = {"r1": r1, "r2": r2}
-                        db.update_status_finished(
-                            client, obj_id, events_dict, simulation_states
-                        )
+                        dicts = [s.to_dict() for s in simulation_states]
+                        db.update_status_finished(client, obj_id, events_dict, dicts)
                         print(
                             f"Finished with OK: {obj_id} {events_dict}"
                             f"{simulation_states[:5]}..."
@@ -175,23 +175,23 @@ def parse_command(data: str) -> ReceiveCommand:
             ),
         )
 
-    def parse_finished(data: str) -> SensorDto:
-        print(f"--- data '{data}'")
-        if data:
-            ds = data.split(";")
+    def parse_finished(finished_data: str) -> list:
+        print(f"--- data '{finished_data}'")
+        if finished_data:
+            ds = finished_data.split(";")
             return [(d.split("!")[0], d.split("!")[1]) for d in ds]
         else:
             return []
 
-    (h, d) = data.split("|")
-    match h:
+    (head, body) = data.split("|")
+    match head:
         case "E":
-            return FinishedErrorCommand(d)
+            return FinishedErrorCommand(body)
         case "B":
-            (r1, r2) = d.split("#")
+            (r1, r2) = body.split("#")
             return SensorCommand(parse_sensor_dto(r1), parse_sensor_dto(r2))
         case "D":
-            (r1, r2) = d.split("#")
+            (r1, r2) = body.split("#")
             return FinishedOkCommand(parse_finished(r1), parse_finished(r2))
         case _:
             raise NotImplementedError(f"parse_command {data}")
