@@ -67,7 +67,7 @@ class FinishedErrorCommand(ReceiveCommand):
 
 
 # noinspection PyUnresolvedReferences
-def start(port: int, sim_name: str = "TEST02"):
+def start(port: int, sim_name: str = "TEST03"):
     controller1 = ctl.ControllerProvider.get("slow-circle")
     controller2 = ctl.ControllerProvider.get("fast-circle")
 
@@ -124,7 +124,7 @@ def start(port: int, sim_name: str = "TEST02"):
                         simulation_states.append(state)
 
                         r1 = controller1.take_step(s1)
-                        r2 = controller1.take_step(s2)
+                        r2 = controller2.take_step(s2)
 
                         command = DiffDriveCommand(r1, r2, cnt)
                     case FinishedOkCommand(r1, r2):

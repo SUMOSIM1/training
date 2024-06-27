@@ -56,7 +56,7 @@ def _circle_description(left: float, right: float) -> dict:
 
 class FastCircleController(Controller):
     left_wheel = 0.9
-    right_wheel = 0.3
+    right_wheel = 0.8
 
     def take_step(self, sensor: CombiSensor) -> DiffDriveValues:
         return DiffDriveValues(self.left_wheel, self.right_wheel)
@@ -69,8 +69,8 @@ class FastCircleController(Controller):
 
 
 class SlowCircleController(Controller):
-    left_wheel = 0.5
-    right_wheel = 0.2
+    left_wheel = 0.2
+    right_wheel = 0.4
 
     def take_step(self, sensor: CombiSensor) -> DiffDriveValues:
         return DiffDriveValues(self.left_wheel, self.right_wheel)
