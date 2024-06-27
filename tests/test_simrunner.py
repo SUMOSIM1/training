@@ -10,8 +10,8 @@ def test_format_command_start():
 def test_format_diff_drive():
     r1 = ctr.DiffDriveValues(1.5, 4.3)
     r2 = ctr.DiffDriveValues(-1.2, 44.0)
-    data = sr.format_command(sr.DiffDriveCommand(r1, r2))
-    assert data == "C|4.3000;1.5000#44.0000;-1.2000"
+    data = sr.format_command(sr.DiffDriveCommand(r1, r2, 123))
+    assert data == "C|4.3000;1.5000#44.0000;-1.2000#123"
 
 
 def test_parse_sensor():

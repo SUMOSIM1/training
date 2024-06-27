@@ -41,7 +41,7 @@ class ControllerProvider:
             case "fast-circle":
                 return FastCircleController()
             case "slow-circle":
-                return FastCircleController()
+                return SlowCircleController()
             case _:
                 raise RuntimeError(f"Unknown controller {name}")
 
@@ -55,8 +55,8 @@ def _circle_description(left: float, right: float) -> dict:
 
 
 class FastCircleController(Controller):
-    left_wheel = 0.5
-    right_wheel = 0.5
+    left_wheel = 0.9
+    right_wheel = 0.3
 
     def take_step(self, sensor: CombiSensor) -> DiffDriveValues:
         return DiffDriveValues(self.left_wheel, self.right_wheel)
@@ -69,7 +69,7 @@ class FastCircleController(Controller):
 
 
 class SlowCircleController(Controller):
-    left_wheel = 0.3
+    left_wheel = 0.5
     right_wheel = 0.2
 
     def take_step(self, sensor: CombiSensor) -> DiffDriveValues:

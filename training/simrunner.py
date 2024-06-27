@@ -45,6 +45,7 @@ class SensorCommand(ReceiveCommand):
 class DiffDriveCommand(SendCommand):
     robot1_diff_drive_values: ctl.DiffDriveValues
     robot2_diff_drive_values: ctl.DiffDriveValues
+    stepsCount: int
 
 
 @dataclass
@@ -66,7 +67,7 @@ class FinishedErrorCommand(ReceiveCommand):
 
 
 # noinspection PyUnresolvedReferences
-def start(port: int, sim_name: str = "TEST01"):
+def start(port: int, sim_name: str = "TEST02"):
     controller1 = ctl.ControllerProvider.get("slow-circle")
     controller2 = ctl.ControllerProvider.get("fast-circle")
 
@@ -125,7 +126,7 @@ def start(port: int, sim_name: str = "TEST01"):
                         r1 = controller1.take_step(s1)
                         r2 = controller1.take_step(s2)
 
-                        command = DiffDriveCommand(r1, r2)
+                        command = DiffDriveCommand(r1, r2, cnt)
                     case FinishedOkCommand(r1, r2):
                         events_dict = {"r1": r1, "r2": r2}
                         dicts = [s.to_dict() for s in simulation_states]
@@ -156,8 +157,10 @@ def format_command(cmd: SendCommand) -> str:
     match cmd:
         case StartCommand():
             return "A|"
-        case DiffDriveCommand(r1, r2):
-            return f"C|{format_diff_drive_values(r1)}#{format_diff_drive_values(r2)}"
+        case DiffDriveCommand(r1, r2, cnt):
+            return (
+                f"C|{format_diff_drive_values(r1)}#{format_diff_drive_values(r2)}#{cnt}"
+            )
         case _:
             raise NotImplementedError(f"format_command {cmd}")
 
