@@ -10,9 +10,15 @@ test_parameters_a = MappingParameters(
     max_view_distance=300.0,
     step_count_view_distance=3,
 )
+test_parameters_b = MappingParameters(
+    max_speed=40,
+    step_count_speed=4,
+    max_view_distance=500.0,
+    step_count_view_distance=5,
+)
 
 
-sensor_testdata = [
+sensor_a_testdata = [
     (
         CombiSensor(
             left_distance=0.0,
@@ -47,7 +53,7 @@ sensor_testdata = [
             right_distance=399.9,
             opponent_in_sector=SectorName.CENTER,
         ),
-        _cv(0, 3) + _cv(1, 3) + _cv(2, 3) + _cv(1, 3),
+        _cv(1, 3) + _cv(1, 3) + _cv(3, 3) + _cv(1, 3),
     ),
     (
         CombiSensor(
@@ -56,14 +62,33 @@ sensor_testdata = [
             right_distance=400.1,
             opponent_in_sector=SectorName.RIGHT,
         ),
-        _cv(1, 3) + _cv(2, 3) + _cv(-1, 3) + _cv(2, 3),
+        _cv(2, 3) + _cv(3, 3) + _cv(3, 3) + _cv(2, 3),
     ),
 ]
 
 
-@pytest.mark.parametrize("sensor, expected", sensor_testdata)
-def test_sensor(sensor: CombiSensor, expected: list[float]):
+@pytest.mark.parametrize("sensor, expected", sensor_a_testdata)
+def test_sensor_a(sensor: CombiSensor, expected: list[float]):
     result = vm.sensor_to_vector(sensor, test_parameters_a)
+    assert result == expected
+
+
+sensor_b_testdata = [
+    (
+        CombiSensor(
+            left_distance=250.0,
+            front_distance=350.0,
+            right_distance=501.0,
+            opponent_in_sector=SectorName.UNDEF,
+        ),
+        _cv(2, 5) + _cv(3, 5) + _cv(-1, 5) + _cv(-1, 3),
+    ),
+]
+
+
+@pytest.mark.parametrize("sensor, expected", sensor_b_testdata)
+def test_sensor_b(sensor: CombiSensor, expected: list[float]):
+    result = vm.sensor_to_vector(sensor, test_parameters_b)
     assert result == expected
 
 
