@@ -1,5 +1,6 @@
 import math
 from dataclasses import dataclass
+from typing import Tuple
 
 from training.simrunner import CombiSensor, DiffDriveValues, SectorName
 
@@ -36,7 +37,6 @@ def sensor_to_vector(sensor: CombiSensor, parameters: MappingParameters) -> list
         case SectorName.RIGHT:
             i_view = 2
 
-
     print(f"### i dist {i_left} {i_front} {i_right}")
     return (
         _cv(i_left, parameters.step_count_view_distance)
@@ -55,3 +55,34 @@ def vector_to_values(
 # Create a vector of 0.0 with 1.0 at index
 def _cv(index: int, step_count: int) -> list[float]:
     return [1.0 if i == index else 0.0 for i in range(step_count)]
+
+
+def _diff_drive_values(max_speed: float, max_speed_index: int) -> list[float]:
+    assert max_speed_index % 2 == 1
+    diff = max_speed / ((max_speed_index - 1) / 2.0)
+    return [-max_speed + (i * diff) for i in range(max_speed_index)]
+
+
+def _diff_drive_tuple(max_speed: float, max_speed_index: int) -> Tuple:
+    def sort_key(t) -> float:
+        diff = t[0] - t[1]
+        norm = abs(t[0]) * 0.001
+        return diff + norm
+
+    assert max_speed_index % 2 == 1
+    values = _diff_drive_values(max_speed, max_speed_index)
+    re = []
+    for v1 in values:
+        for v2 in values:
+            re.append((v1, v2))
+    return sorted(re, key=sort_key)
+
+
+class DiffDriveMapping:
+    diff_drive_tuples: Tuple
+
+    def __init__(self, max_speed: float, max_speed_index: int):
+        self.diff_drive_tuples = _diff_drive_tuple(max_speed, max_speed_index)
+
+    def get(self, index: int):
+        return self.diff_drive_tuples[index]
