@@ -14,6 +14,7 @@ typer = "*"
 ruff = "*"
 pymongo = "*"
 matplotlib = "^3.9.2"
+gymnasium = "^0.29.1"
 
 
 [tool.poetry.group.dev.dependencies]
