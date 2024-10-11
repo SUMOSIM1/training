@@ -1,9 +1,9 @@
 from dataclasses import dataclass
 from typing import Any
 
+import gymnasium as gym
 import numpy as np
 from gymnasium.spaces import Box, Dict, Discrete
-import gymnasium as gym
 
 import training.simrunner as sr
 
@@ -16,7 +16,6 @@ class SEnvConfig:
 
 
 class SEnv(gym.Env):
-
     def reset(self):
         raise NotImplementedError()
 
@@ -29,7 +28,9 @@ def tryout():
 
     episode_over = False
     while not episode_over:
-        action = env.action_space.sample()  # agent policy that uses the observation and info
+        action = (
+            env.action_space.sample()
+        )  # agent policy that uses the observation and info
         observation, reward, terminated, truncated, info = env.step(action)
 
         episode_over = terminated or truncated
