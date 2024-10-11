@@ -1,2 +1,4 @@
+import training.sgym as sgym
+
 def main():
-    print("## tryout")
+    sgym.tryout()

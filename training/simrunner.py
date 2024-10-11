@@ -100,93 +100,93 @@ class FinishedErrorCommand(ReceiveCommand):
 
 # noinspection PyUnresolvedReferences
 def start(
-    port: int,
-    sim_name: str,
-    controller_name1: ControllerName,
-    controller_name2: ControllerName,
+        port: int,
+        sim_name: str,
+        controller_name1: ControllerName,
+        controller_name2: ControllerName,
+        record: bool = True
 ):
     controller1 = ControllerProvider.get(controller_name1)
     controller2 = ControllerProvider.get(controller_name2)
 
     simulation_states = []
 
-    with db.create_client() as client:
-
-        def check_running():
-            running_sim = db.find_running(client, "running", port)
-            print(f"--- Found running for {port} {running_sim}")
-            if running_sim:
-                raise RuntimeError(f"Baseport {port} is currently running")
-
-        def insert_new_sim() -> str:
-            sim_robot1 = db.SimulationRobot(
-                name=controller1.name(),
-                description=controller1.description(),
-            )
-            sim_robot2 = db.SimulationRobot(
-                name=controller2.name(),
-                description=controller2.description(),
-            )
-            sim = db.Simulation(
-                port=port,
-                name=sim_name,
-                robot1=sim_robot1,
-                robot2=sim_robot2,
-            )
-            _obj_id = db.insert(client, sim.to_dict())
+    def insert_new_sim() -> str:
+        sim_robot1 = db.SimulationRobot(
+            name=controller1.name(),
+            description=controller1.description(),
+        )
+        sim_robot2 = db.SimulationRobot(
+            name=controller2.name(),
+            description=controller2.description(),
+        )
+        sim = db.Simulation(
+            port=port,
+            name=sim_name,
+            robot1=sim_robot1,
+            robot2=sim_robot2,
+        )
+        _obj_id = None
+        if record:
+            with db.create_client() as client:
+                _obj_id = db.insert(client, sim.to_dict())
             print(f"--- Wrote to database id:{_obj_id} sim:{sim}")
-            return _obj_id
+        return _obj_id
 
-        def send_command_and_wait(cmd: SendCommand) -> ReceiveCommand:
-            send_str = format_command(cmd)
-            # print(f"---> Sending {cmd} - {send_str}")
-            resp_str = udp.send_and_wait(send_str, port, 10)
-            resp = parse_command(resp_str)
-            # print(f"<--- Result {resp} {resp_str}")
-            return resp
+    def send_command_and_wait(cmd: SendCommand) -> ReceiveCommand:
+        send_str = format_command(cmd)
+        # print(f"---> Sending {cmd} - {send_str}")
+        resp_str = udp.send_and_wait(send_str, port, 10)
+        resp = parse_command(resp_str)
+        # print(f"<--- Result {resp} {resp_str}")
+        return resp
 
-        check_running()
-        obj_id = insert_new_sim()
-        try:
-            command = StartCommand()
-            cnt = 0
-            while True:
-                cnt += 1
-                print("")
-                response: ReceiveCommand = send_command_and_wait(command)
-                match response:
-                    case SensorCommand(s1, s2):
-                        # print("sensors", s1, s2)
-                        state = SimulationState(s1.pos_dir, s2.pos_dir)
-                        simulation_states.append(state)
+    obj_id = insert_new_sim()
+    try:
+        command = StartCommand()
+        cnt = 0
+        while True:
+            cnt += 1
+            response: ReceiveCommand = send_command_and_wait(command)
+            match response:
+                case SensorCommand(s1, s2):
+                    # print("sensors", s1, s2)
+                    state = SimulationState(s1.pos_dir, s2.pos_dir)
+                    simulation_states.append(state)
 
-                        r1 = controller1.take_step(s1.combi_sensor)
-                        r2 = controller2.take_step(s2.combi_sensor)
-                        # print(
-                        #   "## sensor",
-                        #   s1.combi_sensor.front_distance,
-                        #   s2.combi_sensor.front_distance)
+                    r1 = controller1.take_step(s1.combi_sensor)
+                    r2 = controller2.take_step(s2.combi_sensor)
+                    # print(
+                    #   "## sensor",
+                    #   s1.combi_sensor.front_distance,
+                    #   s2.combi_sensor.front_distance)
 
-                        command = DiffDriveCommand(r1, r2, cnt)
-                    case FinishedOkCommand(r1, r2):
-                        events_dict = {"r1": r1, "r2": r2}
-                        dicts = [s.to_dict() for s in simulation_states]
-                        db.update_status_finished(client, obj_id, events_dict, dicts)
-                        print(
-                            f"Finished with OK: {obj_id} {events_dict}"
-                            f"{simulation_states[:5]}..."
-                        )
-                        break
-                    case FinishedErrorCommand(msg):
-                        db.update_status_error(client, obj_id, msg)
-                        print(f"Finished with ERROR: {obj_id} {msg}")
-                        break
+                    command = DiffDriveCommand(r1, r2, cnt)
+                case FinishedOkCommand(r1, r2):
+                    events_dict = {"r1": r1, "r2": r2}
+                    dicts = [s.to_dict() for s in simulation_states]
+                    if record:
+                        with db.create_client() as client:
+                            db.update_status_finished(client, obj_id, events_dict, dicts)
+                    print(
+                        f"Finished with OK: steps: {cnt} db_id: {obj_id} {events_dict}"
+                        f"{simulation_states[:5]}..."
+                    )
+                    break
+                case FinishedErrorCommand(msg):
+                    if record:
+                        with db.create_client() as client:
+                            db.update_status_error(client, obj_id, msg)
+                    print(f"Finished with ERROR: steps: {cnt} db_id: {obj_id} {msg}")
+                    break
 
-        except BaseException as ex:
-            msg = util.message(ex)
-            print(traceback.format_exc())
-            print(f"ERROR: {msg}")
-            db.update_status_error(client, obj_id, msg)
+    except BaseException as ex:
+        msg = util.message(ex)
+        print(traceback.format_exc())
+        print(f"ERROR: {msg}")
+        if record:
+            with db.create_client() as client:
+                db.update_status_error(client, obj_id, msg)
 
 
 def format_command(cmd: SendCommand) -> str:
