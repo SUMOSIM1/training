@@ -15,15 +15,55 @@ class SEnvConfig:
     dtype: np.generic = np.float32
 
 
+default_senv_config = SEnvConfig(
+    max_wheel_speed=7,
+    max_view_distance=700,
+    dtype=np.float32,
+)
+
+
 class SEnv(gym.Env):
+    def __init__(
+        self,
+        senv_config: SEnvConfig,
+        port: int,
+        sim_name: str,
+        controller_name1: sr.ControllerName,
+        controller_name2: sr.ControllerName,
+        record: bool,
+    ):
+        self.port = port
+        self.sim_name = sim_name
+        self.controller_name1 = controller_name1
+        self.controller_name2 = controller_name2
+        self.record = record
+        self.response = None
+        self.action_space = crete_action_space(senv_config)
+        self.observation_space = create_observation_space(senv_config)
+
     def reset(self):
+        raise NotImplementedError()
+
+    def step(self):
         raise NotImplementedError()
 
 
 def tryout():
     print("### sgym tryout")
+    port = 4000
+    sim_name = "TEST-SGYM-000"
+    controller_name1 = sr.ControllerName.BLIND_TUMBLR
+    controller_name2 = sr.ControllerName.TUMBLR
+    record = False
 
-    env = SEnv()
+    env = SEnv(
+        senv_config=default_senv_config,
+        port=port,
+        sim_name=sim_name,
+        controller_name1=controller_name1,
+        controller_name2=controller_name2,
+        record=record,
+    )
     observation, info = env.reset()
 
     episode_over = False
