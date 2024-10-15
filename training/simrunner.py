@@ -110,7 +110,8 @@ class Controller:
 
 
 class Response:
-    pass
+    def is_finished(self) -> bool:
+        pass
 
 
 @dataclass(frozen=True)
@@ -119,6 +120,9 @@ class ResetResponse(Response):
     controller1: Controller
     controller2: Controller
     obj_id: str | None
+
+    def is_finished(self) -> bool:
+        return self.command is None
 
 
 @dataclass(frozen=True)
@@ -129,6 +133,9 @@ class StepResponse(Response):
     controller2: Controller
     obj_id: str | None
     cnt: int
+
+    def is_finished(self) -> bool:
+        return self.command is None
 
 
 def reset(
@@ -223,6 +230,8 @@ def start(
             port, sim_name, controller_name1, controller_name2, record
         )
         while True:
+            if response.is_finished():
+                return
             match response:
                 case ResetResponse(
                     command=cmd,
@@ -247,8 +256,6 @@ def start(
                     obj_id=obj_id,
                     cnt=cnt,
                 ):
-                    if not cmd:
-                        return
                     response = step(
                         command=cmd,
                         simulation_states=simulation_states,
