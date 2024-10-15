@@ -115,6 +115,12 @@ class Response:
 
 
 @dataclass(frozen=True)
+class ErrorResponse(Response):
+    def is_finished(self) -> bool:
+        return True
+
+
+@dataclass(frozen=True)
 class ResetResponse(Response):
     command: SendCommand | None
     controller1: Controller
@@ -156,7 +162,77 @@ def reset(
     )
 
 
-def step(
+def start(
+    port: int,
+    sim_name: str,
+    controller_name1: ControllerName,
+    controller_name2: ControllerName,
+    record: bool = False,
+):
+    response: Response = reset(
+        port, sim_name, controller_name1, controller_name2, record
+    )
+    while True:
+        if response.is_finished():
+            return
+        response = step(response, port)
+
+
+def step(response: Response, port: int) -> Response:
+    match response:
+        case ResetResponse(
+            command=cmd,
+            controller1=controller1,
+            controller2=controller2,
+            obj_id=obj_id,
+        ):
+            try:
+                return _step(
+                    command=cmd,
+                    simulation_states=[],
+                    obj_id=obj_id,
+                    port=port,
+                    controller1=controller1,
+                    controller2=controller2,
+                    cnt=0,
+                )
+            except BaseException as ex:
+                msg = util.message(ex)
+                print(traceback.format_exc())
+                print(f"ERROR: {msg}")
+                if obj_id:
+                    with db.create_client() as client:
+                        db.update_status_error(client, obj_id, msg)
+                return ErrorResponse()
+        case StepResponse(
+            command=cmd,
+            simulation_states=simulation_states,
+            controller1=controller1,
+            controller2=controller2,
+            obj_id=obj_id,
+            cnt=cnt,
+        ):
+            try:
+                return _step(
+                    command=cmd,
+                    simulation_states=simulation_states,
+                    obj_id=obj_id,
+                    port=port,
+                    controller1=controller1,
+                    controller2=controller2,
+                    cnt=cnt + 1,
+                )
+            except BaseException as ex:
+                msg = util.message(ex)
+                print(traceback.format_exc())
+                print(f"ERROR: {msg}")
+                if obj_id:
+                    with db.create_client() as client:
+                        db.update_status_error(client, obj_id, msg)
+                return ErrorResponse()
+
+
+def _step(
     command: SendCommand,
     simulation_states: list[SimulationState],
     port: int,
@@ -216,63 +292,6 @@ def step(
                 obj_id=obj_id,
                 cnt=cnt + 1,
             )
-
-
-def start(
-    port: int,
-    sim_name: str,
-    controller_name1: ControllerName,
-    controller_name2: ControllerName,
-    record: bool = False,
-):
-    try:
-        response: Response = reset(
-            port, sim_name, controller_name1, controller_name2, record
-        )
-        while True:
-            if response.is_finished():
-                return
-            match response:
-                case ResetResponse(
-                    command=cmd,
-                    controller1=controller1,
-                    controller2=controller2,
-                    obj_id=obj_id,
-                ):
-                    response = step(
-                        command=cmd,
-                        simulation_states=[],
-                        obj_id=obj_id,
-                        port=port,
-                        controller1=controller1,
-                        controller2=controller2,
-                        cnt=0,
-                    )
-                case StepResponse(
-                    command=cmd,
-                    simulation_states=simulation_states,
-                    controller1=controller1,
-                    controller2=controller2,
-                    obj_id=obj_id,
-                    cnt=cnt,
-                ):
-                    response = step(
-                        command=cmd,
-                        simulation_states=simulation_states,
-                        obj_id=obj_id,
-                        port=port,
-                        controller1=controller1,
-                        controller2=controller2,
-                        cnt=cnt + 1,
-                    )
-
-    except BaseException as ex:
-        msg = util.message(ex)
-        print(traceback.format_exc())
-        print(f"ERROR: {msg}")
-        if obj_id:
-            with db.create_client() as client:
-                db.update_status_error(client, obj_id, msg)
 
 
 def _insert_new_sim(
