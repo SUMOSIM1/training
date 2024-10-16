@@ -147,12 +147,10 @@ class StepResponse(Response):
 def reset(
     port: int,
     sim_name: str,
-    controller_name1: ControllerName,
-    controller_name2: ControllerName,
+    controller1: Controller,
+    controller2: Controller,
     record: bool,
 ) -> ResetResponse:
-    controller1 = ControllerProvider.get(controller_name1)
-    controller2 = ControllerProvider.get(controller_name2)
     obj_id = _insert_new_sim(controller1, controller2, port, sim_name, record)
     return ResetResponse(
         command=StartCommand(),
@@ -167,11 +165,12 @@ def start(
     sim_name: str,
     controller_name1: ControllerName,
     controller_name2: ControllerName,
-    record: bool = False,
+    record: bool = True,
 ):
-    response: Response = reset(
-        port, sim_name, controller_name1, controller_name2, record
-    )
+    controller1: Controller = ControllerProvider.get(controller_name1)
+    controller2 = ControllerProvider.get(controller_name2)
+
+    response: Response = reset(port, sim_name, controller1, controller2, record)
     while True:
         if response.is_finished():
             return

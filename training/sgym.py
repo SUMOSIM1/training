@@ -28,15 +28,15 @@ class SEnv(gym.Env):
         senv_config: SEnvConfig,
         port: int,
         sim_name: str,
-        controller_name1: sr.ControllerName,
-        controller_name2: sr.ControllerName,
+        opponent_name: sr.ControllerName,
         record: bool,
     ):
         self.port = port
         self.sim_name = sim_name
-        self.controller_name1 = controller_name1
-        self.controller_name2 = controller_name2
+        self.opponent_controller = sr.ControllerProvider.get(opponent_name)
         self.record = record
+
+        self.sgen_controller = self._create_sgen_controller()
         self.response = None
         self.action_space = crete_action_space(senv_config)
         self.observation_space = create_observation_space(senv_config)
@@ -47,21 +47,22 @@ class SEnv(gym.Env):
     def step(self):
         raise NotImplementedError()
 
+    def _create_sgen_controller(self) -> sr.Controller:
+        raise NotImplementedError()
+
 
 def tryout():
     print("### sgym tryout")
     port = 4000
     sim_name = "TEST-SGYM-000"
-    controller_name1 = sr.ControllerName.BLIND_TUMBLR
-    controller_name2 = sr.ControllerName.TUMBLR
+    opponent_name = sr.ControllerName.BLIND_TUMBLR
     record = False
 
     env = SEnv(
         senv_config=default_senv_config,
         port=port,
         sim_name=sim_name,
-        controller_name1=controller_name1,
-        controller_name2=controller_name2,
+        opponent_name=opponent_name,
         record=record,
     )
     observation, info = env.reset()
