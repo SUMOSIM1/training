@@ -6,6 +6,7 @@ import numpy as np
 from gymnasium.spaces import Box, Dict, Discrete
 
 import training.simrunner as sr
+from training.simrunner import DiffDriveValues
 
 
 @dataclass(frozen=True)
@@ -24,31 +25,48 @@ default_senv_config = SEnvConfig(
 
 class SEnv(gym.Env):
     def __init__(
-        self,
-        senv_config: SEnvConfig,
-        port: int,
-        sim_name: str,
-        opponent_name: sr.ControllerName,
-        record: bool,
+            self,
+            senv_config: SEnvConfig,
+            port: int,
+            sim_name: str,
+            opponent_name: sr.ControllerName,
+            record: bool,
     ):
+        self.senv_config = senv_config
         self.port = port
         self.sim_name = sim_name
         self.opponent_controller = sr.ControllerProvider.get(opponent_name)
         self.record = record
 
-        self.sgen_controller = self._create_sgen_controller()
-        self.response = None
         self.action_space = crete_action_space(senv_config)
         self.observation_space = create_observation_space(senv_config)
 
-    def reset(self):
-        raise NotImplementedError()
 
-    def step(self):
-        raise NotImplementedError()
+    def _call_sumo(self, diff_drive: DiffDriveValues | None) -> dict[str, Any]:
+        if diff_drive:
+            print(f"### call sumo {diff_drive}")
+        sensor = sr.CombiSensor(0.0, 0.0, 0.0, sr.SectorName.UNDEF)
+        return mapping_sensor_to_observation_space(sensor, self.senv_config)
 
-    def _create_sgen_controller(self) -> sr.Controller:
-        raise NotImplementedError()
+
+    def reset(self,
+              seed: int | None = None,
+              options: dict[str, Any] | None = None
+              ) -> tuple[dict[str, Any], dict[str, Any]]:
+        super().reset(seed=seed)
+        obs = self._call_sumo(None)
+        info = {}
+        return obs, info
+
+    def step(self, action):
+        diff_drive = mapping_action_space_to_diff_drive(action)
+        print(f"### step diff drive {diff_drive}")
+        observation = ""
+        reward = 0.0
+        terminated = True
+        truncated = True
+        info = {}
+        return observation, reward, terminated, truncated, info
 
 
 def tryout():
@@ -103,7 +121,7 @@ def create_observation_space(config: SEnvConfig) -> gym.Space:
 
 
 def mapping_sensor_to_observation_space(
-    sensor: sr.CombiSensor, config: SEnvConfig
+        sensor: sr.CombiSensor, config: SEnvConfig
 ) -> dict[str, any]:
     def view_mapping() -> int:
         match sensor.opponent_in_sector:
