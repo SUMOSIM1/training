@@ -6,7 +6,6 @@ import numpy as np
 from gymnasium.spaces import Box, Dict, Discrete
 
 import training.simrunner as sr
-from training.simrunner import DiffDriveValues
 
 
 @dataclass(frozen=True)
@@ -25,38 +24,30 @@ default_senv_config = SEnvConfig(
 
 class SEnv(gym.Env):
     def __init__(
-            self,
-            senv_config: SEnvConfig,
-            port: int,
-            sim_name: str,
-            opponent_name: sr.ControllerName,
-            record: bool,
+        self,
+        senv_config: SEnvConfig,
+        port: int,
+        sim_name: str,
+        opponent: sr.Controller,
+        record: bool,
     ):
         self.senv_config = senv_config
         self.port = port
         self.sim_name = sim_name
-        self.opponent_controller = sr.ControllerProvider.get(opponent_name)
+        self.opponent_controller = opponent
         self.record = record
 
         self.action_space = crete_action_space(senv_config)
         self.observation_space = create_observation_space(senv_config)
 
-
-    def _call_sumo(self, diff_drive: DiffDriveValues | None) -> dict[str, Any]:
-        if diff_drive:
-            print(f"### call sumo {diff_drive}")
-        sensor = sr.CombiSensor(0.0, 0.0, 0.0, sr.SectorName.UNDEF)
-        return mapping_sensor_to_observation_space(sensor, self.senv_config)
-
-
-    def reset(self,
-              seed: int | None = None,
-              options: dict[str, Any] | None = None
-              ) -> tuple[dict[str, Any], dict[str, Any]]:
+    def reset(
+        self, seed: int | None = None, options: dict[str, Any] | None = None
+    ) -> tuple[dict[str, Any], dict[str, Any]]:
         super().reset(seed=seed)
-        obs = self._call_sumo(None)
-        info = {}
-        return obs, info
+        # call sim runner without controller and get observations
+        # for both robots.
+        # simrunner api must work without controllers.
+        raise NotImplementedError()
 
     def step(self, action):
         diff_drive = mapping_action_space_to_diff_drive(action)
@@ -73,14 +64,16 @@ def tryout():
     print("### sgym tryout")
     port = 4000
     sim_name = "TEST-SGYM-000"
+
     opponent_name = sr.ControllerName.BLIND_TUMBLR
+    opponent = sr.ControllerProvider.get(opponent_name)
     record = False
 
     env = SEnv(
         senv_config=default_senv_config,
         port=port,
         sim_name=sim_name,
-        opponent_name=opponent_name,
+        opponent=opponent,
         record=record,
     )
     observation, info = env.reset()
@@ -121,7 +114,7 @@ def create_observation_space(config: SEnvConfig) -> gym.Space:
 
 
 def mapping_sensor_to_observation_space(
-        sensor: sr.CombiSensor, config: SEnvConfig
+    sensor: sr.CombiSensor, config: SEnvConfig
 ) -> dict[str, any]:
     def view_mapping() -> int:
         match sensor.opponent_in_sector:
