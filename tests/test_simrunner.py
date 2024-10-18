@@ -14,8 +14,8 @@ def test_format_diff_drive():
 
 
 def test_parse_sensor():
-    expected = sr.SensorCommand(
-        robot1_sensor=sr.SensorDto(
+    expected = sr.CombiSensorCommand(
+        robot1_sensor=sr.ComibSensorDto(
             pos_dir=sr.PosDir(-80.0, 0.0, 0.1396),
             combi_sensor=sr.CombiSensor(
                 left_distance=357.6570,
@@ -24,7 +24,7 @@ def test_parse_sensor():
                 opponent_in_sector=sr.SectorName.RIGHT,
             ),
         ),
-        robot2_sensor=sr.SensorDto(
+        robot2_sensor=sr.ComibSensorDto(
             pos_dir=sr.PosDir(-80.0, 0.0, 0.0),
             combi_sensor=sr.CombiSensor(
                 left_distance=385.7849,

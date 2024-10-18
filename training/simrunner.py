@@ -57,7 +57,7 @@ class PosDir:
 
 
 @dataclass
-class SensorDto:
+class ComibSensorDto:
     pos_dir: PosDir
     combi_sensor: CombiSensor
 
@@ -68,9 +68,9 @@ class StartCommand(SendCommand):
 
 
 @dataclass
-class SensorCommand(ReceiveCommand):
-    robot1_sensor: SensorDto
-    robot2_sensor: SensorDto
+class CombiSensorCommand(ReceiveCommand):
+    robot1_sensor: ComibSensorDto
+    robot2_sensor: ComibSensorDto
 
 
 @dataclass
@@ -82,8 +82,8 @@ class DiffDriveCommand(SendCommand):
 
 @dataclass
 class FinishedOkCommand(ReceiveCommand):
-    robot1_rewards: list[(str, str)]
-    robot2_rewards: list[(str, str)]
+    robot1_finish_properties: list[(str, str)]
+    robot2_finish_properties: list[(str, str)]
 
 
 @dataclass_json
@@ -244,7 +244,7 @@ def _step(
         print(f"--- {cnt}")
     response: ReceiveCommand = _send_command_and_wait(command, port)
     match response:
-        case SensorCommand(s1, s2):
+        case CombiSensorCommand(s1, s2):
             # print("sensors", s1, s2)
             state = SimulationState(s1.pos_dir, s2.pos_dir)
             simulation_states.append(state)
@@ -350,9 +350,9 @@ def _format_command(cmd: SendCommand) -> str:
 
 
 def _parse_command(data: str) -> ReceiveCommand:
-    def parse_sensor_dto(sensor_data: str) -> SensorDto:
+    def parse_sensor_dto(sensor_data: str) -> ComibSensorDto:
         ds = sensor_data.split(";")
-        return SensorDto(
+        return ComibSensorDto(
             pos_dir=PosDir(float(ds[0]), float(ds[1]), float(ds[2])),
             combi_sensor=CombiSensor(
                 left_distance=float(ds[3]),
@@ -375,7 +375,7 @@ def _parse_command(data: str) -> ReceiveCommand:
             return FinishedErrorCommand(body)
         case "B":
             (r1, r2) = body.split("#")
-            return SensorCommand(parse_sensor_dto(r1), parse_sensor_dto(r2))
+            return CombiSensorCommand(parse_sensor_dto(r1), parse_sensor_dto(r2))
         case "D":
             (r1, r2) = body.split("#")
             return FinishedOkCommand(parse_finished(r1), parse_finished(r2))
