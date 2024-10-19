@@ -254,7 +254,6 @@ def start1(
                 cnt=cnt):
                 diff_drive1 = controller1.take_step(sensor1)
                 diff_drive2 = controller2.take_step(sensor1)
-                print(f"### {cnt:4d}")
                 return Request1(
                     diffDrive1=diff_drive1,
                     diffDrive2=diff_drive1,
@@ -331,14 +330,14 @@ def step1(request: Request1, port: int) -> Response:
     cmd = DiffDriveCommand(
         robot1_diff_drive_values = request.diffDrive1,
         robot2_diff_drive_values = request.diffDrive2,
-        stepsCount=0
+        stepsCount=request.cnt
     )
     return _step1(
         command=cmd,
         simulation_states=[],
         obj_id=request.obj_id,
         port=port,
-        cnt=0,
+        cnt=request.cnt,
     )
 
 
