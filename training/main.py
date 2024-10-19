@@ -27,7 +27,7 @@ def start(
         sr.ControllerName, typer.Option(help="Name of controller 1")
     ] = sr.ControllerName.STAY_IN_FIELD,
 ):
-    sr.start(port, sim_name, controller1, controller2)
+    sr.start1(port, sim_name, controller1, controller2)
 
 
 @app.command()
