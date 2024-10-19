@@ -148,6 +148,7 @@ class FinishedResponse1(Response1):
 class Request1:
     diffDrive1: DiffDriveValues
     diffDrive2: DiffDriveValues
+    simulation_states: list[SimulationState]
     obj_id: str
     cnt: int
 
@@ -256,9 +257,10 @@ def start1(
                 diff_drive2 = controller2.take_step(sensor1)
                 return Request1(
                     diffDrive1=diff_drive1,
-                    diffDrive2=diff_drive1,
+                    diffDrive2=diff_drive2,
                     cnt = cnt + 1,
-                    obj_id=obj_id
+                    obj_id=obj_id,
+                    simulation_states=simulation_states,
                 )
             case any:
                 raise ValueError(f"Unknown response {response}")
@@ -334,7 +336,7 @@ def step1(request: Request1, port: int) -> Response:
     )
     return _step1(
         command=cmd,
-        simulation_states=[],
+        simulation_states=request.simulation_states,
         obj_id=request.obj_id,
         port=port,
         cnt=request.cnt,
