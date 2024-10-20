@@ -189,11 +189,11 @@ class StepResponse(Response):
 
 
 def reset(
-        port: int,
-        sim_name: str,
-        controller1: Controller,
-        controller2: Controller,
-        record: bool,
+    port: int,
+    sim_name: str,
+    controller1: Controller,
+    controller2: Controller,
+    record: bool,
 ) -> ResetResponse:
     obj_id = _insert_new_sim(controller1, controller2, port, sim_name, record)
     return ResetResponse(
@@ -205,24 +205,24 @@ def reset(
 
 
 def reset1(
-        port: int,
-        sim_name: str,
-        name1: str,
-        desc1: dict,
-        name2: str,
-        desc2: dict,
-        record: bool,
+    port: int,
+    sim_name: str,
+    name1: str,
+    desc1: dict,
+    name2: str,
+    desc2: dict,
+    record: bool,
 ) -> SensorResponse:
     obj_id = _insert_new_sim1(name1, desc1, name2, desc2, port, sim_name, record)
     return _step1(StartCommand(), [], port, obj_id, 0)
 
 
 def start(
-        port: int,
-        sim_name: str,
-        controller_name1: ControllerName,
-        controller_name2: ControllerName,
-        record: bool = True,
+    port: int,
+    sim_name: str,
+    controller_name1: ControllerName,
+    controller_name2: ControllerName,
+    record: bool = True,
 ):
     controller1: Controller = ControllerProvider.get(controller_name1)
     controller2 = ControllerProvider.get(controller_name2)
@@ -235,13 +235,13 @@ def start(
 
 
 def start1(
-        port: int,
-        sim_name: str,
-        controller_name1: ControllerName,
-        controller_name2: ControllerName,
-        record: bool = True,
+    port: int,
+    sim_name: str,
+    controller_name1: ControllerName,
+    controller_name2: ControllerName,
+    record: bool,
 ):
-    controller1: Controller = ControllerProvider.get(controller_name1)
+    controller1 = ControllerProvider.get(controller_name1)
     controller2 = ControllerProvider.get(controller_name2)
 
     def create_request(response: Response1) -> Request1:
@@ -252,21 +252,29 @@ def start1(
                 sensor1=sensor1,
                 sensor2=sensor2,
                 obj_id=obj_id,
-                cnt=cnt):
+                cnt=cnt,
+            ):
                 diff_drive1 = controller1.take_step(sensor1)
-                diff_drive2 = controller2.take_step(sensor1)
+                diff_drive2 = controller2.take_step(sensor2)
                 return Request1(
                     diffDrive1=diff_drive1,
                     diffDrive2=diff_drive2,
-                    cnt = cnt + 1,
+                    cnt=cnt + 1,
                     obj_id=obj_id,
                     simulation_states=simulation_states,
                 )
-            case any:
+            case _:
                 raise ValueError(f"Unknown response {response}")
 
-    response: Response1 = reset1(port, sim_name, controller1.name(), controller1.description(), controller2.name(),
-                                 controller2.description(), record)
+    response: Response1 = reset1(
+        port,
+        sim_name,
+        controller1.name(),
+        controller1.description(),
+        controller2.name(),
+        controller2.description(),
+        record,
+    )
     while True:
         if response.is_finished():
             return
@@ -330,9 +338,9 @@ def step(response: Response, port: int) -> Response:
 
 def step1(request: Request1, port: int) -> Response:
     cmd = DiffDriveCommand(
-        robot1_diff_drive_values = request.diffDrive1,
-        robot2_diff_drive_values = request.diffDrive2,
-        stepsCount=request.cnt
+        robot1_diff_drive_values=request.diffDrive1,
+        robot2_diff_drive_values=request.diffDrive2,
+        stepsCount=request.cnt,
     )
     return _step1(
         command=cmd,
@@ -344,13 +352,13 @@ def step1(request: Request1, port: int) -> Response:
 
 
 def _step(
-        command: SendCommand,
-        simulation_states: list[SimulationState],
-        port: int,
-        obj_id: str | None,
-        controller1: Controller,
-        controller2: Controller,
-        cnt: int,
+    command: SendCommand,
+    simulation_states: list[SimulationState],
+    port: int,
+    obj_id: str | None,
+    controller1: Controller,
+    controller2: Controller,
+    cnt: int,
 ) -> StepResponse:
     if cnt > 0 and cnt % 10 == 0:
         print(f"--- {cnt}")
@@ -406,11 +414,11 @@ def _step(
 
 
 def _step1(
-        command: SendCommand,
-        simulation_states: list[SimulationState],
-        port: int,
-        obj_id: str | None,
-        cnt: int,
+    command: SendCommand,
+    simulation_states: list[SimulationState],
+    port: int,
+    obj_id: str | None,
+    cnt: int,
 ) -> Response1:
     if cnt > 0 and cnt % 10 == 0:
         print(f"--- _step1 {cnt}")
@@ -454,11 +462,11 @@ def _step1(
 
 
 def _insert_new_sim(
-        controller1: Controller,
-        controller2: Controller,
-        port: int,
-        sim_name: str,
-        record: bool,
+    controller1: Controller,
+    controller2: Controller,
+    port: int,
+    sim_name: str,
+    record: bool,
 ) -> str:
     sim_robot1 = db.SimulationRobot(
         name=controller1.name(),
@@ -476,7 +484,7 @@ def _insert_new_sim(
     )
     _obj_id = None
     if record:
-        print(f"--- Writing to database")
+        print("--- Writing to database")
         pprint.pprint(sim)
         with db.create_client() as client:
             _obj_id = db.insert(client, sim.to_dict())
@@ -485,13 +493,13 @@ def _insert_new_sim(
 
 
 def _insert_new_sim1(
-        name1: str,
-        desc1: dict,
-        name2: str,
-        desc2: dict,
-        port: int,
-        sim_name: str,
-        record: bool,
+    name1: str,
+    desc1: dict,
+    name2: str,
+    desc2: dict,
+    port: int,
+    sim_name: str,
+    record: bool,
 ) -> str:
     _obj_id = None
     if record:
@@ -509,7 +517,7 @@ def _insert_new_sim1(
             robot1=sim_robot1,
             robot2=sim_robot2,
         )
-        print(f"--- Writing to database")
+        print("--- Writing to database")
         pprint.pprint(sim)
         with db.create_client() as client:
             _obj_id = db.insert(client, sim.to_dict())
