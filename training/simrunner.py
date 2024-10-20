@@ -1,6 +1,5 @@
 import importlib
 import pprint
-import traceback
 from dataclasses import dataclass
 from enum import Enum
 
@@ -8,7 +7,6 @@ from dataclasses_json import dataclass_json
 
 import training.simdb as db
 import training.udp as udp
-import training.util as util
 
 
 class SendCommand:
@@ -153,57 +151,6 @@ class Request1:
     cnt: int
 
 
-class Response:
-    def is_finished(self) -> bool:
-        pass
-
-
-@dataclass(frozen=True)
-class ErrorResponse(Response):
-    def is_finished(self) -> bool:
-        return True
-
-
-@dataclass(frozen=True)
-class ResetResponse(Response):
-    command: SendCommand | None
-    controller1: Controller
-    controller2: Controller
-    obj_id: str | None
-
-    def is_finished(self) -> bool:
-        return self.command is None
-
-
-@dataclass(frozen=True)
-class StepResponse(Response):
-    command: SendCommand | None
-    simulation_states: list[SimulationState]
-    controller1: Controller
-    controller2: Controller
-    obj_id: str | None
-    cnt: int
-
-    def is_finished(self) -> bool:
-        return self.command is None
-
-
-def reset(
-    port: int,
-    sim_name: str,
-    controller1: Controller,
-    controller2: Controller,
-    record: bool,
-) -> ResetResponse:
-    obj_id = _insert_new_sim(controller1, controller2, port, sim_name, record)
-    return ResetResponse(
-        command=StartCommand(),
-        controller1=controller1,
-        controller2=controller2,
-        obj_id=obj_id,
-    )
-
-
 def reset1(
     port: int,
     sim_name: str,
@@ -215,23 +162,6 @@ def reset1(
 ) -> SensorResponse:
     obj_id = _insert_new_sim1(name1, desc1, name2, desc2, port, sim_name, record)
     return _step1(StartCommand(), [], port, obj_id, 0)
-
-
-def start(
-    port: int,
-    sim_name: str,
-    controller_name1: ControllerName,
-    controller_name2: ControllerName,
-    record: bool = True,
-):
-    controller1: Controller = ControllerProvider.get(controller_name1)
-    controller2 = ControllerProvider.get(controller_name2)
-
-    response: Response = reset(port, sim_name, controller1, controller2, record)
-    while True:
-        if response.is_finished():
-            return
-        response = step(response, port)
 
 
 def start1(
@@ -282,61 +212,7 @@ def start1(
         response = step1(request, port)
 
 
-def step(response: Response, port: int) -> Response:
-    match response:
-        case ResetResponse(
-            command=cmd,
-            controller1=controller1,
-            controller2=controller2,
-            obj_id=obj_id,
-        ):
-            try:
-                return _step(
-                    command=cmd,
-                    simulation_states=[],
-                    obj_id=obj_id,
-                    port=port,
-                    controller1=controller1,
-                    controller2=controller2,
-                    cnt=0,
-                )
-            except BaseException as ex:
-                msg = util.message(ex)
-                print(traceback.format_exc())
-                print(f"ERROR: {msg}")
-                if obj_id:
-                    with db.create_client() as client:
-                        db.update_status_error(client, obj_id, msg)
-                return ErrorResponse()
-        case StepResponse(
-            command=cmd,
-            simulation_states=simulation_states,
-            controller1=controller1,
-            controller2=controller2,
-            obj_id=obj_id,
-            cnt=cnt,
-        ):
-            try:
-                return _step(
-                    command=cmd,
-                    simulation_states=simulation_states,
-                    obj_id=obj_id,
-                    port=port,
-                    controller1=controller1,
-                    controller2=controller2,
-                    cnt=cnt + 1,
-                )
-            except BaseException as ex:
-                msg = util.message(ex)
-                print(traceback.format_exc())
-                print(f"ERROR: {msg}")
-                if obj_id:
-                    with db.create_client() as client:
-                        db.update_status_error(client, obj_id, msg)
-                return ErrorResponse()
-
-
-def step1(request: Request1, port: int) -> Response:
+def step1(request: Request1, port: int) -> Response1:
     cmd = DiffDriveCommand(
         robot1_diff_drive_values=request.diffDrive1,
         robot2_diff_drive_values=request.diffDrive2,
@@ -349,68 +225,6 @@ def step1(request: Request1, port: int) -> Response:
         port=port,
         cnt=request.cnt,
     )
-
-
-def _step(
-    command: SendCommand,
-    simulation_states: list[SimulationState],
-    port: int,
-    obj_id: str | None,
-    controller1: Controller,
-    controller2: Controller,
-    cnt: int,
-) -> StepResponse:
-    if cnt > 0 and cnt % 10 == 0:
-        print(f"--- {cnt}")
-    response: ReceiveCommand = _send_command_and_wait(command, port)
-    match response:
-        case CombiSensorCommand(s1, s2):
-            # print("sensors", s1, s2)
-            state = SimulationState(s1.pos_dir, s2.pos_dir)
-            simulation_states.append(state)
-
-            r1 = controller1.take_step(s1.combi_sensor)
-            r2 = controller2.take_step(s2.combi_sensor)
-
-            return StepResponse(
-                command=DiffDriveCommand(r1, r2, cnt),
-                simulation_states=simulation_states,
-                controller1=controller1,
-                controller2=controller2,
-                obj_id=obj_id,
-                cnt=cnt + 1,
-            )
-        case FinishedOkCommand(r1, r2):
-            events_dict = {"r1": r1, "r2": r2}
-            dicts = [s.to_dict() for s in simulation_states]
-            if obj_id:
-                with db.create_client() as client:
-                    db.update_status_finished(client, obj_id, events_dict, dicts)
-            print(
-                f"Finished with OK: steps: {cnt} db_id: {obj_id} {events_dict}"
-                f"{simulation_states[:5]}..."
-            )
-            return StepResponse(
-                command=None,
-                simulation_states=simulation_states,
-                controller1=controller1,
-                controller2=controller2,
-                obj_id=obj_id,
-                cnt=cnt + 1,
-            )
-        case FinishedErrorCommand(msg):
-            if obj_id:
-                with db.create_client() as client:
-                    db.update_status_error(client, obj_id, msg)
-            print(f"Finished with ERROR: steps: {cnt} db_id: {obj_id} {msg}")
-            return StepResponse(
-                command=None,
-                simulation_states=simulation_states,
-                controller1=controller1,
-                controller2=controller2,
-                obj_id=obj_id,
-                cnt=cnt + 1,
-            )
 
 
 def _step1(
@@ -459,37 +273,6 @@ def _step1(
             return ErrorResponse1(
                 message=msg,
             )
-
-
-def _insert_new_sim(
-    controller1: Controller,
-    controller2: Controller,
-    port: int,
-    sim_name: str,
-    record: bool,
-) -> str:
-    sim_robot1 = db.SimulationRobot(
-        name=controller1.name(),
-        description=controller1.description(),
-    )
-    sim_robot2 = db.SimulationRobot(
-        name=controller2.name(),
-        description=controller2.description(),
-    )
-    sim = db.Simulation(
-        port=port,
-        name=sim_name,
-        robot1=sim_robot1,
-        robot2=sim_robot2,
-    )
-    _obj_id = None
-    if record:
-        print("--- Writing to database")
-        pprint.pprint(sim)
-        with db.create_client() as client:
-            _obj_id = db.insert(client, sim.to_dict())
-        print(f"--- Wrote to database id:{_obj_id} sim:{sim}")
-    return _obj_id
 
 
 def _insert_new_sim1(
