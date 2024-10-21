@@ -21,7 +21,7 @@ sensor_to_observation_space_a_testdata = [
         ),
         {
             "view": 0,
-            "border": sgym._cna([[20, 33, 66]], _config_a),
+            "border": sgym._create_numpy_array([[20, 33, 66]], _config_a),
         },
     ),
     (
@@ -33,7 +33,7 @@ sensor_to_observation_space_a_testdata = [
         ),
         {
             "view": 0,
-            "border": sgym._cna([[0.0, 100.1, 150.0]], _config_a),
+            "border": sgym._create_numpy_array([[0.0, 100.1, 150.0]], _config_a),
         },
     ),
 ]
@@ -48,12 +48,12 @@ def test_sensor_to_observation_space_a(sensor: sr.CombiSensor, expected: dict):
 
 
 action_space_to_diff_drive_a_testdata = [
-    (sgym._cna([[0.1, 0.5]], _config_a), sr.DiffDriveValues(0.1, 0.5)),
-    (sgym._cna([[-0.1, 0.5]], _config_a), sr.DiffDriveValues(-0.1, 0.5)),
-    (sgym._cna([[0.1, -0.5]], _config_a), sr.DiffDriveValues(0.1, -0.5)),
-    (sgym._cna([[35, 45]], _config_a), sr.DiffDriveValues(35, 45)),
-    (sgym._cna([[-35, 45]], _config_a), sr.DiffDriveValues(-35, 45)),
-    (sgym._cna([[-35, -45]], _config_a), sr.DiffDriveValues(-35, -45)),
+    (sgym._create_numpy_array([[0.1, 0.5]], _config_a), sr.DiffDriveValues(0.1, 0.5)),
+    (sgym._create_numpy_array([[-0.1, 0.5]], _config_a), sr.DiffDriveValues(-0.1, 0.5)),
+    (sgym._create_numpy_array([[0.1, -0.5]], _config_a), sr.DiffDriveValues(0.1, -0.5)),
+    (sgym._create_numpy_array([[35, 45]], _config_a), sr.DiffDriveValues(35, 45)),
+    (sgym._create_numpy_array([[-35, 45]], _config_a), sr.DiffDriveValues(-35, 45)),
+    (sgym._create_numpy_array([[-35, -45]], _config_a), sr.DiffDriveValues(-35, -45)),
 ]
 
 

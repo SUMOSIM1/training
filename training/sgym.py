@@ -37,6 +37,8 @@ class SEnv(gym.Env):
         self.opponent_controller = opponent
         self.record = record
 
+        self.sim_action_response: sr.ActionResponse | None = None
+
         self.action_space = crete_action_space(senv_config)
         self.observation_space = create_observation_space(senv_config)
 
@@ -44,25 +46,67 @@ class SEnv(gym.Env):
         self, seed: int | None = None, options: dict[str, Any] | None = None
     ) -> tuple[dict[str, Any], dict[str, Any]]:
         super().reset(seed=seed)
-        # call sim runner without controller and get observations
-        # for both robots.
-        # simrunner api must work without controllers.
-        raise NotImplementedError()
+        response = sr.reset(
+            self.port,
+            self.sim_name,
+            "GYM",
+            {},
+            self.opponent_controller.name(),
+            self.opponent_controller.description(),
+            self.record,
+        )
+        match response:
+            case sr.ActionResponse(sensor1=sensor1):
+                self.sim_action_response = response
+                return mapping_sensor_to_observation_space(sensor1, self.senv_config)
+            case sr.ErrorResponse(msg):
+                raise RuntimeError(f"Error on reset: '{msg}'")
+            case sr.FinishedResponse(msg):
+                raise RuntimeError(f"Error on reset: Finished immediately '{msg}'")
 
     def step(self, action):
-        diff_drive = mapping_action_space_to_diff_drive(action)
-        print(f"### step diff drive {diff_drive}")
-        observation = ""
-        reward = 0.0
-        terminated = True
-        truncated = True
-        info = {}
-        return observation, reward, terminated, truncated, info
+        sensor2 = self.sim_action_response.sensor2
+        cnt = self.sim_action_response.cnt
+        if cnt > 0 and cnt % 100 == 0:
+            print(f"### sgym step {cnt}")
+        request = sr.ObservationRequest(
+            diffDrive1=mapping_action_space_to_diff_drive(action),
+            diffDrive2=self.opponent_controller.take_step(sensor2),
+            simulation_states=self.sim_action_response.simulation_states,
+            obj_id=self.sim_action_response.obj_id,
+            cnt=cnt + 1,
+        )
+        response = sr.step(request, self.port)
+        match response:
+            case sr.ActionResponse(sensor1=sensor1):
+                self.sim_action_response = response
+                observation = mapping_sensor_to_observation_space(
+                    sensor1, self.senv_config
+                )
+                reward = 0.0
+                terminated = False
+                truncated = False
+                info = {}
+                return observation, reward, terminated, truncated, info
+            case sr.FinishedResponse():
+                observation = {}
+                reward = 0.0
+                terminated = True
+                truncated = True
+                info = {}
+                return observation, reward, terminated, truncated, info
+            case sr.ErrorResponse():
+                observation = {}
+                reward = 0.0
+                terminated = True
+                truncated = True
+                info = {}
+                return observation, reward, terminated, truncated, info
 
 
 def tryout():
     print("### sgym tryout")
-    port = 4000
+    port = 4444
     sim_name = "TEST-SGYM-000"
 
     opponent_name = sr.ControllerName.BLIND_TUMBLR
@@ -131,7 +175,7 @@ def mapping_sensor_to_observation_space(
 
     return {
         "view": view_mapping(),
-        "border": _cna(
+        "border": _create_numpy_array(
             [
                 [
                     sensor.left_distance,
@@ -151,5 +195,5 @@ def mapping_action_space_to_diff_drive(action_space: list[list]) -> sr.DiffDrive
     )
 
 
-def _cna(value: Any, config: SEnvConfig) -> np.array:
+def _create_numpy_array(value: Any, config: SEnvConfig) -> np.array:
     return np.array(value, dtype=config.dtype)

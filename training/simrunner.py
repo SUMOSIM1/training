@@ -161,7 +161,7 @@ def reset(
     name2: str,
     desc2: dict,
     record: bool,
-) -> ActionResponse:
+) -> Response:
     obj_id = _insert_new_sim(name1, desc1, name2, desc2, port, sim_name, record)
     return _step(StartCommand(), [], port, obj_id, 0)
 
@@ -215,6 +215,10 @@ def start(
 
 
 def step(request: ObservationRequest, port: int) -> Response:
+    """
+
+    :rtype: object
+    """
     cmd = DiffDriveCommand(
         robot1_diff_drive_values=request.diffDrive1,
         robot2_diff_drive_values=request.diffDrive2,
@@ -237,8 +241,6 @@ def _step(
     cnt: int,
 ) -> Response:
     try:
-        if cnt > 0 and cnt % 10 == 0:
-            print(f"--- _step1 {cnt}")
         response: ReceiveCommand = _send_command_and_wait(command, port)
         match response:
             case CombiSensorCommand(s1, s2):
