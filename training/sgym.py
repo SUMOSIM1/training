@@ -109,9 +109,9 @@ def tryout():
     port = 4444
     sim_name = "TEST-SGYM-000"
 
-    opponent_name = sr.ControllerName.BLIND_TUMBLR
+    opponent_name = sr.ControllerName.TUMBLR
     opponent = sr.ControllerProvider.get(opponent_name)
-    record = False
+    record = True
 
     env = SEnv(
         senv_config=default_senv_config,
