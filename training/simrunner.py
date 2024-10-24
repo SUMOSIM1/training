@@ -175,6 +175,7 @@ def start(
     controller1 = ControllerProvider.get(controller_name1)
     controller2 = ControllerProvider.get(controller_name2)
 
+    # TODO simplify start method
     def create_request(response: Response) -> ObservationRequest:
         # print(f"### create_request {response}")
         match response:
@@ -206,11 +207,14 @@ def start(
         controller2.description(),
         record,
     )
+    print(f"### started")
     while True:
         if response.is_finished():
+            print(f"### finished {response}")
             return
         request: ObservationRequest = create_request(response)
         response = step(request, port)
+
 
 
 def step(request: ObservationRequest, port: int) -> Response:
