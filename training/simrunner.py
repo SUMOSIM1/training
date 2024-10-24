@@ -109,10 +109,8 @@ class Controller:
         pass
 
 
-@dataclass(frozen=True)
 class Response:
-    def is_finished(self) -> bool:
-        pass
+    pass
 
 
 @dataclass(frozen=True)
@@ -123,24 +121,15 @@ class SensorResponse(Response):
     obj_id: str | None
     cnt: int
 
-    def is_finished(self) -> bool:
-        return False
-
 
 @dataclass(frozen=True)
 class ErrorResponse(Response):
     message: str
 
-    def is_finished(self) -> bool:
-        return True
-
 
 @dataclass(frozen=True)
 class FinishedResponse(Response):
     message: str
-
-    def is_finished(self) -> bool:
-        return True
 
 
 @dataclass(frozen=True)
@@ -211,9 +200,13 @@ def start(
     while True:
         if cnt > 0 and cnt % 100 == 0:
             print(f"### {cnt}")
-        if response.is_finished():
-            print(f"### finished {response}")
-            return
+        match response:
+            case FinishedResponse(message=msg):
+                print(f"### finished OK {msg}")
+                return
+            case ErrorResponse(message=msg):
+                print(f"### finished ERROR {msg}")
+                return
         request = apply_policies(response)
         response = step(request, port)
         cnt += 1
