@@ -37,7 +37,7 @@ class SEnv(gym.Env):
         self.opponent_controller = opponent
         self.record = record
 
-        self.sim_action_response: sr.ActionResponse | None = None
+        self.sim_action_response: sr.SensorResponse | None = None
 
         self.action_space = crete_action_space(senv_config)
         self.observation_space = create_observation_space(senv_config)
@@ -56,7 +56,7 @@ class SEnv(gym.Env):
             self.record,
         )
         match response:
-            case sr.ActionResponse(sensor1=sensor1):
+            case sr.SensorResponse(sensor1=sensor1):
                 self.sim_action_response = response
                 return mapping_sensor_to_observation_space(sensor1, self.senv_config)
             case sr.ErrorResponse(msg):
@@ -67,7 +67,7 @@ class SEnv(gym.Env):
     def step(self, action):
         sensor2 = self.sim_action_response.sensor2
         cnt = self.sim_action_response.cnt
-        request = sr.ObservationRequest(
+        request = sr.ActionRequest(
             diffDrive1=mapping_action_space_to_diff_drive(action),
             diffDrive2=self.opponent_controller.take_step(sensor2),
             simulation_states=self.sim_action_response.simulation_states,
@@ -76,7 +76,7 @@ class SEnv(gym.Env):
         )
         response = sr.step(request, self.port)
         match response:
-            case sr.ActionResponse(sensor1=sensor1):
+            case sr.SensorResponse(sensor1=sensor1):
                 self.sim_action_response = response
                 observation = mapping_sensor_to_observation_space(
                     sensor1, self.senv_config

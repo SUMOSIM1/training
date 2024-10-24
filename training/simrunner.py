@@ -116,7 +116,7 @@ class Response:
 
 
 @dataclass(frozen=True)
-class ActionResponse(Response):
+class SensorResponse(Response):
     simulation_states: list[SimulationState]
     sensor1: CombiSensor
     sensor2: CombiSensor
@@ -144,7 +144,7 @@ class FinishedResponse(Response):
 
 
 @dataclass(frozen=True)
-class ObservationRequest:
+class ActionRequest:
     diffDrive1: DiffDriveValues
     diffDrive2: DiffDriveValues
     simulation_states: list[SimulationState]
@@ -175,11 +175,10 @@ def start(
     controller1 = ControllerProvider.get(controller_name1)
     controller2 = ControllerProvider.get(controller_name2)
 
-    # TODO simplify start method
-    def create_request(response: Response) -> ObservationRequest:
+    def apply_policies(response: Response) -> ActionRequest:
         # print(f"### create_request {response}")
         match response:
-            case ActionResponse(
+            case SensorResponse(
                 simulation_states=simulation_states,
                 sensor1=sensor1,
                 sensor2=sensor2,
@@ -188,7 +187,7 @@ def start(
             ):
                 diff_drive1 = controller1.take_step(sensor1)
                 diff_drive2 = controller2.take_step(sensor2)
-                return ObservationRequest(
+                return ActionRequest(
                     diffDrive1=diff_drive1,
                     diffDrive2=diff_drive2,
                     cnt=cnt + 1,
@@ -207,21 +206,20 @@ def start(
         controller2.description(),
         record,
     )
-    print(f"### started")
+    print("### started")
+    cnt = 0
     while True:
+        if cnt > 0 and cnt % 100 == 0:
+            print(f"### {cnt}")
         if response.is_finished():
             print(f"### finished {response}")
             return
-        request: ObservationRequest = create_request(response)
+        request = apply_policies(response)
         response = step(request, port)
+        cnt += 1
 
 
-
-def step(request: ObservationRequest, port: int) -> Response:
-    """
-
-    :rtype: object
-    """
+def step(request: ActionRequest, port: int) -> Response:
     cmd = DiffDriveCommand(
         robot1_diff_drive_values=request.diffDrive1,
         robot2_diff_drive_values=request.diffDrive2,
@@ -251,7 +249,7 @@ def _step(
                 state = SimulationState(s1.pos_dir, s2.pos_dir)
                 simulation_states.append(state)
 
-                return ActionResponse(
+                return SensorResponse(
                     simulation_states=simulation_states,
                     sensor1=s1.combi_sensor,
                     sensor2=s2.combi_sensor,
