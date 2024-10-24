@@ -76,19 +76,19 @@ class SEnv(gym.Env):
         )
         response = sr.step(request, self.port)
         match response:
-            case sr.SensorResponse(sensor1=sensor1):
+            case sr.SensorResponse(sensor1=sensor1, reward=reward):
                 self.sim_action_response = response
                 observation = mapping_sensor_to_observation_space(
                     sensor1, self.senv_config
                 )
-                reward = 0.0
+                reward = reward
                 terminated = False
                 truncated = False
                 info = {}
                 return observation, reward, terminated, truncated, info
-            case sr.FinishedResponse(message):
+            case sr.FinishedResponse(reward, message):
                 observation = {}
-                reward = 0.0
+                reward = reward
                 terminated = True
                 truncated = False
                 info = {"status": "OK", "message": message}
@@ -133,7 +133,7 @@ def tryout():
         episode_over = terminated or truncated
         cnt += 1
 
-    print(f"### finished {info}")
+    print(f"### finished reward:{reward} info:{info}")
     env.close()
 
 

@@ -115,6 +115,7 @@ class Response:
 
 @dataclass(frozen=True)
 class SensorResponse(Response):
+    reward: float
     simulation_states: list[SimulationState]
     sensor1: CombiSensor
     sensor2: CombiSensor
@@ -129,6 +130,7 @@ class ErrorResponse(Response):
 
 @dataclass(frozen=True)
 class FinishedResponse(Response):
+    reward: float
     message: str
 
 
@@ -164,27 +166,16 @@ def start(
     controller1 = ControllerProvider.get(controller_name1)
     controller2 = ControllerProvider.get(controller_name2)
 
-    def apply_policies(response: Response) -> ActionRequest:
-        # print(f"### create_request {response}")
-        match response:
-            case SensorResponse(
-                simulation_states=simulation_states,
-                sensor1=sensor1,
-                sensor2=sensor2,
-                obj_id=obj_id,
-                cnt=cnt,
-            ):
-                diff_drive1 = controller1.take_step(sensor1)
-                diff_drive2 = controller2.take_step(sensor2)
-                return ActionRequest(
-                    diffDrive1=diff_drive1,
-                    diffDrive2=diff_drive2,
-                    cnt=cnt + 1,
-                    obj_id=obj_id,
-                    simulation_states=simulation_states,
-                )
-            case _:
-                raise ValueError(f"Unknown response {response}")
+    def apply_policies(response: SensorResponse) -> ActionRequest:
+        diff_drive1 = controller1.take_step(response.sensor1)
+        diff_drive2 = controller2.take_step(response.sensor2)
+        return ActionRequest(
+            diffDrive1=diff_drive1,
+            diffDrive2=diff_drive2,
+            cnt=cnt + 1,
+            obj_id=obj_id,
+            simulation_states=simulation_states,
+        )
 
     response: Response = reset(
         port,
@@ -198,18 +189,24 @@ def start(
     print("### started")
     cnt = 0
     while True:
-        if cnt > 0 and cnt % 100 == 0:
-            print(f"### {cnt}")
         match response:
-            case FinishedResponse(message=msg):
-                print(f"### finished OK {msg}")
+            case FinishedResponse(reward, msg):
+                print(f"### finished OK reward:{reward} message:{msg}")
                 return
             case ErrorResponse(message=msg):
                 print(f"### finished ERROR {msg}")
                 return
-        request = apply_policies(response)
-        response = step(request, port)
-        cnt += 1
+            case SensorResponse(
+                reward=reward,
+                simulation_states=simulation_states,
+                obj_id=obj_id,
+                cnt=cnt,
+            ):
+                if cnt > 0 and cnt % 100 == 0:
+                    print(f"### {cnt} reward:{reward}")
+                request = apply_policies(response)
+                response = step(request, port)
+                cnt += 1
 
 
 def step(request: ActionRequest, port: int) -> Response:
@@ -227,6 +224,18 @@ def step(request: ActionRequest, port: int) -> Response:
     )
 
 
+def calculate_reward(state: SimulationState) -> float:
+    # TODO calculate
+    return 0
+
+
+def calculate_finished_reward(
+    properties1: list[(str, str)], properties2: list[(str, str)], state: SimulationState
+) -> float:
+    # TODO calculate
+    return 1
+
+
 def _step(
     command: SendCommand,
     simulation_states: list[SimulationState],
@@ -241,16 +250,17 @@ def _step(
                 # print("sensors", s1, s2)
                 state = SimulationState(s1.pos_dir, s2.pos_dir)
                 simulation_states.append(state)
-
+                reward = calculate_reward(state)
                 return SensorResponse(
+                    reward=reward,
                     simulation_states=simulation_states,
                     sensor1=s1.combi_sensor,
                     sensor2=s2.combi_sensor,
                     obj_id=obj_id,
                     cnt=cnt,
                 )
-            case FinishedOkCommand(r1, r2):
-                events_dict = {"r1": r1, "r2": r2}
+            case FinishedOkCommand(properties1, properties2):
+                events_dict = {"r1": properties1, "r2": properties2}
                 dicts = [s.to_dict() for s in simulation_states]
                 if obj_id:
                     with db.create_client() as client:
@@ -259,8 +269,12 @@ def _step(
                 #     f"Finished with OK: steps: {cnt} db_id: {obj_id} {events_dict}"
                 #     f"{simulation_states[:5]}..."
                 # )
-                msg = f"Finished with OK: steps: {cnt} db_id: {obj_id}"
+                msg = f"steps: {cnt} db_id: {obj_id}"
+                reward = calculate_finished_reward(
+                    properties1, properties2, simulation_states[-1]
+                )
                 return FinishedResponse(
+                    reward=reward,
                     message=msg,
                 )
             case FinishedErrorCommand(msg):
