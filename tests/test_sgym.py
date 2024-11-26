@@ -3,8 +3,8 @@ from typing import Any
 import numpy as np
 import pytest
 
-import training.explore.qlearning as ql
 import training.sgym as sgym
+import training.sgym_training as sl
 import training.simrunner as sr
 
 _config_a = sgym.SEnvConfig(
@@ -86,5 +86,5 @@ continuous_to_discrete_testdata = [
 @pytest.mark.parametrize("max_value, n, expected", continuous_to_discrete_testdata)
 def test_continuous_to_discrete(max_value: float, n: int, expected: tuple):
     v, i = expected
-    result = ql.continuous_to_discrete(v, max_value, n)
+    result = sl.continuous_to_discrete(v, max_value, n)
     assert i == result

@@ -75,8 +75,32 @@ def tryout():
 
 
 @app.command(help="Runs a gymnasium training. Not yet finished")
-def gym():
-    sgym.main()
+def gym(
+    loop: Annotated[
+        sgym.SGymLoop,
+        typer.Option("--loop", help="loop to be executed"),
+    ] = sgym.SGymLoop.SAMPLE.value,
+    epoch_count: Annotated[
+        int,
+        typer.Option(
+            "--epoch-count",
+            help="Number of epochs to be run",
+        ),
+    ] = 100,
+    record: Annotated[
+        bool,
+        typer.Option(
+            "--record", "-r", help="Define if the simulation is recorded or not"
+        ),
+    ] = False,
+    port: Annotated[
+        int,
+        typer.Option(
+            "--port", "-p", help="The port on which the simulation is listening"
+        ),
+    ] = 4444,
+):
+    sgym.main(loop, epoch_count, record, port)
 
 
 @app.command(help="Some database management")
