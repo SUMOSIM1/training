@@ -11,21 +11,32 @@ class SGymLoop(Enum):
     Q_SAMPLE = "q-sample"
 
 
-def main(sgym_loop: SGymLoop, epoch_count: int, record: bool, port: int):
+def main(
+    sgym_loop: SGymLoop,
+    epoch_count: int,
+    record: bool,
+    port: int,
+    opponent_name: sr.ControllerName,
+    reward_handler_name: sr.RewardHandlerName,
+):
     match sgym_loop:
         case SGymLoop.SAMPLE:
-            sample(epoch_count, record, port)
+            sample(epoch_count, record, port, opponent_name, reward_handler_name)
         case SGymLoop.Q_SAMPLE:
-            q_sample(epoch_count, record, port)
+            q_sample(epoch_count, record, port, opponent_name, reward_handler_name)
 
 
-def sample(epoch_count: int, record: bool, port: int):
-    opponent_name = sr.ControllerName.TUMBLR
-    rh_name = sr.RewardHandlerName.CONTINUOS_CONSIDER_ALL
-    reward_handler = sr.RewardHandlerProvider.get(rh_name)
+def sample(
+    epoch_count: int,
+    record: bool,
+    port: int,
+    opponent_name: sr.ControllerName,
+    reward_handler_name: sr.RewardHandlerName,
+):
+    reward_handler = sr.RewardHandlerProvider.get(reward_handler_name)
     print(
         f"### sgym sample e:{epoch_count} p:{port} "
-        f"o:{opponent_name.value} rh:{rh_name.value} r:{record}"
+        f"o:{opponent_name.value} rh:{reward_handler_name.value} r:{record}"
     )
 
     run_id = _tid()
@@ -56,7 +67,13 @@ def sample(epoch_count: int, record: bool, port: int):
         env.close()
 
 
-def q_sample(epoch_count: int, record: bool, port: int):
+def q_sample(
+    epoch_count: int,
+    record: bool,
+    port: int,
+    opponent_name: sr.ControllerName,
+    reward_handler_name: sr.RewardHandlerName,
+):
     raise NotImplementedError()
 
 

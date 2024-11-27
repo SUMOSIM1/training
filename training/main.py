@@ -99,8 +99,16 @@ def gym(
             "--port", "-p", help="The port on which the simulation is listening"
         ),
     ] = 4444,
+    reward_handler: Annotated[
+        sr.RewardHandlerName,
+        typer.Option("--reward-handler", help="Name of the reward handler"),
+    ] = sr.RewardHandlerName.CONTINUOS_CONSIDER_ALL,
+    opponent: Annotated[
+        sr.ControllerName,
+        typer.Option("--opponent", help="Name of the opponent controllers"),
+    ] = sr.ControllerName.TUMBLR,
 ):
-    sgym.main(loop, epoch_count, record, port)
+    sgym.main(loop, epoch_count, record, port, opponent, reward_handler)
 
 
 @app.command(help="Some database management")
