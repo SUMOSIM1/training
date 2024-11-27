@@ -134,10 +134,11 @@ class Response:
 
 @dataclass(frozen=True)
 class SensorResponse(Response):
-    reward: float
     simulation_states: list[SimulationState]
     sensor1: CombiSensor
     sensor2: CombiSensor
+    reward1: float
+    reward2: float
     cnt: int
 
 
@@ -253,12 +254,13 @@ def _step(
         case CombiSensorCommand(s1, s2):
             state = SimulationState(s1.pos_dir, s2.pos_dir)
             simulation_states.append(state)
-            reward = calculate_reward(reward_handler, state)
+            reward1, reward2 = calculate_reward(reward_handler, state)
             return SensorResponse(
-                reward=reward,
                 simulation_states=simulation_states,
                 sensor1=s1.combi_sensor,
                 sensor2=s2.combi_sensor,
+                reward1=reward1,
+                reward2=reward2,
                 cnt=cnt,
             )
         case FinishedOkCommand(properties1, properties2):

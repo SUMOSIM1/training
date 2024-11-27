@@ -57,7 +57,8 @@ class SEnv(gym.Env):
         match response:
             case sr.SensorResponse(sensor1=sensor1):
                 self.sim_action_response = response
-                return mapping_sensor_to_observation_space(sensor1, self.senv_config)
+                obs = mapping_sensor_to_observation_space(sensor1, self.senv_config)
+                return obs, {}
             case sr.ErrorResponse(msg):
                 raise RuntimeError(f"Error on reset: '{msg}'")
             case sr.FinishedResponse(msg):
@@ -82,7 +83,7 @@ class SEnv(gym.Env):
             None,
         )
         match response:
-            case sr.SensorResponse(sensor1=sensor1, reward=reward):
+            case sr.SensorResponse(sensor1=sensor1, reward1=reward):
                 self.sim_action_response = response
                 observation = mapping_sensor_to_observation_space(
                     sensor1, self.senv_config
@@ -91,7 +92,7 @@ class SEnv(gym.Env):
                 terminated = False
                 truncated = False
                 info = {}
-                return observation, reward[0], terminated, truncated, info
+                return observation, reward, terminated, truncated, info
             case sr.FinishedResponse(reward, message):
                 observation = {}
                 reward = reward
