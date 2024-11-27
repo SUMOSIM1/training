@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pandas as pd
 
-import training.simrunner_tournament as srt
+import training.sumosim_helper as sh
 from training.sgym_training import _tid
 
 
@@ -15,11 +15,11 @@ def test_tid():
 
 
 def test_display_results():
-    dir = Path.home() / "tmp" / "sumosim"
+    base_dir = Path.home() / "tmp" / "sumosim"
     filename = "COMBI-06.json"
-    file = dir / filename
+    file = base_dir / filename
     result = pd.read_json(file)
-    srt.plot_rewards(dir, filename, result)
+    sh.plot_epoch_datas(result, base_dir, filename, "")
 
 
 def main():
