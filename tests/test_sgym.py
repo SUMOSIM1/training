@@ -86,5 +86,5 @@ continuous_to_discrete_testdata = [
 @pytest.mark.parametrize("max_value, n, expected", continuous_to_discrete_testdata)
 def test_continuous_to_discrete(max_value: float, n: int, expected: tuple):
     v, i = expected
-    result = sl.continuous_to_discrete(v, max_value, n)
+    result = sl._continuous_to_discrete(v, max_value, n)
     assert i == result
