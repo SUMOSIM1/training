@@ -125,12 +125,7 @@ def run_epoch(
             max_simulation_steps=max_simulation_steps,
         )
     try:
-        response: sr.Response = sr.reset(
-            port,
-            sim_name,
-            max_simulation_steps,
-            reward_handler,
-        )
+        response: sr.Response = sr.reset(port, max_simulation_steps, reward_handler)
         cnt = 0
         cumulative_reward1 = 0.0
         cumulative_reward2 = 0.0

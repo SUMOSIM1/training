@@ -40,15 +40,30 @@ def sample(
     )
 
     run_id = _tid()
+
     for n in range(epoch_count):
         sim_name = f"SGYM-001-{run_id}-{n:03d}"
         opponent = sr.ControllerProvider.get(opponent_name)
+
+        sim_info = None
+        if record:
+            sim_info = sr.SimInfo(
+                name1="sample-agent",
+                desc1={"info": "Agent with sample actions"},
+                name2=opponent.name(),
+                desc2=opponent.description(),
+                port=port,
+                sim_name=sim_name,
+                max_simulation_steps=sgym.default_senv_config.max_simulation_steps,
+            )
+
         env = sgym.SEnv(
             senv_config=sgym.default_senv_config,
             port=port,
             sim_name=sim_name,
             opponent=opponent,
             reward_handler=reward_handler,
+            sim_info=sim_info,
         )
         observation, info = env.reset()
         cnt = 0

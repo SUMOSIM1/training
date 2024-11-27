@@ -50,7 +50,7 @@ class ControllerName(str, Enum):
 
 class RewardHandlerName(str, Enum):
     END_CONSIDER_ALL = "end-consider-all"
-    CONTINUOS_CONSIDER_ALL = "continuos-consider-all"
+    CONTINUOUS_CONSIDER_ALL = "continuous-consider-all"
 
 
 class SectorName(Enum):
@@ -183,10 +183,7 @@ class RewardHandler(ABC):
 
 
 def reset(
-    port: int,
-    sim_name: str,
-    max_simulation_steps: int,
-    reward_handler: RewardHandler,
+    port: int, max_simulation_steps: int, reward_handler: RewardHandler
 ) -> Response:
     return _step(
         StartCommand(),
@@ -467,7 +464,7 @@ class RewardHandlerProvider:
                 class_ = module.EndConsiderAllRewardHandler
                 return class_()
         match name:
-            case RewardHandlerName.CONTINUOS_CONSIDER_ALL:
+            case RewardHandlerName.CONTINUOUS_CONSIDER_ALL:
                 module = importlib.import_module("training.reward")
                 class_ = module.ConsiderAllRewardHandler
                 return class_()

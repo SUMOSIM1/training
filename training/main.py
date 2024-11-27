@@ -32,7 +32,7 @@ def start(
     reward_handler: Annotated[
         sr.RewardHandlerName,
         typer.Option("--reward-handler", help="Name of the reward handler"),
-    ] = sr.RewardHandlerName.CONTINUOS_CONSIDER_ALL,
+    ] = sr.RewardHandlerName.CONTINUOUS_CONSIDER_ALL,
     combination_type: Annotated[
         srt.CombinationType,
         typer.Option(
@@ -102,7 +102,7 @@ def gym(
     reward_handler: Annotated[
         sr.RewardHandlerName,
         typer.Option("--reward-handler", help="Name of the reward handler"),
-    ] = sr.RewardHandlerName.CONTINUOS_CONSIDER_ALL,
+    ] = sr.RewardHandlerName.CONTINUOUS_CONSIDER_ALL,
     opponent: Annotated[
         sr.ControllerName,
         typer.Option("--opponent", help="Name of the opponent controllers"),
