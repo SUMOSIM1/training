@@ -84,6 +84,7 @@ def start(
     line_keys = [[0, 3, 4], [1], [2]]
     _suptitle = suptitle(desc, line_keys)
     print(f"Wrote results for {name} to {out_dir}")
+    plot_rewards(out_dir=out_dir, suptitle=_suptitle, name=name, result=df)
 
 
 def run_epoch(
@@ -144,11 +145,11 @@ def run_epoch(
                     print(error_msg)
                     raise RuntimeError(error_msg)
                 case sr.SensorResponse(
-                    reward=reward,
+                    reward1=reward1,
+                    reward2=reward2,
                     simulation_states=simulation_states,
                     cnt=cnt,
                 ):
-                    reward1, reward2 = reward
                     cumulative_reward1 += reward1
                     cumulative_reward2 += reward2
                     # print(f"### {epoch_name} {cnt} reward:{reward}")
@@ -163,6 +164,8 @@ def run_epoch(
                         max_simulation_steps,
                         sim_info,
                     )
+                case _:
+                    raise RuntimeError(f"Could not match response:{response}")
     except BaseException as ex:
         print(f"### Error running {sim_name} {ex}")
         raise ex
@@ -198,9 +201,7 @@ def write_tournament_data(out_dir: Path, name: str, df: pd.DataFrame):
     df.to_json(file, indent=2)
 
 
-def plot_rewards(
-    out_dir: Path, name: str, _suptitle: str, result: pd.DataFrame
-) -> Path:
+def plot_rewards(out_dir: Path, name: str, suptitle: str, result: pd.DataFrame) -> Path:
     groups = result.groupby(["c1", "c2"])
     num_groups = groups.ngroups
 
@@ -228,7 +229,7 @@ def plot_rewards(
                 ax.set_ylim([-300, 300])
             else:
                 ax.axis("off")
-    plt.suptitle(_suptitle, y=0.98)
+    plt.suptitle(suptitle, y=0.98)
     filename = f"{name}.png"
     file_path = out_dir / filename
     fig.savefig(file_path)

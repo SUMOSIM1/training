@@ -22,6 +22,7 @@ def sgym_config():
         max_wheel_speed=7,
         max_view_distance=700,
         dtype=np.float32,
+        max_simulation_steps=1000,
     )
 
 

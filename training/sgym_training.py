@@ -52,7 +52,7 @@ def sample(epoch_count: int, record: bool, port: int):
             episode_over = terminated or truncated
             cnt += 1
 
-        print(f"### finished {sim_name} {cuml_reward:10.2f}")
+        print(f"### finished epoch {sim_name} cr:{cuml_reward:10.2f} r:{record}")
         env.close()
 
 
