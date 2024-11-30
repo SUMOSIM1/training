@@ -173,7 +173,14 @@ def _tid() -> str:
     return f"{int(time.time() * 10) % 86400:05d}"
 
 
-def _continuous_to_discrete(value: float, max_value: float, step_count: int) -> int:
-    d = 2.0 * max_value / step_count
+def _continuous_to_discrete(
+    value: float, min_value: float, max_value: float, step_count: int
+) -> int:
+    d = (max_value - min_value) / step_count
     i = int(math.floor((value + max_value) / d))
     return min(max(0, i), (step_count - 1))
+
+
+def _create_subset(max_value: float, n: int) -> list[float]:
+    diff = max_value / n
+    return [-max_value + i * diff for i in range(2 * n + 1)]

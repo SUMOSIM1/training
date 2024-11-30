@@ -68,23 +68,40 @@ def test_action_space_to_diff_drive_a(space: Any, expected: sr.DiffDriveValues):
 
 
 continuous_to_discrete_testdata = [
-    (10.0, 3, (-100.0001, 0)),
-    (10.0, 3, (-10.0001, 0)),
-    (10.0, 3, (-10.0, 0)),
-    (10.0, 3, (-3.334, 0)),
-    (10.0, 3, (-3.332, 1)),
-    (10.0, 3, (0.0, 1)),
-    (10.0, 3, (3.332, 1)),
-    (10.0, 3, (3.334, 2)),
-    (10.0, 3, (4, 2)),
-    (10.0, 3, (10.0, 2)),
-    (10.0, 3, (10.0001, 2)),
-    (10.0, 3, (100.0001, 2)),
+    (-10.0, 10.0, 3, (-100.0001, 0)),
+    (-10.0, 10.0, 3, (-10.0001, 0)),
+    (-10.0, 10.0, 3, (-10.0, 0)),
+    (-10.0, 10.0, 3, (-3.334, 0)),
+    (-10.0, 10.0, 3, (-3.332, 1)),
+    (-10.0, 10.0, 3, (0.0, 1)),
+    (-10.0, 10.0, 3, (3.332, 1)),
+    (-10.0, 10.0, 3, (3.334, 2)),
+    (-10.0, 10.0, 3, (4, 2)),
+    (-10.0, 10.0, 3, (10.0, 2)),
+    (-10.0, 10.0, 3, (10.0001, 2)),
+    (-10.0, 10.0, 3, (100.0001, 2)),
 ]
 
 
-@pytest.mark.parametrize("max_value, n, expected", continuous_to_discrete_testdata)
-def test_continuous_to_discrete(max_value: float, n: int, expected: tuple):
+@pytest.mark.parametrize(
+    "min_value, max_value, n, expected", continuous_to_discrete_testdata
+)
+def test_continuous_to_discrete(
+    min_value: float, max_value: float, n: int, expected: tuple
+):
     v, i = expected
-    result = sl._continuous_to_discrete(v, max_value, n)
+    result = sl._continuous_to_discrete(v, min_value, max_value, n)
+    print(f"### i:{i} r:{result}")
     assert i == result
+
+
+create_subset_testdata = [
+    (2.0, 2, [-2.0, -1.0, 0.0, 1.0, 2.0]),
+    (2.0, 4, [-2.0, -1.5, -1.0, -0.5, 0.0, 0.5, 1.0, 1.5, 2.0]),
+]
+
+
+@pytest.mark.parametrize("max_value,n, expected", create_subset_testdata)
+def test_x(max_value: float, n: int, expected: list[float]):
+    result = sl._create_subset(max_value, n)
+    assert result == expected
