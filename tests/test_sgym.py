@@ -11,8 +11,8 @@ _config_a = sgym.SEnvConfig(
     max_wheel_speed=100.0, max_view_distance=200.0, max_simulation_steps=1000
 )
 
-_as_a = sgym.crete_action_space(_config_a)
-_os_a = sgym.create_observation_space(_config_a)
+_as_a = sgym._crete_action_space(_config_a)
+_os_a = sgym._create_observation_space(_config_a)
 
 sensor_to_observation_space_a_testdata = [
     (

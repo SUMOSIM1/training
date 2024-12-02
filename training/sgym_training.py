@@ -3,6 +3,9 @@ import time
 from enum import Enum
 from pathlib import Path
 
+import gymnasium as gym
+import numpy as np
+
 import training.sgym as sgym
 import training.simrunner as sr
 import training.sumosim_helper as sh
@@ -184,3 +187,11 @@ def _continuous_to_discrete(
 def _create_subset(max_value: float, n: int) -> list[float]:
     diff = max_value / n
     return [-max_value + i * diff for i in range(2 * n + 1)]
+
+
+def _create_q_observation_space() -> gym.Space:
+    pass
+
+
+def _to_q_observation(view: int, border: np.array) -> tuple[int, tuple[int, int, int]]:
+    pass

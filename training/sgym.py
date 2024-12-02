@@ -43,8 +43,8 @@ class SEnv(gym.Env):
 
         self.sim_action_response: sr.SensorResponse | None = None
 
-        self.action_space = crete_action_space(senv_config)
-        self.observation_space = create_observation_space(senv_config)
+        self.action_space = _crete_action_space(senv_config)
+        self.observation_space = _create_observation_space(senv_config)
 
     def reset(
         self, seed: int | None = None, options: dict[str, Any] | None = None
@@ -108,7 +108,7 @@ class SEnv(gym.Env):
 
 
 # Define action and observation space
-def crete_action_space(config: SEnvConfig) -> gym.Space:
+def _crete_action_space(config: SEnvConfig) -> gym.Space:
     return Box(
         low=-config.max_wheel_speed,
         high=config.max_wheel_speed,
@@ -117,7 +117,7 @@ def crete_action_space(config: SEnvConfig) -> gym.Space:
     )
 
 
-def create_observation_space(config: SEnvConfig) -> gym.Space:
+def _create_observation_space(config: SEnvConfig) -> gym.Space:
     observation_view_space = Discrete(n=4)
     observation_border_space = Box(
         low=0.0, high=config.max_view_distance, shape=(1, 3), dtype=config.dtype

@@ -30,7 +30,7 @@ class SGymSampleController(sr.Controller):
     def __init__(
         self,
     ):
-        self.action_space = sgym.crete_action_space(sgym_config())
+        self.action_space = sgym._crete_action_space(sgym_config())
 
     def take_step(self, sensor: sr.CombiSensor) -> sr.DiffDriveValues:
         action = self.action_space.sample()
