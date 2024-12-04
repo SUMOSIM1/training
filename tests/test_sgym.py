@@ -4,6 +4,7 @@ import numpy as np
 import pytest
 
 import training.sgym as sgym
+import training.sgym_training as sgymt
 import training.sgym_training as sl
 import training.simrunner as sr
 
@@ -11,8 +12,8 @@ _config_a = sgym.SEnvConfig(
     max_wheel_speed=100.0, max_view_distance=200.0, max_simulation_steps=1000
 )
 
-_as_a = sgym._crete_action_space(_config_a)
-_os_a = sgym._create_observation_space(_config_a)
+_as_a = sgymt.cont_act_space(_config_a)
+_os_a = sgymt.cont_obs_space(_config_a)
 
 sensor_to_observation_space_a_testdata = [
     (
@@ -24,7 +25,7 @@ sensor_to_observation_space_a_testdata = [
         ),
         {
             "view": 0,
-            "border": sgym._create_numpy_array([[20, 33, 66]], _config_a),
+            "border": sgymt._create_numpy_array([[20, 33, 66]], _config_a),
         },
     ),
     (
@@ -36,7 +37,7 @@ sensor_to_observation_space_a_testdata = [
         ),
         {
             "view": 0,
-            "border": sgym._create_numpy_array([[0.0, 100.1, 150.0]], _config_a),
+            "border": sgymt._create_numpy_array([[0.0, 100.1, 150.0]], _config_a),
         },
     ),
 ]
@@ -44,25 +45,31 @@ sensor_to_observation_space_a_testdata = [
 
 @pytest.mark.parametrize("sensor, expected", sensor_to_observation_space_a_testdata)
 def test_sensor_to_observation_space_a(sensor: sr.CombiSensor, expected: dict):
-    result = sgym.mapping_sensor_to_observation_space(sensor, _config_a)
+    result = sgymt.map_cont_sensor_to_obs(sensor, _config_a)
     assert _os_a.contains(result)
     for k in result:
         np.testing.assert_equal(result[k], expected[k], err_msg=f"Comparing {k}")
 
 
 action_space_to_diff_drive_a_testdata = [
-    (sgym._create_numpy_array([[0.1, 0.5]], _config_a), sr.DiffDriveValues(0.1, 0.5)),
-    (sgym._create_numpy_array([[-0.1, 0.5]], _config_a), sr.DiffDriveValues(-0.1, 0.5)),
-    (sgym._create_numpy_array([[0.1, -0.5]], _config_a), sr.DiffDriveValues(0.1, -0.5)),
-    (sgym._create_numpy_array([[35, 45]], _config_a), sr.DiffDriveValues(35, 45)),
-    (sgym._create_numpy_array([[-35, 45]], _config_a), sr.DiffDriveValues(-35, 45)),
-    (sgym._create_numpy_array([[-35, -45]], _config_a), sr.DiffDriveValues(-35, -45)),
+    (sgymt._create_numpy_array([[0.1, 0.5]], _config_a), sr.DiffDriveValues(0.1, 0.5)),
+    (
+        sgymt._create_numpy_array([[-0.1, 0.5]], _config_a),
+        sr.DiffDriveValues(-0.1, 0.5),
+    ),
+    (
+        sgymt._create_numpy_array([[0.1, -0.5]], _config_a),
+        sr.DiffDriveValues(0.1, -0.5),
+    ),
+    (sgymt._create_numpy_array([[35, 45]], _config_a), sr.DiffDriveValues(35, 45)),
+    (sgymt._create_numpy_array([[-35, 45]], _config_a), sr.DiffDriveValues(-35, 45)),
+    (sgymt._create_numpy_array([[-35, -45]], _config_a), sr.DiffDriveValues(-35, -45)),
 ]
 
 
 @pytest.mark.parametrize("space, expected", action_space_to_diff_drive_a_testdata)
 def test_action_space_to_diff_drive_a(space: Any, expected: sr.DiffDriveValues):
-    result = sgym.mapping_action_space_to_diff_drive(space)
+    result = sgymt.map_cont_act_to_diff_drive(space)
     assert _as_a.contains(space)
     assert result == expected
 

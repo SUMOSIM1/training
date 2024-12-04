@@ -4,11 +4,81 @@ from enum import Enum
 from pathlib import Path
 
 import gymnasium as gym
+import gymnasium.spaces as gyms
 import numpy as np
 
 import training.sgym as sgym
 import training.simrunner as sr
 import training.sumosim_helper as sh
+
+
+def cont_act_space(config: sgym.SEnvConfig) -> gym.Space:
+    return gyms.Box(
+        low=-config.max_wheel_speed,
+        high=config.max_wheel_speed,
+        shape=(1, 2),
+        dtype=config.dtype,
+    )
+
+
+def cont_obs_space(config: sgym.SEnvConfig) -> gym.Space:
+    observation_view_space = gyms.Discrete(n=4)
+    observation_border_space = gyms.Box(
+        low=0.0, high=config.max_view_distance, shape=(1, 3), dtype=config.dtype
+    )
+    return gyms.Dict(
+        {
+            "view": observation_view_space,
+            "border": observation_border_space,
+        }
+    )
+
+
+def map_cont_sensor_to_obs(
+    sensor: sr.CombiSensor, config: sgym.SEnvConfig
+) -> dict[str, any]:
+    def view_mapping() -> int:
+        match sensor.opponent_in_sector:
+            case sr.SectorName.UNDEF:
+                return 0
+            case sr.SectorName.LEFT:
+                return 1
+            case sr.SectorName.CENTER:
+                return 2
+            case sr.SectorName.RIGHT:
+                return 3
+            case _:
+                raise ValueError(f"Wrong sector name {sensor.opponent_in_sector}")
+
+    return {
+        "view": view_mapping(),
+        "border": _create_numpy_array(
+            [
+                [
+                    sensor.left_distance,
+                    sensor.front_distance,
+                    sensor.right_distance,
+                ]
+            ],
+            config,
+        ),
+    }
+
+
+def map_cont_act_to_diff_drive(action_space: list[list]) -> sr.DiffDriveValues:
+    # TODO check if that mapping is OK
+    return sr.DiffDriveValues(
+        left_velo=action_space[0][1],
+        right_velo=action_space[0][0],
+    )
+
+
+cont_sgym_mapping = sgym.SEnvMapping(
+    act_space=cont_act_space,
+    obs_space=cont_obs_space,
+    map_act=map_cont_act_to_diff_drive,
+    map_sensor=map_cont_sensor_to_obs,
+)
 
 
 class SGymLoop(Enum):
@@ -66,6 +136,7 @@ def sample(
 
         env = sgym.SEnv(
             senv_config=sgym.default_senv_config,
+            senv_mapping=cont_sgym_mapping,
             port=port,
             sim_name=sim_name,
             opponent=opponent,
@@ -85,7 +156,10 @@ def sample(
             episode_over = terminated or truncated
             cnt += 1
 
-        print(f"### finished epoch {sim_name} cr:{cuml_reward:10.2f} r:{record}")
+        print(
+            f"### finished epoch {sim_name} "
+            f"reward:{cuml_reward:10.2f} record:{record}"
+        )
         rewards.append(cuml_reward)
         env.close()
 
@@ -138,6 +212,7 @@ def q_sample(
 
         env = sgym.SEnv(
             senv_config=sgym.default_senv_config,
+            senv_mapping=cont_sgym_mapping,
             port=port,
             sim_name=sim_name,
             opponent=opponent,
@@ -155,7 +230,10 @@ def q_sample(
             episode_over = terminated or truncated
             cnt += 1
 
-        print(f"### finished epoch {sim_name} r:{cuml_reward:10.2f} r:{record}")
+        print(
+            f"### finished epoch {sim_name} "
+            f"reward:{cuml_reward:10.2f} record:{record}"
+        )
         rewards.append(cuml_reward)
         env.close()
 
@@ -195,3 +273,7 @@ def _create_q_observation_space() -> gym.Space:
 
 def _to_q_observation(view: int, border: np.array) -> tuple[int, tuple[int, int, int]]:
     pass
+
+
+def _create_numpy_array(value: any, config: sgym.SEnvConfig) -> np.array:
+    return np.array(value, dtype=config.dtype)

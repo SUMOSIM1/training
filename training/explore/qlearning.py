@@ -15,7 +15,7 @@ def tryout():
     config = sgym.default_senv_config
 
     print(f"### config {config}")
-    _action_space = sgym._crete_action_space(sgym.default_senv_config)
+    _action_space = sgym.cont_act_space(sgym.default_senv_config)
     print(_action_space)
 
     for x in [-12, -10, -3.334, -3.332, 0, 3.332, 3.334, 4, 6, 10, 11, 1000]:
