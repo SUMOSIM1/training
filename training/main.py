@@ -76,6 +76,7 @@ def tryout():
 
 @app.command(help="Runs a gymnasium training. Not yet finished")
 def gym(
+    name: Annotated[str, typer.Option("--name", "-n", help="Name of the run")],
     loop: Annotated[
         sgym.SGymLoop,
         typer.Option("--loop", help="loop to be executed"),
@@ -108,7 +109,7 @@ def gym(
         typer.Option("--opponent", help="Name of the opponent controllers"),
     ] = sr.ControllerName.TUMBLR,
 ):
-    sgym.main(loop, epoch_count, record, port, opponent, reward_handler)
+    sgym.main(name, loop, epoch_count, record, port, opponent, reward_handler)
 
 
 @app.command(help="Some database management")

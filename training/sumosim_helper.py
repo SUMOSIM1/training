@@ -50,6 +50,13 @@ def write_data(data: RewardCollector, out_dir: Path, name: str):
     data.data_frame().to_json(file, indent=2)
 
 
+def write_dict_data(data: list, out_dir: Path, name: str):
+    filename = f"{name}.json"
+    file = out_dir / filename
+    df = pd.DataFrame(data)
+    df.to_json(file, indent=2)
+
+
 def plot_epoch_datas(
     data: RewardCollector, out_dir: Path, name: str, suptitle: str
 ) -> Path:

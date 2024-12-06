@@ -1,27 +1,25 @@
-import math
+from pathlib import Path
 
-import training.sgym as sgym
-
-
-def continuous_to_discrete(value: float, max_value: float, step_count: int) -> int:
-    d = 2.0 * max_value / step_count
-    i = int(math.floor((value + max_value) / d))
-    return min(max(0, i), (step_count - 1))
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
 
 
 def tryout():
-    print("Exploring qlearning")
+    name = "Q-TRAIN-try001-51045"
+    in_dir = Path.home() / "tmp" / "sumosim"
+    file_path = in_dir / f"{name}.json"
+    data = pd.read_json(file_path)
+    y = data["reward"]
 
-    config = sgym.default_senv_config
+    window_size = 1000
+    y1 = np.convolve(y, np.ones(window_size) / window_size, mode="valid")
+    window_size = 10000
+    y2 = np.convolve(y, np.ones(window_size) / window_size, mode="valid")
 
-    print(f"### config {config}")
-    _action_space = sgym.cont_act_space(sgym.default_senv_config)
-    print(_action_space)
-
-    for x in [-12, -10, -3.334, -3.332, 0, 3.332, 3.334, 4, 6, 10, 11, 1000]:
-        _n = continuous_to_discrete(x, 10, 3)
-        print(f"{x:10.4f} -->> {_n:<10d}")
-
-    # for i  in range(5):
-    #     action = action_space.sample()
-    #     print(f"### action {i} - {type(action)} {action}")
+    # plt.plot(y)
+    plt.plot(y1, label="reward")
+    plt.plot(y2, label="reward (flat)")
+    plt.title(name)
+    plt.legend()
+    plt.show()

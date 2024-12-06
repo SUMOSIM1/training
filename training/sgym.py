@@ -11,7 +11,9 @@ import training.simrunner as sr
 @dataclass(frozen=True)
 class SEnvConfig:
     max_wheel_speed: float
+    wheel_speed_steps: int
     max_view_distance: float
+    view_distance_steps: int
     max_simulation_steps: int
     dtype: np.generic = np.float32
 
@@ -20,13 +22,15 @@ class SEnvConfig:
 class SEnvMapping:
     act_space: Callable[[SEnvConfig], gym.Space]
     obs_space: Callable[[SEnvConfig], gym.Space]
-    map_act: Callable[[list[list]], sr.DiffDriveValues]
-    map_sensor: Callable[[sr.CombiSensor, SEnvConfig], dict[str, any]]
+    map_act: Callable[[any, SEnvConfig], sr.DiffDriveValues]
+    map_sensor: Callable[[sr.CombiSensor, SEnvConfig], any]
 
 
 default_senv_config = SEnvConfig(
     max_wheel_speed=7,
+    wheel_speed_steps=10,
     max_view_distance=700,
+    view_distance_steps=10,
     max_simulation_steps=1000,
     dtype=np.float32,
 )
@@ -77,7 +81,7 @@ class SEnv(gym.Env):
         sensor2 = self.sim_action_response.sensor2
         cnt = self.sim_action_response.cnt
         request = sr.ActionRequest(
-            diffDrive1=self.senv_config1.map_act(action),
+            diffDrive1=self.senv_config1.map_act(action, self.senv_config),
             diffDrive2=self.opponent_controller.take_step(sensor2),
             simulation_states=self.sim_action_response.simulation_states,
             cnt=cnt + 1,
@@ -101,14 +105,14 @@ class SEnv(gym.Env):
                 info = {}
                 return observation, reward, terminated, truncated, info
             case sr.FinishedResponse(reward, message):
-                observation = {}
+                observation = self.observation_space.sample()
                 reward = reward
                 terminated = True
                 truncated = False
                 info = {"status": "OK", "message": message}
                 return observation, reward, terminated, truncated, info
             case sr.ErrorResponse(message):
-                observation = {}
+                observation = self.observation_space.sample()
                 terminated = True
                 truncated = True
                 info = {"status": "ERROR", "message": message}
