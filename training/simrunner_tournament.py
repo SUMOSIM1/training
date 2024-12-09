@@ -3,10 +3,24 @@ from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
 
+import matplotlib.pyplot as plt
+import pandas as pd
+
 import training.consts
+import training.helper as sh
 import training.simrunner as sr
-import training.sumosim_helper as sh
 from training.simrunner import SimInfo
+
+
+class RewardCollector:
+    def __init__(self):
+        self.data = []
+
+    def add(self, name1: str, name2: str, value1: float, value2: float):
+        self.data.append((name1, name2, value1, value2))
+
+    def data_frame(self) -> pd.DataFrame:
+        return pd.DataFrame(self.data, columns=["c1", "c2", "r1", "r2"])
 
 
 class CombinationType(str, Enum):
@@ -45,7 +59,7 @@ def start(
     combinations = _tournament_combinations(controller_names, combination_type)
     combinations_count = len(combinations)
     combination_nr = 1
-    result_data = sh.RewardCollector()
+    result_data: RewardCollector = RewardCollector()
     for controller_name1, controller_name2 in combinations:
         for epoch_nr in range(epoch_count):
             reward1, reward2, msg = run_epoch(
@@ -78,9 +92,9 @@ def start(
         "max sim steps": max_simulation_steps,
         "epoch count": epoch_count,
     }
-    sh.write_data(result_data, out_dir, name)
+    sh.write_dict_data(result_data.data_frame().to_json, out_dir, name)
     lines = sh.create_lines(desc, [[0, 3, 4], [1], [2]])
-    sh.plot_epoch_datas(data=result_data, out_dir=out_dir, name=name, suptitle=lines)
+    plot_epoch_datas(data=result_data, out_dir=out_dir, name=name, suptitle=lines)
     print(f"Wrote results for {name} to {out_dir}")
 
 
@@ -171,3 +185,48 @@ def _tournament_combinations(
             return list(it.combinations_with_replacement(names, 2))
         case CombinationType.WITHOUT_REPLACEMENT:
             return list(it.combinations(names, 2))
+
+
+def plot_epoch_datas(
+    data: RewardCollector, out_dir: Path, name: str, suptitle: str
+) -> Path:
+    """
+    :param data: A RewardCollector
+    :param out_dir:
+    :param name:
+    :param suptitle:
+    :return:
+    """
+    groups = data.data_frame().groupby(["c1", "c2"])
+    num_groups = groups.ngroups
+
+    n_rows, n_cols = sh.row_col(num_groups)
+    fig, axes = plt.subplots(nrows=n_rows, ncols=n_cols, figsize=(12, 15))
+
+    group_list = list(groups)
+    for i in range(n_cols):
+        for j in range(n_rows):
+            index = j * n_cols + i
+            if n_cols == 1 and n_rows == 1:
+                ax = axes
+            elif n_cols == 1:
+                ax = axes[j]
+            elif n_rows == 1:
+                ax = axes[i]
+            else:
+                ax = axes[j][i]
+            if index < len(group_list):
+                key, grouped_data = group_list[j * n_cols + i]
+                name1, name2 = key
+                title = f"{name1}  -  {name2}"
+                ax.boxplot(grouped_data[["r1", "r2"]], labels=(name1, name2))
+                ax.set_title(title)
+                ax.set_ylim([-300, 300])
+            else:
+                ax.axis("off")
+    plt.suptitle(suptitle, y=0.98)
+    filename = f"{name}.png"
+    file_path = out_dir / filename
+    fig.savefig(file_path)
+    plt.close(fig)
+    return file_path

@@ -4,7 +4,8 @@ import typer
 from typing_extensions import Annotated
 
 import training.explore.qlearning as ql
-import training.sgym_training as sgym
+import training.sgym.qlearn as sgym_qlearn
+import training.sgym.sample as sgym_sample
 import training.simdb
 import training.simrunner as sr
 import training.simrunner_tournament as srt
@@ -12,8 +13,8 @@ import training.util
 
 app = typer.Typer(pretty_exceptions_enable=False)
 
-simpath_help = "Path to the simulator git module"
-simpath_default = Path.home() / "prj" / "SUMOSIM" / "sumosim"
+sim_path_help = "Path to the simulator git module"
+sim_path_default = Path.home() / "prj" / "SUMOSIM" / "sumosim"
 
 
 @app.command(help="Runs simulations for combinations of controllers")
@@ -74,13 +75,9 @@ def tryout():
     ql.tryout()
 
 
-@app.command(help="Runs a gymnasium training. Not yet finished")
-def gym(
+@app.command(help="Runs a gymnasium sample session")
+def sample(
     name: Annotated[str, typer.Option("--name", "-n", help="Name of the run")],
-    loop: Annotated[
-        sgym.SGymLoop,
-        typer.Option("--loop", help="loop to be executed"),
-    ] = sgym.SGymLoop.SAMPLE.value,
     epoch_count: Annotated[
         int,
         typer.Option(
@@ -109,7 +106,41 @@ def gym(
         typer.Option("--opponent", help="Name of the opponent controllers"),
     ] = sr.ControllerName.TUMBLR,
 ):
-    sgym.main(name, loop, epoch_count, record, port, opponent, reward_handler)
+    sgym_sample.sample(name, epoch_count, record, port, opponent, reward_handler)
+
+
+@app.command(help="Runs a gymnasium q-learning session")
+def qlearn(
+    name: Annotated[str, typer.Option("--name", "-n", help="Name of the run")],
+    epoch_count: Annotated[
+        int,
+        typer.Option(
+            "--epoch-count",
+            help="Number of epochs to be run",
+        ),
+    ] = 100,
+    record: Annotated[
+        bool,
+        typer.Option(
+            "--record", "-r", help="Define if the simulation is recorded or not"
+        ),
+    ] = False,
+    port: Annotated[
+        int,
+        typer.Option(
+            "--port", "-p", help="The port on which the simulation is listening"
+        ),
+    ] = 4444,
+    reward_handler: Annotated[
+        sr.RewardHandlerName,
+        typer.Option("--reward-handler", help="Name of the reward handler"),
+    ] = sr.RewardHandlerName.CONTINUOUS_CONSIDER_ALL,
+    opponent: Annotated[
+        sr.ControllerName,
+        typer.Option("--opponent", help="Name of the opponent controllers"),
+    ] = sr.ControllerName.TUMBLR,
+):
+    sgym_qlearn.q_train(name, epoch_count, record, port, opponent, reward_handler)
 
 
 @app.command(help="Some database management")
@@ -122,9 +153,6 @@ def db(
             help="Name of a query function in module 'simdb'. E.g. 'count_running'",
         ),
     ],
-    verbose: Annotated[
-        bool, typer.Option("--verbose", "-v", help="Verbose output")
-    ] = False,
 ):
     training.simdb(query)
 

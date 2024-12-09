@@ -99,14 +99,12 @@ class SEnv(gym.Env):
             case sr.SensorResponse(sensor1=sensor1, reward1=reward):
                 self.sim_action_response = response
                 observation = self.senv_config1.map_sensor(sensor1, self.senv_config)
-                reward = reward
                 terminated = False
                 truncated = False
                 info = {}
                 return observation, reward, terminated, truncated, info
             case sr.FinishedResponse(reward, message):
                 observation = self.observation_space.sample()
-                reward = reward
                 terminated = True
                 truncated = False
                 info = {"status": "OK", "message": message}
