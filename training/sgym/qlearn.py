@@ -4,18 +4,15 @@ from pathlib import Path
 
 import gymnasium as gym
 import gymnasium.spaces as gyms
+import matplotlib.pyplot as plt
 import numpy as np
-from mypy.moduleinspect import worker
+import pandas as pd
 
 import training.helper as helper
 import training.helper as sh
 import training.sgym.core as sgym
 import training.simrunner as sr
 from training.simrunner import DiffDriveValues
-
-import matplotlib.pyplot as plt
-import pandas as pd
-
 
 
 def q_train(
@@ -110,6 +107,7 @@ def q_train(
     print(f"Wrote data to {data_path}")
     plot_path = plot(data_path, training_name, worker_dir)
     print(f"Wrote plot to {plot_path}")
+
 
 def get_q_act_space(config: sgym.SEnvConfig) -> gym.Space:
     n = config.wheel_speed_steps * config.wheel_speed_steps
@@ -212,7 +210,7 @@ class QAgent:
         self.training_error = []
 
     def start_samples(self):
-        samples =  [np.int64(50) for _i in range(self.env.action_space.n)]
+        samples = [np.int64(50) for _i in range(self.env.action_space.n)]
         return samples
 
     def get_action(self, obs: tuple) -> int:
@@ -267,7 +265,6 @@ def _curry_velo_from_index(
 
 
 def plot(file_path: Path, name: str, work_dir: Path) -> Path:
-
     data = pd.read_json(file_path)
     y = data["reward"]
     window_size = 1
@@ -283,5 +280,3 @@ def plot(file_path: Path, name: str, work_dir: Path) -> Path:
     fig.savefig(out_path)
     plt.close(fig)
     return out_path
-
-

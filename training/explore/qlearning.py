@@ -4,8 +4,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
+import training.explore.blackjack as bj
 
-def tryout():
+
+def tryout1():
     name = "Q-TRAIN-try001-51045"
     in_dir = Path.home() / "tmp" / "sumosim"
     file_path = in_dir / f"{name}.json"
@@ -23,3 +25,7 @@ def tryout():
     plt.title(name)
     plt.legend()
     plt.show()
+
+
+def tryout():
+    bj.main()
