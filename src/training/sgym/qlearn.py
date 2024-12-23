@@ -7,6 +7,7 @@ from pathlib import Path
 import gymnasium as gym
 import gymnasium.spaces as gyms
 import matplotlib.pyplot as plt
+import matplotlib
 import numpy as np
 import pandas as pd
 import seaborn as sbn
@@ -15,6 +16,10 @@ import training.helper as hlp
 import training.sgym.core as sgym
 import training.simrunner as sr
 from training.simrunner import DiffDriveValues
+
+import concurrent.futures as cf
+import time
+import random
 
 
 @dataclass(frozen=True)
@@ -26,26 +31,69 @@ class QLearnConfig:
     discount_factor: float
     doc_interval: int
     doc_duration: int
+    record_count: int
 
 
-q_learn_env_config = sgym.SEnvConfig(
-    max_wheel_speed=7,
-    wheel_speed_steps=10,
-    max_view_distance=700,
-    view_distance_steps=3,
-    max_simulation_steps=1000,
-    dtype=np.float32,
-)
+def q_train_cv(
+    name: str,
+    epoch_count: int,
+):
+    print(f"Started q cv n:{name} cnt:{epoch_count}")
 
-q_learn_config = QLearnConfig(
-    learning_rate=0.01,
-    initial_epsilon=0.01,
-    epsilon_decay=0.001,
-    final_epsilon=0.05,
-    discount_factor=0.95,
-    doc_interval=1000,
-    doc_duration=100,
-)
+    def run_q_train(port: int, name: str, epoch_count: int) -> dict:
+        env_config = sgym.SEnvConfig(
+            max_wheel_speed=7,
+            wheel_speed_steps=10,
+            max_view_distance=700,
+            view_distance_steps=3,
+            max_simulation_steps=1000,
+            dtype=np.float32,
+        )
+        q_learning_config = QLearnConfig(
+            learning_rate=0.01,
+            initial_epsilon=0.01,
+            epsilon_decay=0.001,
+            final_epsilon=0.05,
+            discount_factor=0.95,
+            doc_interval=1,
+            doc_duration=1,
+            record_count=10,
+        )
+        return q_train(
+            name,
+            epoch_count,
+            port,
+            sr.ControllerName.STAND_STILL,
+            sr.RewardHandlerName.CONTINUOUS_CONSIDER_ALL,
+            env_config,
+            q_learning_config,
+        )
+
+    ports = [
+        (4401, 4402, 4403),
+        (f"{name}-1", f"{name}-2", f"{name}-3"),
+        (epoch_count, epoch_count, epoch_count),
+    ]
+    with cf.ThreadPoolExecutor() as executor:
+        results = executor.map(run_q_train, *ports)
+        for result in results:
+            print(f"finished {result}")
+        print("finished all")
+
+
+def q_train1(
+    name: str,
+    epoch_count: int,
+    port: int,
+    opponent_name: sr.ControllerName,
+    reward_handler_name: sr.RewardHandlerName,
+    q_learn_env_config: sgym.SEnvConfig,
+    q_learn_config: QLearnConfig,
+) -> int:
+    print(f"started {name} {port} {epoch_count}")
+    time.sleep(0.5 + random.random() * 2.0)
+    return port
+
 
 def q_train(
     name: str,
@@ -53,30 +101,30 @@ def q_train(
     port: int,
     opponent_name: sr.ControllerName,
     reward_handler_name: sr.RewardHandlerName,
-):
-    loop_name = "q-train"
-
+    q_learn_env_config: sgym.SEnvConfig,
+    q_learn_config: QLearnConfig,
+) -> int:
     reward_handler = sr.RewardHandlerProvider.get(reward_handler_name)
-    print(
-        f"Started {loop_name} e:{epoch_count} p:{port} "
-        f"o:{opponent_name.value} rh:{reward_handler_name.value}"
-    )
-
-    run_id = hlp.time_id()
-
-    record_count = 10
-    record_nr = max(1, epoch_count // record_count)
-
+    record_interval = max(1, epoch_count // q_learn_config.record_count)
     results = []
     start_time = datetime.now()
-    training_name = f"Q-{name}-{run_id}"
+    training_name = f"Q-{name}"
+    work_dir = Path.home() / "tmp" / "sumosim" / "q" / training_name
+    if work_dir.exists():
+        raise FileExistsError(f"{training_name} was already used. Choose another one")
+    work_dir.mkdir(parents=True)
+    loop_name = "q"
+    print(
+        f"Started {training_name} l:{loop_name} e:{epoch_count} p:{port} "
+        f"o:{opponent_name.value} rh:{reward_handler_name.value}"
+    )
     agent = None
     for epoch_nr in range(epoch_count):
         sim_name = f"{training_name}-{epoch_nr:06d}"
         opponent = sr.ControllerProvider.get(opponent_name)
 
         sim_info = None
-        if epoch_nr % record_nr == 0:
+        if epoch_nr % record_interval == 0 or is_last(epoch_count, epoch_nr):
             sim_info = sr.SimInfo(
                 name1=f"{loop_name}-agent",
                 desc1={"info": f"Agent with {loop_name} actions"},
@@ -121,7 +169,7 @@ def q_train(
             obs = next_obs
             cnt += 1
 
-        if epoch_nr % (q_learn_config.doc_interval // 10) == 0 and epoch_nr > 0:
+        if epoch_nr % (max(1, q_learn_config.doc_interval // 10)) == 0 and epoch_nr > 0:
             progr = hlp.progress_str(epoch_nr, epoch_count, start_time)
             print(
                 f"Finished epoch {training_name} {progr} " f"reward:{cuml_reward:10.2f}"
@@ -136,15 +184,23 @@ def q_train(
             }
         )
         env.close()
-        work_dir = Path.home() / "tmp" / "sumosim" / "q" / training_name
-        work_dir.mkdir(exist_ok=True, parents=True)
 
         if do_plot_q_values(
             epoch_nr, q_learn_config.doc_interval, q_learn_config.doc_duration
+        ) or is_last(epoch_count, epoch_nr):
+            document_q_values(
+                training_name, agent, epoch_nr, work_dir, q_learn_env_config
+            )
+        if (epoch_nr % q_learn_config.doc_interval == 0 and epoch_nr > 0) or is_last(
+            epoch_count, epoch_nr
         ):
-            document_q_values(training_name, agent, epoch_nr, work_dir)
-        if epoch_nr % q_learn_config.doc_interval == 0 and epoch_nr > 0:
             document(training_name, results, work_dir)
+    print(f"Finished training {training_name} {loop_name} p:{port}")
+    return port
+
+
+def is_last(epoch_count, epoch_nr):
+    return epoch_nr == (epoch_count - 1)
 
 
 def get_q_act_space(config: sgym.SEnvConfig) -> gym.Space:
@@ -351,21 +407,28 @@ def do_plot_q_values(n: int, interval: int, duration: int) -> bool:
     return bool(n % interval < duration)
 
 
-def document_q_values(name: str, agent: QAgent, epoch_nr: int | None, work_dir: Path):
+def document_q_values(
+    name: str,
+    agent: QAgent,
+    epoch_nr: int | None,
+    work_dir: Path,
+    q_learn_env_config: sgym.SEnvConfig,
+):
     work_dir = work_dir / "v"
     work_dir.mkdir(parents=True, exist_ok=True)
-    plot_q_values(agent, epoch_nr, name, work_dir)
+    plot_q_values(agent, epoch_nr, name, work_dir, q_learn_env_config)
 
 
 def document(name: str, results: list[dict], work_dir: Path):
     data_path = work_dir / f"{name}.json"
     df = pd.DataFrame(results)
     df.to_json(data_path, indent=2)
-    out = plot_boxplot(df, name, work_dir)
-    print(f"--- wrote boxplot to {out}")
+    plot_boxplot(df, name, work_dir)
+    # print(f"--- wrote boxplot to {out}")
 
 
 def plot_mean(data: pd.DataFrame, name: str, work_dir: Path) -> Path:
+    matplotlib.use("agg")
     y = data["reward"]
     x1, y1 = hlp.compress_means(y, 100)
     fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(12, 12))
@@ -378,7 +441,15 @@ def plot_mean(data: pd.DataFrame, name: str, work_dir: Path) -> Path:
     return out_path
 
 
-def plot_q_values(agent: QAgent, epoch_nr: int, name: str, work_dir: Path) -> Path:
+def plot_q_values(
+    agent: QAgent,
+    epoch_nr: int,
+    name: str,
+    work_dir: Path,
+    q_learn_env_config: sgym.SEnvConfig,
+) -> Path:
+    matplotlib.use("agg")
+
     def all_obs() -> list:
         all = []
         for i0 in range(4):
@@ -396,7 +467,7 @@ def plot_q_values(agent: QAgent, epoch_nr: int, name: str, work_dir: Path) -> Pa
     obs_action_matrix = np.matrix(obs_action_data, dtype=q_learn_env_config.dtype)
     fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(12, 12))
     sbn.heatmap(obs_action_matrix, vmin=0.0, vmax=1.0, ax=ax)
-    ax.set_title(f"Q Values for {name} epoch {epoch_nr}")
+    ax.set_title(f"Q Values for {name}")
     ax.set_xlabel("action")
     ax.set_ylabel("observation")
 
@@ -407,6 +478,7 @@ def plot_q_values(agent: QAgent, epoch_nr: int, name: str, work_dir: Path) -> Pa
 
 
 def plot_boxplot(data: pd.DataFrame, name: str, work_dir: Path) -> Path:
+    matplotlib.use("agg")
     column = "reward"
     y = data[column]
 
@@ -440,6 +512,7 @@ def plot_boxplot(data: pd.DataFrame, name: str, work_dir: Path) -> Path:
 
 
 def plot_all(data: pd.DataFrame, name: str, work_dir: Path) -> Path:
+    matplotlib.use("agg")
     y = data["reward"]
     window_size = 1
     y1 = np.convolve(y, np.ones(window_size) / window_size, mode="valid")

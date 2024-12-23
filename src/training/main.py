@@ -2,6 +2,7 @@ from pathlib import Path
 
 import typer
 from typing_extensions import Annotated
+import numpy as np
 
 import training.sgym.qlearn as sgym_qlearn
 import training.sgym.sample as sgym_sample
@@ -11,6 +12,7 @@ import training.simrunner_tournament as srt
 import training.util
 import training.tryout as to
 import training.explore.analysis as an
+import training.sgym.core as sgym
 
 app = typer.Typer(pretty_exceptions_enable=False)
 
@@ -117,6 +119,7 @@ def qtrain(
         int,
         typer.Option(
             "--epoch-count",
+            "-e",
             help="Number of epochs to be run",
         ),
     ] = 100,
@@ -133,9 +136,44 @@ def qtrain(
     opponent: Annotated[
         sr.ControllerName,
         typer.Option("--opponent", help="Name of the opponent controllers"),
-    ] = sr.ControllerName.TUMBLR,
+    ] = sr.ControllerName.STAND_STILL,
 ):
-    sgym_qlearn.q_train(name, epoch_count, port, opponent, reward_handler)
+    env_config = sgym.SEnvConfig(
+        max_wheel_speed=7,
+        wheel_speed_steps=10,
+        max_view_distance=700,
+        view_distance_steps=3,
+        max_simulation_steps=1000,
+        dtype=np.float32,
+    )
+    q_learning_config = sgym_qlearn.QLearnConfig(
+        learning_rate=0.01,
+        initial_epsilon=0.01,
+        epsilon_decay=0.001,
+        final_epsilon=0.05,
+        discount_factor=0.95,
+        doc_interval=500,
+        doc_duration=20,
+        record_count=50,
+    )
+    sgym_qlearn.q_train(
+        name, epoch_count, port, opponent, reward_handler, env_config, q_learning_config
+    )
+
+
+@app.command(help="Runs cross validation on q-learning session")
+def qcv(
+    name: Annotated[str, typer.Option("--name", "-n", help="Name of the run")],
+    epoch_count: Annotated[
+        int,
+        typer.Option(
+            "--epoch-count",
+            "-e",
+            help="Number of epochs to be run",
+        ),
+    ] = 100,
+):
+    sgym_qlearn.q_train_cv(name, epoch_count)
 
 
 @app.command(help="Some database management")
