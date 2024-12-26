@@ -97,6 +97,7 @@ def q_train1(
 
 def q_train(
     name: str,
+    auto_naming: str,
     epoch_count: int,
     port: int,
     opponent_name: sr.ControllerName,
@@ -109,6 +110,8 @@ def q_train(
     results = []
     start_time = datetime.now()
     training_name = f"Q-{name}"
+    if auto_naming:
+        training_name = f"{training_name}-{hlp.unique()}"
     work_dir = Path.home() / "tmp" / "sumosim" / "q" / training_name
     if work_dir.exists():
         raise FileExistsError(f"{training_name} was already used. Choose another one")

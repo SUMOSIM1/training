@@ -1,5 +1,6 @@
 import math
 import time
+import uuid
 from datetime import datetime
 from pathlib import Path
 
@@ -42,8 +43,8 @@ def create_lines(desc: dict, line_index_list: list[list[int]]) -> str:
     return "\n".join([line(a) for a in line_index_list])
 
 
-def time_id() -> str:
-    return f"{int(time.time() * 10) % 86400:05d}"
+def unique() -> str:
+    return str(uuid.uuid4())[0:6]
 
 
 def cont_to_discrete(

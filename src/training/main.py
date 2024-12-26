@@ -137,6 +137,12 @@ def qtrain(
         sr.ControllerName,
         typer.Option("--opponent", help="Name of the opponent controllers"),
     ] = sr.ControllerName.STAND_STILL,
+    auto_naming: Annotated[
+        bool,
+        typer.Option(
+            "--auto-naming", help="Create automated unique name"
+        ),
+    ] = False,
 ):
     env_config = sgym.SEnvConfig(
         max_wheel_speed=7,
@@ -152,12 +158,12 @@ def qtrain(
         epsilon_decay=0.001,
         final_epsilon=0.05,
         discount_factor=0.95,
-        doc_interval=500,
-        doc_duration=20,
-        record_count=50,
+        doc_interval=1,
+        doc_duration=1,
+        record_count=1,
     )
     sgym_qlearn.q_train(
-        name, epoch_count, port, opponent, reward_handler, env_config, q_learning_config
+        name, auto_naming, epoch_count, port, opponent, reward_handler, env_config, q_learning_config
     )
 
 
