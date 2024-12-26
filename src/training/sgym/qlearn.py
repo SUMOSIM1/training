@@ -97,7 +97,6 @@ def q_train(
     opponent_name: sr.ControllerName,
     reward_handler_name: sr.RewardHandlerName,
 ) -> int:
-
     env_config = sgym.SEnvConfig(
         max_wheel_speed=7,
         wheel_speed_steps=10,

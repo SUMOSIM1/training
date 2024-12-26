@@ -65,6 +65,11 @@ def find_running(
     return list(sims.find(query))
 
 
+def list_match_name_part(client, name_part: str) -> list[dict]:
+    pattern_str = f".*{name_part}.*"
+    return list(_sim_collection(client).find({"name": {"$regex": pattern_str}}))
+
+
 ################## query #####################
 
 

@@ -2,7 +2,6 @@ from pathlib import Path
 
 import typer
 from typing_extensions import Annotated
-import numpy as np
 
 import training.sgym.qlearn as sgym_qlearn
 import training.sgym.sample as sgym_sample
@@ -12,9 +11,9 @@ import training.simrunner_tournament as srt
 import training.util
 import training.tryout as to
 import training.explore.analysis as an
-import training.sgym.core as sgym
+import training.explore.export as exp
 
-app = typer.Typer(pretty_exceptions_enable=False)
+app = typer.Typer(pretty_exceptions_enable=False, add_completion=False)
 
 sim_path_help = "Path to the simulator git module"
 sim_path_default = Path.home() / "prj" / "SUMOSIM" / "sumosim"
@@ -189,6 +188,27 @@ def analysis(
     ] = an.AnalysisName.ADJUST_REWARD,
 ):
     an.main(analysis_name)
+
+
+@app.command(help="Export simulations from the local database to a file")
+def export(
+    name: Annotated[
+        str,
+        typer.Option(
+            "--name", "-n", help="Part of the simulations name to be exported"
+        ),
+    ],
+    description: Annotated[
+        str,
+        typer.Option(
+            "--description",
+            "-d",
+            help="Description of the (behaviour) exported simulations. Use \\n for defining multiline strings",
+        ),
+    ],
+):
+    multi_line = description.replace("\\n", "\n")
+    exp.export_simulations(name, multi_line)
 
 
 if __name__ == "__main__":
