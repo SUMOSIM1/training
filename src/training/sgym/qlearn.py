@@ -29,9 +29,6 @@ class QLearnConfig:
     epsilon_decay: float
     final_epsilon: float
     discount_factor: float
-    doc_interval: int
-    doc_duration: int
-    record_count: int
 
 
 def q_train_cv(
@@ -55,9 +52,6 @@ def q_train_cv(
             epsilon_decay=0.001,
             final_epsilon=0.05,
             discount_factor=0.95,
-            doc_interval=1,
-            doc_duration=1,
-            record_count=10,
         )
         return q_train(
             name,
@@ -106,7 +100,6 @@ def q_train(
     q_learn_config: QLearnConfig,
 ) -> int:
     reward_handler = sr.RewardHandlerProvider.get(reward_handler_name)
-    record_interval = max(1, epoch_count // q_learn_config.record_count)
     results = []
     start_time = datetime.now()
     training_name = f"Q-{name}"
@@ -117,9 +110,16 @@ def q_train(
         raise FileExistsError(f"{training_name} was already used. Choose another one")
     work_dir.mkdir(parents=True)
     loop_name = "q"
+
+    doc_interval = calc_doc_interval(epoch_count)
+    doc_duration = calc_doc_duration(doc_interval)
+    record_count = calc_record_count(epoch_count)
+
+    record_interval = max(1, epoch_count // record_count)
     print(
         f"Started {training_name} l:{loop_name} e:{epoch_count} p:{port} "
         f"o:{opponent_name.value} rh:{reward_handler_name.value}"
+        f"di:{doc_interval} dd:{doc_duration}  rc:{record_count}"
     )
     agent = None
     for epoch_nr in range(epoch_count):
@@ -172,7 +172,7 @@ def q_train(
             obs = next_obs
             cnt += 1
 
-        if epoch_nr % (max(1, q_learn_config.doc_interval // 10)) == 0 and epoch_nr > 0:
+        if epoch_nr % (max(1, doc_interval // 10)) == 0 and epoch_nr > 0:
             progr = hlp.progress_str(epoch_nr, epoch_count, start_time)
             print(
                 f"Finished epoch {training_name} {progr} " f"reward:{cuml_reward:10.2f}"
@@ -188,18 +188,45 @@ def q_train(
         )
         env.close()
 
-        if do_plot_q_values(
-            epoch_nr, q_learn_config.doc_interval, q_learn_config.doc_duration
-        ) or is_last(epoch_count, epoch_nr):
+        if do_plot_q_values(epoch_nr, doc_interval, doc_duration) or is_last(
+            epoch_count, epoch_nr
+        ):
             document_q_values(
                 training_name, agent, epoch_nr, work_dir, q_learn_env_config
             )
-        if (epoch_nr % q_learn_config.doc_interval == 0 and epoch_nr > 0) or is_last(
+        if (epoch_nr % doc_interval == 0 and epoch_nr > 0) or is_last(
             epoch_count, epoch_nr
         ):
             document(training_name, results, work_dir)
     print(f"Finished training {training_name} {loop_name} p:{port}")
     return port
+
+
+def calc_doc_interval(epoch_count: int) -> int:
+    if epoch_count < 50:
+        return 1
+    elif epoch_count < 1000:
+        return 10
+    elif epoch_count < 10000:
+        return 100
+    else:
+        return 1000
+
+
+def calc_doc_duration(doc_interval: int) -> int:
+    if doc_interval <= 100:
+        return doc_interval
+    elif doc_interval <= 1000:
+        return doc_interval // 10
+    else:
+        return doc_interval // 100
+
+
+def calc_record_count(epoch_count: int) -> int:
+    if epoch_count < 20:
+        return epoch_count
+    else:
+        return 10
 
 
 def is_last(epoch_count, epoch_nr):
