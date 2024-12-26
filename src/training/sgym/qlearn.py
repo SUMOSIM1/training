@@ -96,6 +96,42 @@ def q_train(
     port: int,
     opponent_name: sr.ControllerName,
     reward_handler_name: sr.RewardHandlerName,
+) -> int:
+
+    env_config = sgym.SEnvConfig(
+        max_wheel_speed=7,
+        wheel_speed_steps=10,
+        max_view_distance=700,
+        view_distance_steps=3,
+        max_simulation_steps=1000,
+        dtype=np.float32,
+    )
+    q_learn_config = QLearnConfig(
+        learning_rate=0.01,
+        initial_epsilon=0.01,
+        epsilon_decay=0.001,
+        final_epsilon=0.05,
+        discount_factor=0.95,
+    )
+    return _q_train(
+        name,
+        auto_naming,
+        epoch_count,
+        port,
+        opponent_name,
+        reward_handler_name,
+        env_config,
+        q_learn_config,
+    )
+
+
+def _q_train(
+    name: str,
+    auto_naming: str,
+    epoch_count: int,
+    port: int,
+    opponent_name: sr.ControllerName,
+    reward_handler_name: sr.RewardHandlerName,
     q_learn_env_config: sgym.SEnvConfig,
     q_learn_config: QLearnConfig,
 ) -> int:
@@ -118,7 +154,7 @@ def q_train(
     record_interval = max(1, epoch_count // record_count)
     print(
         f"Started {training_name} l:{loop_name} e:{epoch_count} p:{port} "
-        f"o:{opponent_name.value} rh:{reward_handler_name.value}"
+        f"o:{opponent_name.value} rh:{reward_handler_name.value} "
         f"di:{doc_interval} dd:{doc_duration}  rc:{record_count}"
     )
     agent = None

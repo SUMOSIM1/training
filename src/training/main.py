@@ -142,21 +142,6 @@ def qtrain(
         typer.Option("--auto-naming", help="Create automated unique name"),
     ] = False,
 ):
-    env_config = sgym.SEnvConfig(
-        max_wheel_speed=7,
-        wheel_speed_steps=10,
-        max_view_distance=700,
-        view_distance_steps=3,
-        max_simulation_steps=1000,
-        dtype=np.float32,
-    )
-    q_learning_config = sgym_qlearn.QLearnConfig(
-        learning_rate=0.01,
-        initial_epsilon=0.01,
-        epsilon_decay=0.001,
-        final_epsilon=0.05,
-        discount_factor=0.95,
-    )
     sgym_qlearn.q_train(
         name,
         auto_naming,
@@ -164,8 +149,6 @@ def qtrain(
         port,
         opponent,
         reward_handler,
-        env_config,
-        q_learning_config,
     )
 
 
