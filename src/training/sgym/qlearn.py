@@ -96,6 +96,7 @@ def q_train(
     port: int,
     opponent_name: sr.ControllerName,
     reward_handler_name: sr.RewardHandlerName,
+    record: bool,
 ) -> int:
     env_config = sgym.SEnvConfig(
         max_wheel_speed=7,
@@ -119,6 +120,7 @@ def q_train(
         port,
         opponent_name,
         reward_handler_name,
+        record,
         env_config,
         q_learn_config,
     )
@@ -131,6 +133,7 @@ def _q_train(
     port: int,
     opponent_name: sr.ControllerName,
     reward_handler_name: sr.RewardHandlerName,
+    record: bool,
     q_learn_env_config: sgym.SEnvConfig,
     q_learn_config: QLearnConfig,
 ) -> int:
@@ -162,7 +165,10 @@ def _q_train(
         opponent = sr.ControllerProvider.get(opponent_name)
 
         sim_info = None
-        if epoch_nr % record_interval == 0 or is_last(epoch_count, epoch_nr):
+        if record and (
+            epoch_nr % record_interval == 0 or is_last(epoch_count, epoch_nr)
+        ):
+            print("### recording")
             sim_info = sr.SimInfo(
                 name1=f"{loop_name}-agent",
                 desc1={"info": f"Agent with {loop_name} actions"},

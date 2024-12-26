@@ -140,14 +140,15 @@ def qtrain(
         bool,
         typer.Option("--auto-naming", help="Create automated unique name"),
     ] = False,
+    record: Annotated[
+        bool,
+        typer.Option(
+            "--record", "-r", help="Define if the simulation is recorded or not"
+        ),
+    ] = False,
 ):
     sgym_qlearn.q_train(
-        name,
-        auto_naming,
-        epoch_count,
-        port,
-        opponent,
-        reward_handler,
+        name, auto_naming, epoch_count, port, opponent, reward_handler, record
     )
 
 
