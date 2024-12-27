@@ -341,7 +341,7 @@ def _db_insert_new_sim(
 def _send_command_and_wait(cmd: SendCommand, port: int) -> ReceiveCommand:
     send_str = _format_command(cmd)
     # print(f"---> Sending {cmd} - {send_str}")
-    resp_str = udp.send_and_wait(send_str, port, 100)
+    resp_str = udp.send_and_wait(send_str, port, 10)
     resp = _parse_command(resp_str)
     # print(f"<--- Result {resp} {resp_str}")
     return resp

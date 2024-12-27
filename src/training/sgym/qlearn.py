@@ -53,12 +53,14 @@ def q_train_cv(
             final_epsilon=0.05,
             discount_factor=0.95,
         )
-        return q_train(
+        return _q_train(
             name,
+            True,
             epoch_count,
             port,
             sr.ControllerName.STAND_STILL,
             sr.RewardHandlerName.CONTINUOUS_CONSIDER_ALL,
+            False,
             env_config,
             q_learning_config,
         )
