@@ -35,6 +35,7 @@ class Result:
 
 
 def start(
+    host: str,
     port: int,
     name: str,
     controller_names: list[sr.ControllerName],
@@ -66,6 +67,7 @@ def start(
     for controller_name1, controller_name2 in combinations:
         for epoch_nr in range(epoch_count):
             reward1, reward2, msg = run_epoch(
+                host,
                 port,
                 name,
                 max_simulation_steps,
@@ -103,6 +105,7 @@ def start(
 
 
 def run_epoch(
+    host: str,
     port: int,
     name: str,
     max_simulation_steps: int,
@@ -140,7 +143,9 @@ def run_epoch(
             max_simulation_steps=max_simulation_steps,
         )
     try:
-        response: sr.Response = sr.reset(port, max_simulation_steps, reward_handler)
+        response: sr.Response = sr.reset(
+            host, port, max_simulation_steps, reward_handler
+        )
         cnt = 0
         cumulative_reward1 = 0.0
         cumulative_reward2 = 0.0

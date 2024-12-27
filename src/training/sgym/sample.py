@@ -83,6 +83,7 @@ def sample(
     name: str,
     epoch_count: int,
     record: bool,
+    host: str,
     port: int,
     opponent_name: sr.ControllerName,
     reward_handler_name: sr.RewardHandlerName,
@@ -116,6 +117,7 @@ def sample(
         env = sgym.SEnv(
             senv_config=sgym.default_senv_config,
             senv_mapping=cont_sgym_mapping(),
+            host=host,
             port=port,
             sim_name=sim_name,
             opponent=opponent,

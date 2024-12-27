@@ -182,12 +182,13 @@ class RewardHandler(ABC):
 
 
 def reset(
-    port: int, max_simulation_steps: int, reward_handler: RewardHandler
+    host: str, port: int, max_simulation_steps: int, reward_handler: RewardHandler
 ) -> Response:
     return _step(
         StartCommand(),
         reward_handler,
         [],
+        host,
         port,
         0,
         max_simulation_steps,
@@ -198,6 +199,7 @@ def reset(
 def step(
     request: ActionRequest,
     reward_handler: RewardHandler,
+    host: str,
     port: int,
     stop: bool,
     max_simulation_steps: int,
@@ -213,6 +215,7 @@ def step(
         command=cmd,
         reward_handler=reward_handler,
         simulation_states=request.simulation_states,
+        host=host,
         port=port,
         cnt=request.cnt,
         max_simulation_steps=max_simulation_steps,
@@ -240,12 +243,13 @@ def _step(
     command: SendCommand,
     reward_handler: RewardHandler,
     simulation_states: list[SimulationState],
+    host: str,
     port: int,
     cnt: int,
     max_simulation_steps: int,
     sim_info: SimInfo | None,
 ) -> Response:
-    response: ReceiveCommand = _send_command_and_wait(command, port)
+    response: ReceiveCommand = _send_command_and_wait(command, host, port)
     match response:
         case CombiSensorCommand(s1, s2):
             state = SimulationState(s1.pos_dir, s2.pos_dir)
@@ -338,10 +342,10 @@ def _db_insert_new_sim(
     return db.insert(client, sim)
 
 
-def _send_command_and_wait(cmd: SendCommand, port: int) -> ReceiveCommand:
+def _send_command_and_wait(cmd: SendCommand, host: str, port: int) -> ReceiveCommand:
     send_str = _format_command(cmd)
     # print(f"---> Sending {cmd} - {send_str}")
-    resp_str = udp.send_and_wait(send_str, port, 10)
+    resp_str = udp.send_and_wait(send_str, host, port, 10)
     resp = _parse_command(resp_str)
     # print(f"<--- Result {resp} {resp_str}")
     return resp

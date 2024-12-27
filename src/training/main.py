@@ -22,6 +22,12 @@ sim_path_default = Path.home() / "prj" / "SUMOSIM" / "sumosim"
 @app.command(help="Runs simulations for combinations of controllers")
 def start(
     sim_name: Annotated[str, typer.Option("--name", "-n", help="Simulation name")],
+    host: Annotated[
+        str,
+        typer.Option(
+            "--host", "-h", help="The host on which the simulation is listening"
+        ),
+    ] = "localhost",
     port: Annotated[
         int,
         typer.Option(
@@ -61,6 +67,7 @@ def start(
     ] = False,
 ):
     srt.start(
+        host,
         port,
         sim_name,
         controllers,
@@ -93,6 +100,12 @@ def sample(
             "--record", "-r", help="Define if the simulation is recorded or not"
         ),
     ] = False,
+    host: Annotated[
+        str,
+        typer.Option(
+            "--host", "-h", help="The host on which the simulation is listening"
+        ),
+    ] = "localhost",
     port: Annotated[
         int,
         typer.Option(
@@ -108,7 +121,7 @@ def sample(
         typer.Option("--opponent", help="Name of the opponent controllers"),
     ] = sr.ControllerName.TUMBLR,
 ):
-    sgym_sample.sample(name, epoch_count, record, port, opponent, reward_handler)
+    sgym_sample.sample(name, epoch_count, record, host, port, opponent, reward_handler)
 
 
 @app.command(help="Runs a gymnasium q-learning session")
@@ -122,6 +135,12 @@ def qtrain(
             help="Number of epochs to be run",
         ),
     ] = 100,
+    host: Annotated[
+        str,
+        typer.Option(
+            "--host", "-h", help="The host on which the simulation is listening"
+        ),
+    ] = "localhost",
     port: Annotated[
         int,
         typer.Option(
@@ -148,13 +167,25 @@ def qtrain(
     ] = False,
 ):
     sgym_qlearn.q_train(
-        name, auto_naming, epoch_count, port, opponent, reward_handler, record
+        name, auto_naming, epoch_count, host, port, opponent, reward_handler, record
     )
 
 
 @app.command(help="Runs cross validation on q-learning session")
 def qcv(
     name: Annotated[str, typer.Option("--name", "-n", help="Name of the run")],
+    host: Annotated[
+        str,
+        typer.Option(
+            "--host", "-h", help="The host on which the simulation is listening"
+        ),
+    ] = "localhost",
+    port: Annotated[
+        int,
+        typer.Option(
+            "--port", "-p", help="The port on which the simulation is listening"
+        ),
+    ] = 4444,
     epoch_count: Annotated[
         int,
         typer.Option(
@@ -164,7 +195,7 @@ def qcv(
         ),
     ] = 100,
 ):
-    sgym_qlearn.q_train_cv(name, epoch_count)
+    sgym_qlearn.q_train_cv(name, host, port, epoch_count)
 
 
 @app.command(help="Some database management")

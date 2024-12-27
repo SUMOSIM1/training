@@ -17,9 +17,6 @@ import training.sgym.core as sgym
 import training.simrunner as sr
 from training.simrunner import DiffDriveValues
 
-import concurrent.futures as cf
-import time
-import random
 
 
 @dataclass(frozen=True)
@@ -33,68 +30,19 @@ class QLearnConfig:
 
 def q_train_cv(
     name: str,
+    host: str,
+    port: int,
     epoch_count: int,
 ):
-    print(f"Started q cv n:{name} cnt:{epoch_count}")
-
-    def run_q_train(port: int, name: str, epoch_count: int) -> dict:
-        env_config = sgym.SEnvConfig(
-            max_wheel_speed=7,
-            wheel_speed_steps=10,
-            max_view_distance=700,
-            view_distance_steps=3,
-            max_simulation_steps=1000,
-            dtype=np.float32,
-        )
-        q_learning_config = QLearnConfig(
-            learning_rate=0.01,
-            initial_epsilon=0.01,
-            epsilon_decay=0.001,
-            final_epsilon=0.05,
-            discount_factor=0.95,
-        )
-        return _q_train(
-            name,
-            True,
-            epoch_count,
-            port,
-            sr.ControllerName.STAND_STILL,
-            sr.RewardHandlerName.CONTINUOUS_CONSIDER_ALL,
-            False,
-            env_config,
-            q_learning_config,
-        )
-
-    ports = [
-        (4401, 4402, 4403),
-        (f"{name}-1", f"{name}-2", f"{name}-3"),
-        (epoch_count, epoch_count, epoch_count),
-    ]
-    with cf.ThreadPoolExecutor() as executor:
-        results = executor.map(run_q_train, *ports)
-        for result in results:
-            print(f"finished {result}")
-        print("finished all")
-
-
-def q_train1(
-    name: str,
-    epoch_count: int,
-    port: int,
-    opponent_name: sr.ControllerName,
-    reward_handler_name: sr.RewardHandlerName,
-    q_learn_env_config: sgym.SEnvConfig,
-    q_learn_config: QLearnConfig,
-) -> int:
-    print(f"started {name} {port} {epoch_count}")
-    time.sleep(0.5 + random.random() * 2.0)
-    return port
+    print(f"Started q cv n:{name} h:{host} p:{port} cnt:{epoch_count}")
+    # TODO Implement
 
 
 def q_train(
     name: str,
     auto_naming: str,
     epoch_count: int,
+    host: str,
     port: int,
     opponent_name: sr.ControllerName,
     reward_handler_name: sr.RewardHandlerName,
@@ -119,6 +67,7 @@ def q_train(
         name,
         auto_naming,
         epoch_count,
+        host,
         port,
         opponent_name,
         reward_handler_name,
@@ -132,6 +81,7 @@ def _q_train(
     name: str,
     auto_naming: str,
     epoch_count: int,
+    host: str,
     port: int,
     opponent_name: sr.ControllerName,
     reward_handler_name: sr.RewardHandlerName,
@@ -157,7 +107,7 @@ def _q_train(
 
     record_interval = max(1, epoch_count // record_count)
     print(
-        f"Started {training_name} l:{loop_name} e:{epoch_count} p:{port} "
+        f"Started {training_name} l:{loop_name} e:{epoch_count} h:{host} p:{port} "
         f"o:{opponent_name.value} rh:{reward_handler_name.value} "
         f"di:{doc_interval} dd:{doc_duration}  rc:{record_count}"
     )
@@ -184,6 +134,7 @@ def _q_train(
         env = sgym.SEnv(
             senv_config=q_learn_env_config,
             senv_mapping=q_sgym_mapping(q_learn_env_config),
+            host=host,
             port=port,
             sim_name=sim_name,
             opponent=opponent,
