@@ -46,7 +46,7 @@ TODO Docker
 
 ```
 docker network create sumo01
-docker run --rm --name sumo1 --network sumot01 -v $HOME/tmp/sumosim/q/docker:/root/tmp/sumosim/q sumo sumo udp --port 4401
+docker run -d --rm --name sumo1 --network sumot01 sumo sumo udp --port 4401
 docker run  -e PYTHONUNBUFFERED=True --network sumot01 \
 -v $HOME/tmp/sumosim/q/docker:/root/tmp/sumosim/q \
 sumot uv run sumot qtrain -n D01 --auto-naming -e 500 -p 4401 -h sumo1
@@ -54,11 +54,9 @@ sumot uv run sumot qtrain -n D01 --auto-naming -e 500 -p 4401 -h sumo1
 
 
 docker network create sumo02
-docker run --rm --name sumo2 --network sumot02 sumo sumo udp --port 4402
-docker run -e PYTHONUNBUFFERED=True --network sumot02 \
--v $HOME/tmp/sumosim/q/docker:/root/tmp/sumosim/q \
-sumot uv run sumot qtrain -n D02 --auto-naming -e 2000 -p 4402 -h sumo2
+docker run -d --rm --name sumo2 --network sumot02 sumo sumo udp --port 4402
 
+docker run -e PYTHONUNBUFFERED=True --network sumot02 --user $(id -u):$(id -g) -v $(echo $HOME)/tmp:/tmp sumot uv run sumot qtrain -n D04 --auto-naming -e 20 -p 4402 -h sumo2 -o /tmp/sumosim/q/docker
 
---user $(id -u):$(id -g)
+docker container ls -a -f "NAME=sumo-train" -q | xargs docker container rm
 ```

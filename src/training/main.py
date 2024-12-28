@@ -12,6 +12,7 @@ import training.util
 import training.tryout as to
 import training.explore.analysis as an
 import training.explore.export as exp
+import training.parallel as prl
 
 app = typer.Typer(pretty_exceptions_enable=False, add_completion=False)
 
@@ -165,9 +166,21 @@ def qtrain(
             "--record", "-r", help="Define if the simulation is recorded or not"
         ),
     ] = False,
+    out_dir: Annotated[
+        str | None,
+        typer.Option("--out-dir", "-o", help="Output directory. Must be absolute"),
+    ] = None,
 ):
     sgym_qlearn.q_train(
-        name, auto_naming, epoch_count, host, port, opponent, reward_handler, record
+        name,
+        auto_naming,
+        epoch_count,
+        host,
+        port,
+        opponent,
+        reward_handler,
+        record,
+        out_dir,
     )
 
 
@@ -196,6 +209,11 @@ def qcv(
     ] = 100,
 ):
     sgym_qlearn.q_train_cv(name, host, port, epoch_count)
+
+
+@app.command(help="Runs a list of training configurations parallel")
+def parallel():
+    prl.main()
 
 
 @app.command(help="Some database management")

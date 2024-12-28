@@ -18,7 +18,6 @@ import training.simrunner as sr
 from training.simrunner import DiffDriveValues
 
 
-
 @dataclass(frozen=True)
 class QLearnConfig:
     learning_rate: float
@@ -40,13 +39,14 @@ def q_train_cv(
 
 def q_train(
     name: str,
-    auto_naming: str,
+    auto_naming: bool,
     epoch_count: int,
     host: str,
     port: int,
     opponent_name: sr.ControllerName,
     reward_handler_name: sr.RewardHandlerName,
     record: bool,
+    out_dir: str | None,
 ) -> int:
     env_config = sgym.SEnvConfig(
         max_wheel_speed=7,
@@ -72,6 +72,7 @@ def q_train(
         opponent_name,
         reward_handler_name,
         record,
+        out_dir,
         env_config,
         q_learn_config,
     )
@@ -86,6 +87,7 @@ def _q_train(
     opponent_name: sr.ControllerName,
     reward_handler_name: sr.RewardHandlerName,
     record: bool,
+    out_dir: str | None,
     q_learn_env_config: sgym.SEnvConfig,
     q_learn_config: QLearnConfig,
 ) -> int:
@@ -95,10 +97,14 @@ def _q_train(
     training_name = f"Q-{name}"
     if auto_naming:
         training_name = f"{training_name}-{hlp.unique()}"
-    work_dir = Path.home() / "tmp" / "sumosim" / "q" / training_name
-    if work_dir.exists():
-        raise FileExistsError(f"{training_name} was already used. Choose another one")
-    work_dir.mkdir(parents=True)
+    out_path = Path.home() / "tmp" / "sumosim" / "q" / training_name
+    if out_dir is not None:
+        out_path = Path(out_dir) / training_name
+    if out_path.exists():
+        raise FileExistsError(
+            f"{training_name} was already used {out_path}. Choose another one"
+        )
+    out_path.mkdir(parents=True)
     loop_name = "q"
 
     doc_interval = calc_doc_interval(epoch_count)
@@ -186,12 +192,12 @@ def _q_train(
             epoch_count, epoch_nr
         ):
             document_q_values(
-                training_name, agent, epoch_nr, work_dir, q_learn_env_config
+                training_name, agent, epoch_nr, out_path, q_learn_env_config
             )
         if (epoch_nr % doc_interval == 0 and epoch_nr > 0) or is_last(
             epoch_count, epoch_nr
         ):
-            document(training_name, results, work_dir)
+            document(training_name, results, out_path)
     print(f"Finished training {training_name} {loop_name} p:{port}")
     return port
 
