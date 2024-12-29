@@ -142,7 +142,7 @@ def create_sims_visualize_collisions(
             [sr.ControllerName.BLIND_TUMBLR, sr.ControllerName.STAY_IN_FIELD]
         )
         sr.start(
-            port=4444,
+            sim_port=4444,
             sim_name=sim_name,
             controller_name1=c1,
             controller_name2=c2,

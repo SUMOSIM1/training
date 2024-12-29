@@ -29,11 +29,11 @@ class QLearnConfig:
 
 def q_train_cv(
     name: str,
-    host: str,
-    port: int,
+    sim_host: str,
+    sim_port: int,
     epoch_count: int,
 ):
-    print(f"Started q cv n:{name} h:{host} p:{port} cnt:{epoch_count}")
+    print(f"Started q cv n:{name} sh:{sim_host} sp:{sim_port} cnt:{epoch_count}")
     # TODO Implement
 
 
@@ -41,8 +41,8 @@ def q_train(
     name: str,
     auto_naming: bool,
     epoch_count: int,
-    host: str,
-    port: int,
+    sim_host: str,
+    sim_port: int,
     opponent_name: sr.ControllerName,
     reward_handler_name: sr.RewardHandlerName,
     record: bool,
@@ -67,8 +67,8 @@ def q_train(
         name,
         auto_naming,
         epoch_count,
-        host,
-        port,
+        sim_host,
+        sim_port,
         opponent_name,
         reward_handler_name,
         record,
@@ -82,8 +82,8 @@ def _q_train(
     name: str,
     auto_naming: str,
     epoch_count: int,
-    host: str,
-    port: int,
+    sim_host: str,
+    sim_port: int,
     opponent_name: sr.ControllerName,
     reward_handler_name: sr.RewardHandlerName,
     record: bool,
@@ -113,7 +113,7 @@ def _q_train(
 
     record_interval = max(1, epoch_count // record_count)
     print(
-        f"Started {training_name} l:{loop_name} e:{epoch_count} h:{host} p:{port} "
+        f"Started {training_name} l:{loop_name} e:{epoch_count} h:{sim_host} p:{sim_port} "
         f"o:{opponent_name.value} rh:{reward_handler_name.value} "
         f"di:{doc_interval} dd:{doc_duration}  rc:{record_count}"
     )
@@ -132,7 +132,7 @@ def _q_train(
                 desc1={"info": f"Agent with {loop_name} actions"},
                 name2=opponent.name(),
                 desc2=opponent.description(),
-                port=port,
+                port=sim_port,
                 sim_name=sim_name,
                 max_simulation_steps=sgym.default_senv_config.max_simulation_steps,
             )
@@ -140,8 +140,8 @@ def _q_train(
         env = sgym.SEnv(
             senv_config=q_learn_env_config,
             senv_mapping=q_sgym_mapping(q_learn_env_config),
-            host=host,
-            port=port,
+            sim_host=sim_host,
+            sim_port=sim_port,
             sim_name=sim_name,
             opponent=opponent,
             reward_handler=reward_handler,
@@ -198,8 +198,8 @@ def _q_train(
             epoch_count, epoch_nr
         ):
             document(training_name, results, out_path)
-    print(f"Finished training {training_name} {loop_name} p:{port}")
-    return port
+    print(f"Finished training {training_name} {loop_name} p:{sim_port}")
+    return sim_port
 
 
 def calc_doc_interval(epoch_count: int) -> int:

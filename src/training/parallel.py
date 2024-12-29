@@ -103,13 +103,14 @@ def start_training(
         "--auto-naming",
         "-e",
         str(epoch_count),
-        "-p",
+        "--sim-port",
         str(_port),
-        "-h",
+        "--sim-host",
         sim_name,
         "-o",
         "/tmp/sumosim/q/docker",
     ]
+    print(f"Start training using: '{' '.join(cmd)}'")
     return call(cmd)
 
 
@@ -134,7 +135,7 @@ def start_training_configuration(nr: int, out_dir: Path, epoch_count: int):
 def main():
     print("Started parallel")
 
-    epoch_count = 5000
+    epoch_count = 3
     out_dir = Path.home() / "tmp"
-    for nr in range(10):
+    for nr in range(3):
         start_training_configuration(nr, out_dir, epoch_count)

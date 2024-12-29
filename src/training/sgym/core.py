@@ -41,8 +41,8 @@ class SEnv(gym.Env):
         self,
         senv_config: SEnvConfig,
         senv_mapping: SEnvMapping,
-        host: str,
-        port: int,
+        sim_host: str,
+        sim_port: int,
         sim_name: str,
         opponent: sr.Controller,
         reward_handler: sr.RewardHandler,
@@ -50,8 +50,8 @@ class SEnv(gym.Env):
     ):
         self.senv_config = senv_config
         self.senv_config1 = senv_mapping
-        self.host = host
-        self.port = port
+        self.host = sim_host
+        self.port = sim_port
         self.sim_name = sim_name
         self.opponent_controller = opponent
         self.reward_handler = reward_handler
