@@ -20,9 +20,11 @@ class Sim:
     properties2: list[list]
 
 
-def util_sims_to_json_files(sim_names: list[str], base_dir: Path) -> list[Path]:
+def util_sims_to_json_files(
+    sim_names: list[str], base_dir: Path, db_host: str, db_port: int
+) -> list[Path]:
     out_files = []
-    with sd.create_client() as c:
+    with sd.create_client(db_host, db_port) as c:
         all_sims = sd.find_all(c)
         for sim in all_sims:
             if sim["name"] in sim_names:

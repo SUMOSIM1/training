@@ -31,6 +31,8 @@ def q_train_cv(
     name: str,
     sim_host: str,
     sim_port: int,
+    db_host: str,
+    db_port: int,
     epoch_count: int,
 ):
     print(f"Started q cv n:{name} sh:{sim_host} sp:{sim_port} cnt:{epoch_count}")
@@ -43,6 +45,8 @@ def q_train(
     epoch_count: int,
     sim_host: str,
     sim_port: int,
+    db_host: str,
+    db_port: int,
     opponent_name: sr.ControllerName,
     reward_handler_name: sr.RewardHandlerName,
     record: bool,
@@ -69,6 +73,8 @@ def q_train(
         epoch_count,
         sim_host,
         sim_port,
+        db_host,
+        db_port,
         opponent_name,
         reward_handler_name,
         record,
@@ -84,6 +90,8 @@ def _q_train(
     epoch_count: int,
     sim_host: str,
     sim_port: int,
+    db_host: str,
+    db_port: int,
     opponent_name: sr.ControllerName,
     reward_handler_name: sr.RewardHandlerName,
     record: bool,
@@ -126,7 +134,6 @@ def _q_train(
         if record and (
             epoch_nr % record_interval == 0 or is_last(epoch_count, epoch_nr)
         ):
-            print("### recording")
             sim_info = sr.SimInfo(
                 name1=f"{loop_name}-agent",
                 desc1={"info": f"Agent with {loop_name} actions"},
@@ -142,6 +149,8 @@ def _q_train(
             senv_mapping=q_sgym_mapping(q_learn_env_config),
             sim_host=sim_host,
             sim_port=sim_port,
+            db_host=db_host,
+            db_port=db_port,
             sim_name=sim_name,
             opponent=opponent,
             reward_handler=reward_handler,

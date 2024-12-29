@@ -110,9 +110,17 @@ def sample(
     sim_port: Annotated[
         int,
         typer.Option(
-            "--sim-port", "-p", help="The port on which the simulation is listening"
+            "--sim-port", help="The port on which the simulation is listening"
         ),
     ] = 4444,
+    db_host: Annotated[
+        str,
+        typer.Option("--db-host", help="The host on which the simulation is listening"),
+    ] = "localhost",
+    db_port: Annotated[
+        int,
+        typer.Option("--db-port", help="The port on which the simulation is listening"),
+    ] = 27017,
     reward_handler: Annotated[
         sr.RewardHandlerName,
         typer.Option("--reward-handler", help="Name of the reward handler"),
@@ -122,7 +130,17 @@ def sample(
         typer.Option("--opponent", help="Name of the opponent controllers"),
     ] = sr.ControllerName.TUMBLR,
 ):
-    sgym_sample.sample(name, epoch_count, record, sim_host, sim_port, opponent, reward_handler)
+    sgym_sample.sample(
+        name,
+        epoch_count,
+        record,
+        sim_host,
+        sim_port,
+        db_host,
+        db_port,
+        opponent,
+        reward_handler,
+    )
 
 
 @app.command(help="Runs a gymnasium q-learning session")
@@ -148,6 +166,14 @@ def qtrain(
             "--sim-port", help="The port on which the simulation is listening"
         ),
     ] = 4444,
+    db_host: Annotated[
+        str,
+        typer.Option("--db-host", help="The host on which the simulation is listening"),
+    ] = "localhost",
+    db_port: Annotated[
+        int,
+        typer.Option("--db-port", help="The port on which the simulation is listening"),
+    ] = 27017,
     reward_handler: Annotated[
         sr.RewardHandlerName,
         typer.Option("--reward-handler", help="Name of the reward handler"),
@@ -177,6 +203,8 @@ def qtrain(
         epoch_count,
         sim_host,
         sim_port,
+        db_host,
+        db_port,
         opponent,
         reward_handler,
         record,
@@ -199,6 +227,14 @@ def qcv(
             "--sim-port", help="The port on which the simulation is listening"
         ),
     ] = 4444,
+    db_host: Annotated[
+        str,
+        typer.Option("--db-host", help="The host on which the simulation is listening"),
+    ] = "localhost",
+    db_port: Annotated[
+        int,
+        typer.Option("--db-port", help="The port on which the simulation is listening"),
+    ] = 27017,
     epoch_count: Annotated[
         int,
         typer.Option(
@@ -208,12 +244,41 @@ def qcv(
         ),
     ] = 100,
 ):
-    sgym_qlearn.q_train_cv(name, sim_host, sim_port, epoch_count)
+    sgym_qlearn.q_train_cv(name, sim_host, db_port, sim_host, db_port, epoch_count)
 
 
 @app.command(help="Runs a list of training configurations parallel")
-def parallel():
-    prl.main()
+def parallel(
+    epoch_count: Annotated[
+        int,
+        typer.Option(
+            "--epoch-count",
+            "-e",
+            help="Number of epochs to be run",
+        ),
+    ] = 100,
+    config_count: Annotated[
+        int,
+        typer.Option(
+            "--config-count",
+            "-c",
+            help="Number of epochs to be run",
+        ),
+    ] = 5,
+    db_host: Annotated[
+        str,
+        typer.Option("--db-host", help="The host on which the simulation is listening"),
+    ] = "localhost",
+    db_port: Annotated[
+        int,
+        typer.Option("--db-port", help="The port on which the simulation is listening"),
+    ] = 27017,
+    out_dir: Annotated[
+        str | None,
+        typer.Option("--out-dir", "-o", help="Output directory. Must be absolute"),
+    ] = None,
+):
+    prl.main(epoch_count, config_count, db_host, db_port, out_dir)
 
 
 @app.command(help="Some database management")

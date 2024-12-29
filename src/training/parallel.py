@@ -1,4 +1,5 @@
 import subprocess as sp
+import socket
 
 from pathlib import Path
 
@@ -73,11 +74,14 @@ def start_training(
     sim_name: str,
     network_name: str,
     epoch_count: int,
+    db_host: str,
+    db_port: str,
     out_dir: Path,
 ) -> str:
     out_dir_str = str(out_dir.absolute())
     user = call(["id", "-u"]).strip()
     group = call(["id", "-g"]).strip()
+    db_host_ip = socket.gethostbyname(db_host)
     cmd = [
         "docker",
         "run",
@@ -99,7 +103,7 @@ def start_training(
         "sumot",
         "qtrain",
         "-n",
-        "D04",
+        "PA",
         "--auto-naming",
         "-e",
         str(epoch_count),
@@ -109,12 +113,19 @@ def start_training(
         sim_name,
         "-o",
         "/tmp/sumosim/q/docker",
+        "-r",
+        "--db-host",
+        db_host_ip,
+        "--db-port",
+        str(db_port),
     ]
     print(f"Start training using: '{' '.join(cmd)}'")
     return call(cmd)
 
 
-def start_training_configuration(nr: int, out_dir: Path, epoch_count: int):
+def start_training_configuration(
+    nr: int, epoch_count: int, db_host: str, db_port: int, out_dir: Path
+):
     out_dir.mkdir(exist_ok=True, parents=True)
     network_name = f"sumo{nr:02d}"
     sim_name = f"sumo{nr:02d}"
@@ -127,15 +138,18 @@ def start_training_configuration(nr: int, out_dir: Path, epoch_count: int):
     print(f"Started simulator {sim_name} {sim_run_id}")
 
     training_run_id = start_training(
-        training_name, sim_name, network_name, epoch_count, out_dir
+        training_name, sim_name, network_name, epoch_count, db_host, db_port, out_dir
     )
     print(f"Started training {training_name} {training_run_id}")
 
 
-def main():
+def main(
+    epoch_count: int, config_count: int, db_host: str, db_port: int, out_dir: str | None
+):
     print("Started parallel")
-
-    epoch_count = 3
-    out_dir = Path.home() / "tmp"
-    for nr in range(3):
-        start_training_configuration(nr, out_dir, epoch_count)
+    out_path = Path.home() / "tmp"
+    if out_dir:
+        out_path = Path(out_dir)
+    out_path.mkdir(exist_ok=True, parents=True)
+    for nr in range(config_count):
+        start_training_configuration(nr, epoch_count, db_host, db_port, out_path)
