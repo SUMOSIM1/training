@@ -60,3 +60,44 @@ docker run -e PYTHONUNBUFFERED=True --network sumot02 --user $(id -u):$(id -g) -
 
 docker container ls -a -f "NAME=sumo-train" -q | xargs docker container rm
 ```
+
+
+# Concept CV values
+
+
+```
+variable
+
+class CvValue:
+	id: str,
+	learning_rate: float,
+	epsilon: float,
+	discount_factor: float,
+	
+class CvValuesName(Enum):
+	FIRST = "first"
+
+
+class CvValues:
+
+  def(self, index) -> CvValue 
+
+
+
+                    0        1     2     3      4  
+learning_rate    L  0.01     0.1,  0.01, 0.001, 0.0005 
+epsilon          E  0.05     0.1,  0.05, 0.005, 0.001 
+discount_factor  D  0.95     0.99, 0.95, 0.5,   0.25
+
+
+
+n = 125
+
+parallel_count = 25 paralelle läufe
+
+parallel_numbers = list[int] 
+
+parallel_numbers_1 = [ 0,  9] range(0, 10) für work computer
+parallel_numbers_2 = [10, 14] range(10, 15) für ben
+```
+
