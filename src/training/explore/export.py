@@ -20,7 +20,7 @@ def create_entity_data(
 
 
 def export_simulations(name_part: str, description: str, db_host: str, db_port: int):
-    out_dir = Path.home() / "tmp" / "sumosim" / "export"
+    out_dir = Path.home("/tmp")
     print(f"Exporting simulations containing '{name_part}' to {out_dir}")
     with db.create_client(db_host, db_port) as client:
         all_database_data = db.list_match_name_part(client, name_part)

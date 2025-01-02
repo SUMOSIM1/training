@@ -193,9 +193,9 @@ def qtrain(
         ),
     ] = False,
     out_dir: Annotated[
-        str | None,
+        str,
         typer.Option("--out-dir", "-o", help="Output directory. Must be absolute"),
-    ] = None,
+    ] = "/tmp",
 ):
     sgym_qlearn.q_train(
         name,
@@ -213,8 +213,29 @@ def qtrain(
 
 
 @app.command(help="Runs cross validation on q-learning session")
-def qcv(
-    name: Annotated[str, typer.Option("--name", "-n", help="Name of the run")],
+def qconfig(
+    name: Annotated[str, typer.Option("--name", help="Name of the run")],
+    parallel_config: Annotated[
+        prl.ParallelConfig,
+        typer.Option(
+            "--parallel-config",
+            help="Parallel configuration",
+        ),
+    ],
+    max_parallel: Annotated[
+        int,
+        typer.Option(
+            "--max-parallel",
+            help="Number of maximal executable training processes on the local machine",
+        ),
+    ],
+    parallel_index: Annotated[
+        int,
+        typer.Option(
+            "--parallel-index",
+            help="Parallel configuration",
+        ),
+    ],
     sim_host: Annotated[
         str,
         typer.Option(
@@ -239,16 +260,53 @@ def qcv(
         int,
         typer.Option(
             "--epoch-count",
-            "-e",
             help="Number of epochs to be run",
         ),
     ] = 100,
+    out_dir: Annotated[
+        str,
+        typer.Option("--out-dir", help="Output directory. Must be absolute"),
+    ] = "/tmp",
 ):
-    sgym_qlearn.q_train_cv(name, sim_host, db_port, sim_host, db_port, epoch_count)
+    sgym_qlearn.q_config(
+        name=name,
+        parallel_config=parallel_config,
+        max_parallel=max_parallel,
+        parallel_index=parallel_index,
+        sim_host=sim_host,
+        sim_port=sim_port,
+        db_host=db_host,
+        db_port=db_port,
+        epoch_count=epoch_count,
+        out_dir=out_dir,
+    )
 
 
 @app.command(help="Runs a list of training configurations parallel")
 def parallel(
+    name: Annotated[str, typer.Option("--name", "-n", help="Name of the run")],
+    parallel_config: Annotated[
+        prl.ParallelConfig,
+        typer.Option(
+            "--parallel-config",
+            help="Parallel configuration",
+        ),
+    ],
+    max_parallel: Annotated[
+        int,
+        typer.Option(
+            "--max-parallel",
+            help="Number of maximal executable training processes on the local machine",
+        ),
+    ],
+    parallel_indexes: Annotated[
+        str,
+        typer.Option(
+            "--parallel-indexes",
+            "-i",
+            help="Comma separated list of indexes. E.g. '1,2,3,4'",
+        ),
+    ],
     epoch_count: Annotated[
         int,
         typer.Option(
@@ -257,14 +315,6 @@ def parallel(
             help="Number of epochs to be run",
         ),
     ] = 100,
-    config_count: Annotated[
-        int,
-        typer.Option(
-            "--config-count",
-            "-c",
-            help="Number of epochs to be run",
-        ),
-    ] = 5,
     db_host: Annotated[
         str,
         typer.Option("--db-host", help="The host on which the simulation is listening"),
@@ -274,11 +324,20 @@ def parallel(
         typer.Option("--db-port", help="The port on which the simulation is listening"),
     ] = 27017,
     out_dir: Annotated[
-        str | None,
+        str,
         typer.Option("--out-dir", "-o", help="Output directory. Must be absolute"),
-    ] = None,
+    ] = "/tmp",
 ):
-    prl.main(epoch_count, config_count, db_host, db_port, out_dir)
+    prl.parallel_main(
+        name=name,
+        parallel_config=parallel_config,
+        max_parallel=max_parallel,
+        parallel_indexes=parallel_indexes,
+        epoch_count=epoch_count,
+        db_host=db_host,
+        db_port=db_port,
+        out_dir=out_dir,
+    )
 
 
 @app.command(help="Some database management")

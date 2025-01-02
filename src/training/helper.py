@@ -96,3 +96,10 @@ def progress_str(nr: int, count: int, start_time: datetime) -> str:
 def create_values(n: int, min: float, max: float) -> list[float]:
     diff = (max - min) / (n - 1)
     return [min + x * diff for x in range(n)]
+
+
+def parse_integers(integers: str) -> list[int]:
+    if not integers:
+        return []
+    split = integers.split(",")
+    return [int(i.strip()) for i in split]

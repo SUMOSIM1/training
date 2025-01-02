@@ -1,9 +1,73 @@
 import subprocess as sp
 import socket
-
+import itertools as it
 from pathlib import Path
+from dataclasses import dataclass
+from enum import Enum
+
+import training.helper as hlp
 
 _port = 4444
+
+
+class ParallelConfig(Enum):
+    Q_TRYOUT = "q-tryout"
+
+
+@dataclass(frozen=True)
+class TrainConfig:
+    name: str
+    values: dict
+
+
+def create_train_configs1(
+    parallel_config: ParallelConfig, max_parallel: int
+) -> list[list[TrainConfig]]:
+    match parallel_config:
+        case ParallelConfig.Q_TRYOUT:
+            values_dict = {
+                "L": [0.1, 0.01, 0.001],
+                "E": [0.1, 0.05, 0.01],
+                "D": [0.99, 0.95, 0.5],
+            }
+            return create_train_configs(values_dict, max_parallel)
+        case _:
+            raise ValueError(f"Invalid Parallel Config {parallel_config.value}")
+
+
+def create_train_configs(
+    values_dict: dict, max_parallel: int
+) -> list[list[TrainConfig]]:
+    def to_dict(keys: list, batch_values: list) -> dict:
+        return [dict(zip(keys, value)) for value in batch_values]
+
+    def to_ids(dicts: list[dict]) -> list[str]:
+        def to_id(dictionary: dict) -> str:
+            return "".join([f"{key}{index}" for key, index in dictionary.items()])
+
+        return [to_id(dictionary) for dictionary in dicts]
+
+    def create_batched_dicts(
+        keys: list, lists: list, max_parallel: 20
+    ) -> list[list[dict]]:
+        prod_values = list(it.product(*lists))
+        batch_size = (len(prod_values) + max_parallel - 1) // max_parallel
+        batched_values = it.batched(prod_values, batch_size)
+        return [to_dict(keys, values) for values in batched_values]
+
+    _keys = values_dict.keys()
+    _values = [values_dict[k] for k in _keys]
+    batched_dicts = create_batched_dicts(_keys, _values, max_parallel)
+
+    index_values = [range(len(list(value))) for value in _values]
+    batched_index_dicts = create_batched_dicts(_keys, index_values, max_parallel)
+    ids = [to_ids(d) for d in batched_index_dicts]
+
+    double_zipped = [zip(a, b) for a, b in (zip(batched_dicts, ids))]
+    return [
+        [TrainConfig(values=values, name=name) for values, name in zipped]
+        for zipped in double_zipped
+    ]
 
 
 def call(command: list[str]) -> str:
@@ -14,25 +78,6 @@ def call(command: list[str]) -> str:
         msg = f"ERROR: calling '{cmd_str}'. \n{b_err.decode()}"
         raise RuntimeError(msg)
     return b_out.decode()
-
-
-def remove_stopped_training_containers() -> str:
-    return call(
-        [
-            "docker",
-            "container",
-            "ls",
-            "-a",
-            "-f",
-            '"NAME=training-sumo"',
-            "-q",
-            "|",
-            "xargs",
-            "docker",
-            "container",
-            "rm",
-        ]
-    )
 
 
 def create_network(name: str) -> str:
@@ -69,8 +114,25 @@ def start_simulator(sim_name: str, network_name: str) -> str:
         return "<already running>"
 
 
+def is_parallel_index_valid(
+    parallel_config: ParallelConfig, max_parallel: int, parallel_index: int
+) -> str | None:
+    configs = create_train_configs1(parallel_config, max_parallel)
+    max_index = len(configs) - 1
+    if parallel_index <= max_index:
+        return None
+    return (
+        f"ERROR: Cannot start simulation for parallel index {parallel_index} "
+        f"of {parallel_config.value} "
+        f"with max_parallel {max_parallel}. Max index is {max_index}"
+    )
+
+
 def start_training(
-    training_name: str,
+    name: str,
+    parallel_config: ParallelConfig,
+    max_parallel: int,
+    parallel_index: int,
     sim_name: str,
     network_name: str,
     epoch_count: int,
@@ -78,10 +140,14 @@ def start_training(
     db_port: str,
     out_dir: Path,
 ) -> str:
+    msg = is_parallel_index_valid(parallel_config, max_parallel, parallel_index)
+    if msg is not None:
+        return msg
     out_dir_str = str(out_dir.absolute())
     user = call(["id", "-u"]).strip()
     group = call(["id", "-g"]).strip()
     db_host_ip = socket.gethostbyname(db_host)
+    train_name = f"sumo-train{parallel_index:02d}"
     cmd = [
         "docker",
         "run",
@@ -90,7 +156,7 @@ def start_training(
         "-e",
         "PYTHONUNBUFFERED=True",
         "--name",
-        training_name,
+        train_name,
         "--network",
         network_name,
         "--user",
@@ -101,19 +167,23 @@ def start_training(
         "uv",
         "run",
         "sumot",
-        "qtrain",
-        "-n",
-        "PA",
-        "--auto-naming",
-        "-e",
+        "qconfig",
+        "--name",
+        name,
+        "--parallel-config",
+        parallel_config.value,
+        "--max-parallel",
+        str(max_parallel),
+        "--parallel-index",
+        str(parallel_index),
+        "--epoch-count",
         str(epoch_count),
         "--sim-port",
         str(_port),
         "--sim-host",
         sim_name,
-        "-o",
-        "/tmp/sumosim/q/docker",
-        "-r",
+        "--out-dir",
+        "/tmp",
         "--db-host",
         db_host_ip,
         "--db-port",
@@ -124,12 +194,18 @@ def start_training(
 
 
 def start_training_configuration(
-    nr: int, epoch_count: int, db_host: str, db_port: int, out_dir: Path
+    name: str,
+    parallel_config: ParallelConfig,
+    max_parallel: int,
+    parallel_index: int,
+    epoch_count: int,
+    db_host: str,
+    db_port: int,
+    out_dir: Path,
 ):
     out_dir.mkdir(exist_ok=True, parents=True)
-    network_name = f"sumo{nr:02d}"
-    sim_name = f"sumo{nr:02d}"
-    training_name = f"sumo-train{nr:02d}"
+    network_name = f"sumo{parallel_index:02d}"
+    sim_name = f"sumo{parallel_index:02d}"
 
     network_id = create_network(network_name)
     print(f"Created network {network_name} {network_id}")
@@ -138,18 +214,50 @@ def start_training_configuration(
     print(f"Started simulator {sim_name} {sim_run_id}")
 
     training_run_id = start_training(
-        training_name, sim_name, network_name, epoch_count, db_host, db_port, out_dir
+        name=name,
+        parallel_config=parallel_config,
+        max_parallel=max_parallel,
+        parallel_index=parallel_index,
+        sim_name=sim_name,
+        network_name=network_name,
+        epoch_count=epoch_count,
+        db_host=db_host,
+        db_port=db_port,
+        out_dir=out_dir,
     )
-    print(f"Started training {training_name} {training_run_id}")
+    print(f"Started training {name} {training_run_id}")
 
 
-def main(
-    epoch_count: int, config_count: int, db_host: str, db_port: int, out_dir: str | None
+def subdir_exists(work_dir: Path, prefix: str) -> bool:
+    for x in work_dir.iterdir():
+        if x.name.startswith(prefix):
+            return True
+    return False
+
+
+def parallel_main(
+    name: str,
+    parallel_config: ParallelConfig,
+    max_parallel: int,
+    parallel_indexes: str,
+    epoch_count: str,
+    db_host: str,
+    db_port: int,
+    out_dir: str,
 ):
     print("Started parallel")
-    out_path = Path.home() / "tmp"
-    if out_dir:
-        out_path = Path(out_dir)
+    out_path = Path(out_dir)
     out_path.mkdir(exist_ok=True, parents=True)
-    for nr in range(config_count):
-        start_training_configuration(nr, epoch_count, db_host, db_port, out_path)
+    if subdir_exists(out_path, name):
+        raise RuntimeError(f"Output directory '{out_path}' {name} already exists")
+    for parallel_index in hlp.parse_integers(parallel_indexes):
+        start_training_configuration(
+            name,
+            parallel_config,
+            max_parallel,
+            parallel_index,
+            epoch_count,
+            db_host,
+            db_port,
+            out_path,
+        )

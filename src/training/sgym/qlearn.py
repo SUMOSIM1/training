@@ -1,6 +1,6 @@
 from collections import defaultdict
 from collections.abc import Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import datetime
 from pathlib import Path
 
@@ -15,7 +15,7 @@ import seaborn as sbn
 import training.helper as hlp
 import training.sgym.core as sgym
 import training.simrunner as sr
-from training.simrunner import DiffDriveValues
+import training.parallel as parallel
 
 
 @dataclass(frozen=True)
@@ -27,16 +27,82 @@ class QLearnConfig:
     discount_factor: float
 
 
-def q_train_cv(
+default_env_config = sgym.SEnvConfig(
+    max_wheel_speed=7,
+    wheel_speed_steps=10,
+    max_view_distance=700,
+    view_distance_steps=3,
+    max_simulation_steps=1000,
+    dtype=np.float32,
+)
+
+default_q_learn_config = QLearnConfig(
+    learning_rate=0.01,
+    initial_epsilon=0.01,
+    epsilon_decay=0.001,
+    final_epsilon=0.05,
+    discount_factor=0.95,
+)
+
+
+def q_config(
     name: str,
+    parallel_config: parallel.ParallelConfig,
+    max_parallel: int,
+    parallel_index: int,
     sim_host: str,
     sim_port: int,
     db_host: str,
     db_port: int,
     epoch_count: int,
+    out_dir: str,
 ):
-    print(f"Started q cv n:{name} sh:{sim_host} sp:{sim_port} cnt:{epoch_count}")
-    # TODO Implement
+    def call_q_train_with_config(parallel_config: parallel.ParallelConfig):
+        q_learn_config = default_q_learn_config
+        parallel_config_values: dict = parallel_config.values
+        if parallel_config_values.get("L") is not None:
+            q_learn_config = replace(
+                q_learn_config, learning_rate=parallel_config_values["L"]
+            )
+        if parallel_config_values.get("E") is not None:
+            q_learn_config = replace(
+                q_learn_config,
+                initial_epsilon=parallel_config_values["E"],
+                final_epsilon=parallel_config_values["E"],
+                epsilon_decay=0.0,
+            )
+        if parallel_config_values.get("D") is not None:
+            q_learn_config = replace(
+                q_learn_config, discount_factor=parallel_config_values["D"]
+            )
+
+        _q_train(
+            name=f"{name}-{parallel_config.name}",
+            auto_naming=False,
+            epoch_count=epoch_count,
+            sim_host=sim_host,
+            sim_port=sim_port,
+            db_host=db_host,
+            db_port=db_port,
+            opponent_name=sr.ControllerName.STAND_STILL,
+            reward_handler_name=sr.RewardHandlerName.CONTINUOUS_CONSIDER_ALL,
+            record=False,
+            out_dir=out_dir,
+            q_learn_env_config=default_env_config,
+            q_learn_config=q_learn_config,
+        )
+
+    configs = parallel.create_train_configs1(parallel_config, max_parallel)
+    if parallel_index >= len(configs):
+        raise ValueError(
+            f"Cannot run 'q_config' because the parallel index {parallel_index} exceeds the maximum index for parallel_config {parallel_config.value}. Max index is {len(configs) - 1}"
+        )
+    _configs = configs[parallel_index]
+    for c in _configs:
+        call_q_train_with_config(c)
+    print(
+        f"Started parallel training n:{name} sh:{sim_host} sp:{sim_port} cnt:{epoch_count}"
+    )
 
 
 def q_train(
@@ -50,23 +116,8 @@ def q_train(
     opponent_name: sr.ControllerName,
     reward_handler_name: sr.RewardHandlerName,
     record: bool,
-    out_dir: str | None,
+    out_dir: str,
 ) -> int:
-    env_config = sgym.SEnvConfig(
-        max_wheel_speed=7,
-        wheel_speed_steps=10,
-        max_view_distance=700,
-        view_distance_steps=3,
-        max_simulation_steps=1000,
-        dtype=np.float32,
-    )
-    q_learn_config = QLearnConfig(
-        learning_rate=0.01,
-        initial_epsilon=0.01,
-        epsilon_decay=0.001,
-        final_epsilon=0.05,
-        discount_factor=0.95,
-    )
     return _q_train(
         name,
         auto_naming,
@@ -79,8 +130,8 @@ def q_train(
         reward_handler_name,
         record,
         out_dir,
-        env_config,
-        q_learn_config,
+        default_env_config,
+        default_q_learn_config,
     )
 
 
@@ -95,23 +146,18 @@ def _q_train(
     opponent_name: sr.ControllerName,
     reward_handler_name: sr.RewardHandlerName,
     record: bool,
-    out_dir: str | None,
+    out_dir: str,
     q_learn_env_config: sgym.SEnvConfig,
     q_learn_config: QLearnConfig,
 ) -> int:
     reward_handler = sr.RewardHandlerProvider.get(reward_handler_name)
     results = []
     start_time = datetime.now()
-    training_name = f"Q-{name}"
     if auto_naming:
-        training_name = f"{training_name}-{hlp.unique()}"
-    out_path = Path.home() / "tmp" / "sumosim" / "q" / training_name
-    if out_dir is not None:
-        out_path = Path(out_dir) / training_name
+        name = f"{name}-{hlp.unique()}"
+    out_path = Path(out_dir) / name
     if out_path.exists():
-        raise FileExistsError(
-            f"{training_name} was already used {out_path}. Choose another one"
-        )
+        raise FileExistsError(f"{name} was already used {out_path}. Choose another one")
     out_path.mkdir(parents=True)
     loop_name = "q"
 
@@ -121,13 +167,13 @@ def _q_train(
 
     record_interval = max(1, epoch_count // record_count)
     print(
-        f"Started {training_name} l:{loop_name} e:{epoch_count} h:{sim_host} p:{sim_port} "
+        f"Started {name} l:{loop_name} e:{epoch_count} h:{sim_host} p:{sim_port} "
         f"o:{opponent_name.value} rh:{reward_handler_name.value} "
         f"di:{doc_interval} dd:{doc_duration}  rc:{record_count}"
     )
     agent = None
     for epoch_nr in range(epoch_count):
-        sim_name = f"{training_name}-{epoch_nr:06d}"
+        sim_name = f"{name}-{epoch_nr:06d}"
         opponent = sr.ControllerProvider.get(opponent_name)
 
         sim_info = None
@@ -183,9 +229,7 @@ def _q_train(
 
         if epoch_nr % (max(1, doc_interval // 10)) == 0 and epoch_nr > 0:
             progr = hlp.progress_str(epoch_nr, epoch_count, start_time)
-            print(
-                f"Finished epoch {training_name} {progr} " f"reward:{cuml_reward:10.2f}"
-            )
+            print(f"Finished epoch {name} {progr} " f"reward:{cuml_reward:10.2f}")
         results.append(
             {
                 "sim_steps": cnt,
@@ -200,14 +244,12 @@ def _q_train(
         if do_plot_q_values(epoch_nr, doc_interval, doc_duration) or is_last(
             epoch_count, epoch_nr
         ):
-            document_q_values(
-                training_name, agent, epoch_nr, out_path, q_learn_env_config
-            )
+            document_q_values(name, agent, epoch_nr, out_path, q_learn_env_config)
         if (epoch_nr % doc_interval == 0 and epoch_nr > 0) or is_last(
             epoch_count, epoch_nr
         ):
-            document(training_name, results, out_path)
-    print(f"Finished training {training_name} {loop_name} p:{sim_port}")
+            document(name, results, out_path)
+    print(f"Finished training {name} {loop_name} p:{sim_port}")
     return sim_port
 
 
@@ -434,7 +476,7 @@ def _curry_velo_from_index(
     diff_drives = []
     for i in range(n):
         for j in range(n):
-            diff_drives.append(DiffDriveValues(velos[i], velos[j]))
+            diff_drives.append(sr.DiffDriveValues(velos[i], velos[j]))
 
     def inner(index: int) -> sr.DiffDriveValues:
         return diff_drives[index]
@@ -529,10 +571,10 @@ def plot_boxplot(data: pd.DataFrame, name: str, work_dir: Path) -> Path:
         if data_len <= n:
             return range(data_len), data
         d = np.array(data)
-        croped = (data_len // n) * n
-        split = np.split(d[0:croped], n)
-        diff = croped // n
-        xs = range(0, croped, diff)
+        cropped = (data_len // n) * n
+        split = np.split(d[0:cropped], n)
+        diff = cropped // n
+        xs = range(0, cropped, diff)
         xs_str = [str(x) for x in xs]
         return xs_str, split
 
