@@ -1,0 +1,5 @@
+report:
+    prefix: P01
+    descriptin: Cross validation on all parameters
+    parallel-config: Q_TRYOUT
+        
