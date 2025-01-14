@@ -14,6 +14,7 @@ class ParallelConfig(Enum):
     Q_01 = "q-01"
     Q_DISC_0 = "q-disc-0"
     Q_LR_0 = "q-lr-0"
+    Q_EPS_0 = "q-eps-0"
 
 
 @dataclass(frozen=True)
@@ -50,6 +51,13 @@ def create_train_configs1(
             values_dict = {
                 "L": [0.0001, 0.0005, 0.001, 0.005, 0.01, 0.05, 0.1, 0.2, 0.3, 0.5],
                 "E": [0.1],
+                "D": [0.75],
+            }
+            return create_train_configs(values_dict, max_parallel)
+        case ParallelConfig.Q_EPS_0:
+            values_dict = {
+                "L": [0.5],
+                "E": [0.0001, 0.0005, 0.001, 0.005, 0.01, 0.05, 0.1, 0.3, 0.5, 0.6],
                 "D": [0.75],
             }
             return create_train_configs(values_dict, max_parallel)
