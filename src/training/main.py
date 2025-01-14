@@ -439,13 +439,14 @@ def export(
 @app.command(help="List of learning sessions in parallel")
 def report(
     name: Annotated[str, typer.Option("--name", "-n", help="Name of the run")],
-    video_dir: Annotated[str, typer.Option("--video-dir", help="Directory for videos")] = "tmp/sumosim/video",
+    results_dir: Annotated[
+        str, typer.Option("--results-dir", "-d", help="Directory for results")
+    ] = "tmp/sumosim/results",
 ):
     _report.report(
         name_prefix=name,
-        video_dir=video_dir,
+        results_dir=results_dir,
     )
-
 
 
 if __name__ == "__main__":

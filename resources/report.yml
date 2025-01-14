@@ -4,4 +4,7 @@
 - prefix: X
   descriptin: Cross validation on all parameters 1
   parallel-config: Q_X
-        
+- prefix: PDISC
+  descriptin: Vrossvalidation on discount. 0.6 .. 0.9
+  parallel-config: Q_DISC_0
+
