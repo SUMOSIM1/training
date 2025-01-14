@@ -1,5 +1,7 @@
-report:
-    prefix: P01
-    descriptin: Cross validation on all parameters
-    parallel-config: Q_TRYOUT
+- prefix: P01
+  descriptin: Cross validation on all parameters
+  parallel-config: Q_TRYOUT
+- prefix: X
+  descriptin: Cross validation on all parameters 1
+  parallel-config: Q_X
         
