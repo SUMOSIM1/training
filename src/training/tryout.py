@@ -1,10 +1,12 @@
 from pathlib import Path
 import math
+import numpy as np
 
 import matplotlib.pyplot as plt
+import training.helper as hlp
 
 
-def main():
+def nonlin():
     work_dir = Path.home() / "tmp"
 
     def func(x: float, g: float) -> float:
@@ -27,5 +29,22 @@ def main():
         y1 = [func(a, g) for a in x]
         ax.plot(x, y1)
     out_path = work_dir / "a.png"
+    fig.savefig(out_path)
+    plt.close(fig)
+
+
+
+
+def main():
+    work_dir = Path.home() / "tmp"
+    min_value = 0.0
+    max_value = 800.0
+    dist = 300
+    n = 5
+    xs = np.arange(min_value, max_value, (max_value - min_value) / (dist - 0.999999)   )
+    fig, ax = plt.subplots(figsize=(15, 15))
+    ys = [hlp.cont_to_discrete(x, min_value, max_value, n) for x in xs]
+    ax.plot(xs, ys)
+    out_path = work_dir / "b.png"
     fig.savefig(out_path)
     plt.close(fig)
