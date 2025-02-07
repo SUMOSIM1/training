@@ -86,7 +86,7 @@ def q_config(
             db_host=db_host,
             db_port=db_port,
             opponent_name=sr.ControllerName.STAND_STILL,
-            reward_handler_name=sr.RewardHandlerName.CONTINUOUS_CONSIDER_ALL,
+            reward_handler_name=sr.RewardHandlerName.END_CONSIDER_ALL,
             record=record,
             plot_q_values_full=False,
             out_dir=out_dir,

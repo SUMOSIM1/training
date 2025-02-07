@@ -1,5 +1,5 @@
 - class_name: training.simrunner.RewardHandlerName
-  value: consider-all
+  value: continuous-consider-all
   desc: |
     Considers all sensors.  
     Calculates a reward after every step.  
@@ -16,7 +16,7 @@
      
     Rewards are calculated after every step and might be different from zero.
 - class_name: training.simrunner.RewardHandlerName
-  value: consider-all-end
+  value: end-consider-all
   desc: |
     Considers all sensors.  
     Calculates a reward after every step.  

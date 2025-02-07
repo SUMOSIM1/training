@@ -49,7 +49,7 @@ class ControllerName(str, Enum):
 
 class RewardHandlerName(str, Enum):
     END_CONSIDER_ALL = "end-consider-all"
-    CONTINUOUS_CONSIDER_ALL = "continuous-consider-all"
+    CONTINUOUS_CONSIDER_ALL = ""
 
 
 class SectorName(Enum):
