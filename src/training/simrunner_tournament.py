@@ -34,7 +34,7 @@ class Result:
     data: list[(str, str, float, float)]
 
 
-def start(
+def tournament(
     sim_host: str,
     sim_port: int,
     db_host: str,

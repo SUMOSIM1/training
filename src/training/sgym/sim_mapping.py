@@ -7,13 +7,45 @@ import training.helper as hlp
 import training.sgym.core as sgym
 import training.simrunner as sr
 
+from enum import Enum
 
-def get_q_act_space(config: sgym.SEnvConfig) -> gym.Space:
+
+class SEnvMappingName(str, Enum):
+    LINEAR = ("linear",)
+    NON_LINEAR_1 = ("non-linear-1",)
+    NON_LINEAR_2 = ("non-linear-2",)
+    NON_LINEAR_3 = ("non-linear-3",)
+    NON_LINEAR_4 = ("non-linear-4",)
+
+
+def senv_mapping(mapping: SEnvMappingName, cfg: sgym.SEnvConfig) -> sgym.SEnvMapping:
+    def create_senv_mapping(linear: int) -> sgym.SEnvMapping:
+        return sgym.SEnvMapping(
+            act_space=_q_act_space,
+            obs_space=_q_obs_space,
+            map_act=_fun_map_q_act_to_diff_drive(cfg),
+            map_sensor=_fun_map_q_sensor_to_obs(linear),
+        )
+
+    match mapping:
+        case SEnvMappingName.LINEAR:
+            return create_senv_mapping(0)
+        case SEnvMappingName.NON_LINEAR_1:
+            return create_senv_mapping(-1)
+        case SEnvMappingName.NON_LINEAR_2:
+            return create_senv_mapping(-2)
+        case SEnvMappingName.NON_LINEAR_3:
+            return create_senv_mapping(-3)
+        case SEnvMappingName.NON_LINEAR_4:
+            return create_senv_mapping(-4)
+
+
+def _q_act_space(config: sgym.SEnvConfig) -> gym.Space:
     n = (config.wheel_speed_steps + 1) * (config.wheel_speed_steps + 1)
     return gyms.Discrete(n)
 
 
-def get_q_obs_space(config: sgym.SEnvConfig) -> gym.Space:
+def _q_obs_space(config: sgym.SEnvConfig) -> gym.Space:
     return gyms.Tuple(
         (
             gyms.Discrete(n=4),
@@ -24,19 +56,10 @@ def get_q_obs_space(config: sgym.SEnvConfig) -> gym.Space:
     )
 
 
-def q_sgym_mapping(cfg: sgym.SEnvConfig) -> sgym.SEnvMapping:
-    return sgym.SEnvMapping(
-        act_space=get_q_act_space,
-        obs_space=get_q_obs_space,
-        map_act=curry_q_act_to_diff_drive(cfg),
-        map_sensor=map_q_sensor_to_obs,
-    )
-
-
-def curry_q_act_to_diff_drive(
+def _fun_map_q_act_to_diff_drive(
     config: sgym.SEnvConfig,
 ) -> Callable[[any, sgym.SEnvConfig], sr.DiffDriveValues]:
-    velo_from_index = _curry_velo_from_index(
+    velo_from_index = _fun_velo_from_index(
         config.max_wheel_speed, config.wheel_speed_steps
     )
 
@@ -46,23 +69,32 @@ def curry_q_act_to_diff_drive(
     return inner
 
 
-def map_q_sensor_to_obs(
-    sensor: sr.CombiSensor, config: sgym.SEnvConfig
-) -> tuple[int, int, int, int]:
-    def discrete(distance: float) -> int:
-        return hlp.cont_to_discrete(
-            distance, 0.0, config.max_view_distance, config.view_distance_steps, 0
+def _fun_map_q_sensor_to_obs(
+    linear: int,
+) -> Callable[[sr.CombiSensor, sgym.SEnvConfig], tuple[int, int, int, int]]:
+    def inner(
+        sensor: sr.CombiSensor, config: sgym.SEnvConfig
+    ) -> tuple[int, int, int, int]:
+        def discrete(distance: float) -> int:
+            return hlp.cont_to_discrete(
+                distance,
+                0.0,
+                config.max_view_distance,
+                config.view_distance_steps,
+                linear,
+            )
+
+        return (
+            sr.sector_mapping(sensor.opponent_in_sector),
+            discrete(sensor.left_distance),
+            discrete(sensor.front_distance),
+            discrete(sensor.right_distance),
         )
 
-    return (
-        sr.sector_mapping(sensor.opponent_in_sector),
-        discrete(sensor.left_distance),
-        discrete(sensor.front_distance),
-        discrete(sensor.right_distance),
-    )
+    return inner
 
 
-def _curry_velo_from_index(
+def _fun_velo_from_index(
     max_velo: float, velo_steps: int
 ) -> Callable[[int], sr.DiffDriveValues]:
     velos = hlp.cont_values(-max_velo, max_velo, velo_steps + 1)

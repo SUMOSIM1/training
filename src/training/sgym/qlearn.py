@@ -1,6 +1,5 @@
 from collections import defaultdict
 from dataclasses import dataclass, replace
-from datetime import datetime
 from pathlib import Path
 
 import gymnasium as gym
@@ -84,6 +83,7 @@ def q_config(
             sim_port=sim_port,
             db_host=db_host,
             db_port=db_port,
+            mapping=sm.SEnvMappingName.NON_LINEAR_3,
             opponent_name=sr.ControllerName.STAND_STILL,
             reward_handler_name=sr.RewardHandlerName.END_CONSIDER_ALL,
             record=record,
@@ -112,6 +112,7 @@ def q_train(
     sim_port: int,
     db_host: str,
     db_port: int,
+    mapping: sm.SEnvMappingName,
     opponent_name: sr.ControllerName,
     reward_handler_name: sr.RewardHandlerName,
     record: bool,
@@ -126,6 +127,7 @@ def q_train(
         sim_port=sim_port,
         db_host=db_host,
         db_port=db_port,
+        mapping=mapping,
         opponent_name=opponent_name,
         reward_handler_name=reward_handler_name,
         record=record,
@@ -144,6 +146,7 @@ def _q_train(
     sim_port: int,
     db_host: str,
     db_port: int,
+    mapping: sm.SEnvMappingName,
     opponent_name: sr.ControllerName,
     reward_handler_name: sr.RewardHandlerName,
     record: bool,
@@ -154,7 +157,6 @@ def _q_train(
 ) -> int:
     reward_handler = sr.RewardHandlerProvider.get(reward_handler_name)
     results = []
-    start_time = datetime.now()
     out_path = Path(out_dir)
     if auto_naming:
         name = f"{name}-{hlp.unique()}"
@@ -175,7 +177,7 @@ def _q_train(
     opponent = sr.ControllerProvider.get(opponent_name)
     env = sgym.SEnv(
         senv_config=q_learn_env_config,
-        senv_mapping=sm.q_sgym_mapping(q_learn_env_config),
+        senv_mapping=sm.senv_mapping(mapping, q_learn_env_config),
         sim_host=sim_host,
         sim_port=sim_port,
         db_host=db_host,
@@ -235,8 +237,8 @@ def _q_train(
             }
         )
         if epoch_nr % (max(1, doc_interval // 10)) == 0:
-            progr = hlp.progress_str(epoch_nr, epoch_count, start_time)
-            print(f"Finished epoch {name} {progr} " f"reward:{cuml_reward:15.5f}")
+            progr = hlp.progress_str(epoch_nr, epoch_count)
+            print(f"Finished epoch {name} {progr} reward:{cuml_reward:.5f}")
         if do_plot_q_values(
             epoch_nr, doc_interval, doc_duration, plot_q_values_full
         ) or is_last(epoch_count, epoch_nr):
@@ -503,7 +505,7 @@ def plot_boxplot(
         fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(12, 12))
         ax.boxplot(y1, labels=x1)
         ax.set_title(title(column, name, config))
-        ax.set_ylim(ymin=-20, ymax=300)
+        ax.set_ylim(ymin=-300, ymax=300)
         ax.set_ylabel(column)
         ax.set_xlabel("epoch nr")
         ax.tick_params(axis="x", rotation=45)

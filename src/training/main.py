@@ -5,6 +5,7 @@ from typing_extensions import Annotated
 
 import training.sgym.qlearn as sgym_qlearn
 import training.sgym.sample as sgym_sample
+import training.sgym.sim_mapping as sgym_mapping
 import training.simdb
 import training.simrunner as sr
 import training.simrunner_tournament as srt
@@ -21,8 +22,8 @@ sim_path_help = "Path to the simulator git module"
 sim_path_default = Path.home() / "prj" / "SUMOSIM" / "sumosim"
 
 
-@app.command(help="Simulations for combinations of controllers")
-def start(
+@app.command(help="Tournament of simulations for combinations of controllers")
+def tournament(
     sim_name: Annotated[str, typer.Option("--name", "-n", help="Simulation name")],
     sim_host: Annotated[
         str,
@@ -76,7 +77,7 @@ def start(
         ),
     ] = False,
 ):
-    srt.start(
+    srt.tournament(
         sim_host,
         sim_port,
         db_host,
@@ -185,6 +186,10 @@ def qtrain(
         int,
         typer.Option("--db-port", help="The port on which the simulation is listening"),
     ] = 27017,
+    mapping: Annotated[
+        sgym_mapping.SEnvMappingName,
+        typer.Option("--mapping", help="Mapping of observations and actions"),
+    ] = sgym_mapping.SEnvMappingName.NON_LINEAR_3,
     reward_handler: Annotated[
         sr.RewardHandlerName,
         typer.Option("--reward-handler", help="Name of the reward handler"),
@@ -216,18 +221,19 @@ def qtrain(
     ] = "/tmp",
 ):
     sgym_qlearn.q_train(
-        name,
-        auto_naming,
-        epoch_count,
-        sim_host,
-        sim_port,
-        db_host,
-        db_port,
-        opponent,
-        reward_handler,
-        record,
-        plot_q_values_full,
-        out_dir,
+        name=name,
+        auto_naming=auto_naming,
+        epoch_count=epoch_count,
+        sim_host=sim_host,
+        sim_port=sim_port,
+        db_host=db_host,
+        db_port=db_port,
+        mapping=mapping,
+        opponent_name=opponent,
+        reward_handler_name=reward_handler,
+        record=record,
+        plot_q_values_full=plot_q_values_full,
+        out_dir=out_dir,
     )
 
 

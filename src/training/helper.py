@@ -1,6 +1,5 @@
 import math
 import uuid
-from datetime import datetime
 from pathlib import Path
 
 import numpy as np
@@ -105,26 +104,8 @@ def compress_means(data: list[float], n: int) -> list[list[float], list[float]]:
     return xs, np.mean(split, axis=1)
 
 
-def progress_str(nr: int, count: int, start_time: datetime) -> str:
-    def f(t: datetime) -> str:
-        return t.strftime("%H:%M:%S")
-
-    def f1(seconds: int) -> str:
-        hours, remainder = divmod(seconds, 3600)
-        minutes, seconds = divmod(remainder, 60)
-        return f"{int(hours):02d}:{int(minutes):02d}:{int(seconds):02d}"
-
-    start = f(start_time)
-    now = datetime.now()
-    if nr == 0:
-        return f"{nr + 1}/{count} since::{start}"
-    diff = now - start_time
-    step_time = diff / nr
-    until_time = start_time + (count * step_time)
-    until = f(until_time)
-    _for = f1(int((until_time - now).total_seconds()))
-    _for_all = f1(int((until_time - start_time).total_seconds()))
-    return f"{nr + 1}/{count} {start} -> {until} {_for}/{_for_all}"
+def progress_str(nr: int, count: int) -> str:
+    return f"{nr + 1}/{count}"
 
 
 def create_values(n: int, min: float, max: float) -> list[float]:

@@ -6,7 +6,6 @@ import pytest
 
 import training.helper as helper
 import training.sgym.core as sgym
-import training.sgym.qlearn as sgym_qlearn
 import training.sgym.sample as sgym_sample
 import training.sgym.sim_mapping as sgym_mapping
 import training.simrunner as sr
@@ -140,9 +139,9 @@ def test_cont_values(min_value: float, max_value: float, n: int, expected: list[
 
 
 # Define some index velo mappers
-velo_from_index_a = sgym_mapping._curry_velo_from_index(max_velo=3.0, velo_steps=2)
-velo_from_index_b = sgym_mapping._curry_velo_from_index(max_velo=2.0, velo_steps=4)
-velo_from_index_c = sgym_mapping._curry_velo_from_index(max_velo=2.0, velo_steps=3)
+velo_from_index_a = sgym_mapping._fun_velo_from_index(max_velo=3.0, velo_steps=2)
+velo_from_index_b = sgym_mapping._fun_velo_from_index(max_velo=2.0, velo_steps=4)
+velo_from_index_c = sgym_mapping._fun_velo_from_index(max_velo=2.0, velo_steps=3)
 
 index_to_velos_testdata = [
     (0, velo_from_index_a, sr.DiffDriveValues(-3, -3)),
