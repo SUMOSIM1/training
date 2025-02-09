@@ -6,6 +6,17 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import subprocess as sp
+import easing_functions as easing
+
+
+_fn4 = easing.QuinticEaseIn()
+_fn3 = easing.QuarticEaseIn()
+_fn2 = easing.CubicEaseIn()
+_fn1 = easing.QuadEaseIn()
+_fp1 = easing.QuadEaseOut()
+_fp2 = easing.CubicEaseOut()
+_fp3 = easing.QuarticEaseOut()
+_fp4 = easing.QuinticEaseOut()
 
 
 def row_col(n: int) -> tuple[int, int]:
@@ -48,10 +59,32 @@ def unique() -> str:
 
 
 def cont_to_discrete(
-    value: float, min_value: float, max_value: float, step_count: int
+    x: float, min_value: float, max_value: float, step_count: int, linear: float
 ) -> int:
-    d = (max_value - min_value) / step_count
-    i = int(math.floor((value - min_value) / d))
+    def func(x: float, linear: int) -> float:
+        if linear <= -4:
+            return _fn4(x)
+        if linear == -3:
+            return _fn3(x)
+        if linear == -2:
+            return _fn2(x)
+        if linear == -1:
+            return _fn1(x)
+        if linear == 0:
+            return x
+        if linear == 1:
+            return _fp1(x)
+        if linear == 2:
+            return _fp2(x)
+        if linear == 3:
+            return _fp3(x)
+        if linear >= 4:
+            return _fp4(x)
+
+    x1 = (x - min_value) / (max_value - min_value)
+    y1 = func(x1, linear)
+    d = 1.0 / step_count
+    i = int(math.floor((y1 / d)))
     return min(max(0, i), (step_count - 1))
 
 

@@ -51,7 +51,7 @@ def map_q_sensor_to_obs(
 ) -> tuple[int, int, int, int]:
     def discrete(distance: float) -> int:
         return hlp.cont_to_discrete(
-            distance, 0.0, config.max_view_distance, config.view_distance_steps
+            distance, 0.0, config.max_view_distance, config.view_distance_steps, 0
         )
 
     return (

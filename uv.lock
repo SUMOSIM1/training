@@ -93,6 +93,15 @@ wheels = [
 ]
 
 [[package]]
+name = "easing-functions"
+version = "1.0.4"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/5c/ab/84e42f16746e70dae34d5c03eaae44ebf8fef8f84ab31ea484295779e32c/easing_functions-1.0.4.tar.gz", hash = "sha256:e18c7931d445b85f28c4d15ad0a9a47bb65d4e2eefc0db3840448fae25e3f9de", size = 3021 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/f6/94/05bc9dae8c32cb2ad359828bf79c7af359eb5e3eeeb1a74f8b1760d0058a/easing_functions-1.0.4-py3-none-any.whl", hash = "sha256:27f2ce64adecde3d2d90d503ad564fc944e8f20221ba2eacf96be37c28c7ae4b", size = 15788 },
+]
+
+[[package]]
 name = "farama-notifications"
 version = "0.0.4"
 source = { registry = "https://pypi.org/simple" }
@@ -497,6 +506,7 @@ source = { editable = "." }
 dependencies = [
     { name = "dataclasses-json" },
     { name = "dominate" },
+    { name = "easing-functions" },
     { name = "gymnasium" },
     { name = "markdown" },
     { name = "matplotlib" },
@@ -514,6 +524,7 @@ dependencies = [
 requires-dist = [
     { name = "dataclasses-json", specifier = ">=0.6.7" },
     { name = "dominate", specifier = ">=2.9.1" },
+    { name = "easing-functions", specifier = ">=1.0.4" },
     { name = "gymnasium", specifier = ">=1.0.0" },
     { name = "markdown", specifier = ">=3.7" },
     { name = "matplotlib", specifier = ">=3.10.0" },
