@@ -527,7 +527,7 @@ def plot_q_values(
         obs_action_data.append(values)
     obs_action_matrix = np.matrix(obs_action_data, dtype=q_learn_env_config.dtype)
     fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(12, 12))
-    sbn.heatmap(obs_action_matrix, vmin=0.0, vmax=1.0, ax=ax)
+    sbn.heatmap(obs_action_matrix, vmin=-1.0, vmax=2.0, ax=ax)
     ax.set_title(f"Q Values for {name} {epoch_nr:08d}")
     ax.set_xlabel("action")
     ax.set_ylabel("observation")
