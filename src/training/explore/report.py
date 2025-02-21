@@ -238,6 +238,7 @@ def create_report_training(
     if not _combis:
         return None
 
+    t_id = training_dict["prefix"]
     doc = dominate.document(title=training_dict["title"])
 
     with doc.head:
@@ -245,14 +246,14 @@ def create_report_training(
         dt.link(rel="stylesheet", href="styles.css")
 
     with doc.body:
-        dt.h1().add(training_dict["title"])
+        dt.h1().add(f"{t_id} {training_dict["title"]}")
         dt.p().add(du.raw(md.markdown(training_dict["description"].strip())))
         tags_for_enumdescs(training_dict)
         tags_for_combis(resources, _combis, out_path)
 
     with out_file.open("w") as f:
         f.write(str(doc))
-    return training_dict["abstract"], out_file_name
+    return f"{t_id} {training_dict["abstract"]}", out_file_name
 
 
 def create_final_ressources(reports_data: dict, result_dir_paths: list[Path]):

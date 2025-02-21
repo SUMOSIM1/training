@@ -134,8 +134,8 @@ methods:
       The ranges for learning rate, epsilon and discount were chosen
       from the results of Q-CV4
   - prefix: QMAP01
-    title: Cross validation mapping 1
-    abstract: Cross validation on all Parameters and mappings 1
+    title: Cross validation mapping
+    abstract: Cross validation on all Parameters and mappings
     enumdescs:
       - training.simrunner.RewardHandlerName.continuous-consider-all
       - training.parallel.ParallelConfig.q-map-0
@@ -149,8 +149,8 @@ methods:
 
       All values for mapping are used.
   - prefix: QMAP02
-    title: Cross validation mapping 2
-    abstract: Cross validation on all Parameters and mappings 2
+    title: Cross validation mapping
+    abstract: Cross validation on all Parameters and mappings
     enumdescs:
       - training.simrunner.RewardHandlerName.continuous-consider-all
       - training.parallel.ParallelConfig.q-map-1
@@ -161,7 +161,7 @@ methods:
 
       For the training start performance see: [Training start performance](analysis/StartPerformance.html)
   - prefix: QMAP03
-    title: Cross validation mapping 3 2k epochs
+    title: Cross validation mapping 2k epochs
     abstract: Cross validation on all Parameters and mappings 3 2k epochs
     enumdescs:
       - training.simrunner.RewardHandlerName.continuous-consider-all
@@ -169,3 +169,30 @@ methods:
     description: |
       number of epochs: 2k
       Based on the results of QMAP02
+  - prefix: QMAP04
+    title: Cross validation mapping 10k epochs
+    abstract: Cross validation on all Parameters and mappings 4 10k epochs
+    enumdescs:
+      - training.simrunner.RewardHandlerName.end-consider-all
+      - training.parallel.ParallelConfig.q-map-2
+    description: |
+      number of epochs: 10k
+      Based on the results of QMAP02
+  - prefix: QMAP05
+    title: Cross validation mapping 2k epochs
+    abstract: Cross validation on all Parameters and mappings 4 2k epochs
+    enumdescs:
+      - training.simrunner.RewardHandlerName.end-consider-all
+      - training.parallel.ParallelConfig.q-map-3
+    description: |
+      number of epochs: 2k
+      Based on the results of QMAP03 and QMAP04
+  - prefix: QMAP06
+    title: Cross validation mapping 5k epochs
+    abstract: Cross validation on all Parameters and mappings 5 5k epochs
+    enumdescs:
+      - training.simrunner.RewardHandlerName.end-consider-all
+      - training.parallel.ParallelConfig.q-map-3
+    description: |
+      number of epochs: 5k
+      Based on the results of QMAP03 and QMAP04

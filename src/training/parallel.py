@@ -68,9 +68,9 @@ def create_train_configs1(
             return create_train_configs(values_dict, max_parallel)
         case ParallelConfig.Q_MAP_3:
             values_dict = {
-                "L": [0.0],
-                "E": [0.0],
-                "D": [0.0],
+                "L": [0.05, 0.1, 0.15],
+                "E": [0.01, 0.02, 0.03],
+                "D": [0.25, 0.3, 0.35],
                 "M": ["non-linear-2", "non-linear-3", "non-linear-4"],
             }
             return create_train_configs(values_dict, max_parallel)

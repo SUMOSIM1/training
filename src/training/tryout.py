@@ -4,7 +4,7 @@ import training.sgym.qlearn as ql
 
 
 def main():
-    result_dirs = [
+    result_dirs_0 = [
         "results-2025-01-000",
         "results-2025-01-002",
         "results-2025-01-003",
@@ -13,6 +13,9 @@ def main():
         "results-2025-02-QMAP01",
         "results-2025-02-QMAP02",
         "results-2025-02-QMAP03",
+    ]
+    result_dirs = [
+        "results-2025-02-QMAP04",
     ]
 
     config = ql.default_q_learn_config
