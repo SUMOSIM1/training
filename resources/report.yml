@@ -137,7 +137,7 @@ methods:
     title: Cross validation mapping 1
     abstract: Cross validation on all Parameters and mappings 1
     enumdescs:
-      - training.simrunner.RewardHandlerName.end-consider-all
+      - training.simrunner.RewardHandlerName.continuous-consider-all
       - training.parallel.ParallelConfig.q-map-0
     description: |
       number of epochs: 20k
@@ -152,7 +152,7 @@ methods:
     title: Cross validation mapping 2
     abstract: Cross validation on all Parameters and mappings 2
     enumdescs:
-      - training.simrunner.RewardHandlerName.end-consider-all
+      - training.simrunner.RewardHandlerName.continuous-consider-all
       - training.parallel.ParallelConfig.q-map-1
     description: |
       number of epochs: 20k
@@ -164,7 +164,7 @@ methods:
     title: Cross validation mapping 3 2k epochs
     abstract: Cross validation on all Parameters and mappings 3 2k epochs
     enumdescs:
-      - training.simrunner.RewardHandlerName.end-consider-all
+      - training.simrunner.RewardHandlerName.continuous-consider-all
       - training.parallel.ParallelConfig.q-map-2
     description: |
       number of epochs: 2k
