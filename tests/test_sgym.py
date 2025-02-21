@@ -6,8 +6,8 @@ import pytest
 
 import training.helper as helper
 import training.sgym.core as sgym
-import training.sgym.qlearn as sgym_qlearn
 import training.sgym.sample as sgym_sample
+import training.sgym.sim_mapping as sgym_mapping
 import training.simrunner as sr
 from training.simrunner import DiffDriveValues
 
@@ -120,8 +120,8 @@ def test_continuous_to_discrete(
     min_value: float, max_value: float, n: int, expected: tuple
 ):
     v, i = expected
-    result = helper.cont_to_discrete(v, min_value, max_value, n)
-    print(f"### i:{i} r:{result}")
+    result = helper.cont_to_discrete(v, min_value, max_value, n, 0)
+    # print(f"### i:{i} r:{result}")
     assert i == result
 
 
@@ -139,9 +139,9 @@ def test_cont_values(min_value: float, max_value: float, n: int, expected: list[
 
 
 # Define some index velo mappers
-velo_from_index_a = sgym_qlearn._curry_velo_from_index(max_velo=3.0, velo_steps=2)
-velo_from_index_b = sgym_qlearn._curry_velo_from_index(max_velo=2.0, velo_steps=4)
-velo_from_index_c = sgym_qlearn._curry_velo_from_index(max_velo=2.0, velo_steps=3)
+velo_from_index_a = sgym_mapping._fun_velo_from_index(max_velo=3.0, velo_steps=2)
+velo_from_index_b = sgym_mapping._fun_velo_from_index(max_velo=2.0, velo_steps=4)
+velo_from_index_c = sgym_mapping._fun_velo_from_index(max_velo=2.0, velo_steps=3)
 
 index_to_velos_testdata = [
     (0, velo_from_index_a, sr.DiffDriveValues(-3, -3)),

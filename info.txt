@@ -1,0 +1,69 @@
+### ben
+
+sumot parallel \
+--db-host ben.local --record --keep-container --max-parallel 15 \
+--epoch-count 20000 \
+--name QMAP01 \
+--out-dir ~/tmp/sumosim/results/results-2025-02-QMAP01 \
+--parallel-config q-map-0
+
+sumot parallel \
+--db-host ben.local --record --keep-container --max-parallel 15 \
+--epoch-count 20000 \
+--name QMAP02 \
+--out-dir ~/tmp/sumosim/results/results-2025-02-QMAP02 \
+--parallel-config q-map-1
+
+sumot parallel \
+--db-host ben.local --record --keep-container --max-parallel 15 \
+--epoch-count 2000 \
+--name QMAP03 \
+--out-dir ~/tmp/sumosim/results/results-2025-02-QMAP03 \
+--parallel-config q-map-2
+
+sumot report \
+-d $HOME/tmp/sumosim/results/results-2025-01/results \
+-d $HOME/tmp/sumosim/results/results-2025-003 \
+-d $HOME/tmp/sumosim/results/results-2025-01-002  \
+-d $HOME/tmp/sumosim/results/results-2025-02-Q-CV5/  \
+-d $HOME/tmp/sumosim/results/results-2025-02-Q-CV7/  \
+-d $HOME/tmp/sumosim/results/results-2025-02-QMAP01/  \
+-o $HOME/tmp/sumosim/reports/r6
+
+sumot report \
+-d $HOME/tmp/sumosim/results/results-2025-01/results \
+-d $HOME/tmp/sumosim/results/results-2025-003 \
+-d $HOME/tmp/sumosim/results/results-2025-01-002  \
+-d $HOME/tmp/sumosim/results/results-2025-02-Q-CV5/  \
+-d $HOME/tmp/sumosim/results/results-2025-02-Q-CV7/  \
+-d $HOME/tmp/sumosim/results/results-2025-02-QMAP01/  \
+-d $HOME/tmp/sumosim/results/results-2025-02-QMAP02/  \
+-o $HOME/tmp/sumosim/reports/r7
+
+sumot report \
+-d $HOME/tmp/sumosim/results/results-2025-01/results \
+-d $HOME/tmp/sumosim/results/results-2025-003 \
+-d $HOME/tmp/sumosim/results/results-2025-01-002  \
+-d $HOME/tmp/sumosim/results/results-2025-02-Q-CV5/  \
+-d $HOME/tmp/sumosim/results/results-2025-02-Q-CV7/  \
+-d $HOME/tmp/sumosim/results/results-2025-02-QMAP01/  \
+-d $HOME/tmp/sumosim/results/results-2025-02-QMAP02/  \
+-d $HOME/tmp/sumosim/results/results-2025-02-QMAP03/  \
+-o $HOME/tmp/sumosim/reports/r9
+
+docker container ls -a -f name=sumo-train -q | xargs docker container rm -f
+
+### WORK
+
+docker buildx build --build-arg DOCKERREG=dockerregistry.seu.test.sozvers.at/ -t sumot .
+
+sumot parallel \
+--db-host 172.23.133.172 --record --keep-container --max-parallel 20 \
+--epoch-count 2000 \
+--name QMAP03a \
+--out-dir ~/tmp/sumosim/r.veesults/results-2025-02-QMAP03a \
+--parallel-config q-map-2
+
+sumot report \
+-d $HOME/tmp/sumosim/results/results-2025-02-QMAP03a  \
+-o $HOME/tmp/sumosim/reports/r10

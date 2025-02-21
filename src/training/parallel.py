@@ -12,6 +12,9 @@ _port = 4444
 class ParallelConfig(Enum):
     Q_CROSS_0 = "q-cross-0"
     Q_CROSS_1 = "q-cross-1"
+    Q_MAP_0 = "q-map-0"
+    Q_MAP_1 = "q-map-1"
+    Q_MAP_2 = "q-map-2"
 
 
 @dataclass(frozen=True)
@@ -38,6 +41,30 @@ def create_train_configs1(
                 "D": [0.95, 0.99, 0.995, 0.999],
             }
             return create_train_configs(values_dict, max_parallel)
+        case ParallelConfig.Q_MAP_0:
+            values_dict = {
+                "L": [0.7],
+                "E": [0.05],
+                "D": [0.5, 0.8],
+                "M": ["non-linear-1", "non-linear-2", "non-linear-3", "non-linear-4"],
+            }
+            return create_train_configs(values_dict, max_parallel)
+        case ParallelConfig.Q_MAP_1:
+            values_dict = {
+                "L": [0.01, 0.1, 0.5],
+                "E": [0.01, 0.1],
+                "D": [0.4, 0.6, 0.9],
+                "M": ["non-linear-1", "non-linear-2"],
+            }
+            return create_train_configs(values_dict, max_parallel)
+        case ParallelConfig.Q_MAP_2:
+            values_dict = {
+                "L": [0.2, 0.4, 0.6],
+                "E": [0.05, 0.075, 0.1],
+                "D": [0.3, 0.4, 0.5],
+                "M": ["non-linear-1", "non-linear-2", "non-linear-3", "non-linear-4"],
+            }
+            return create_train_configs(values_dict, max_parallel)
         case _:
             raise ValueError(f"Invalid Parallel Config {parallel_config.value}")
 
@@ -45,7 +72,7 @@ def create_train_configs1(
 def create_train_configs(
     values_dict: dict, max_parallel: int
 ) -> list[list[TrainConfig]]:
-    def to_dict(keys: list, batch_values: list) -> dict:
+    def to_dict(keys: list, batch_values: list) -> list[dict]:
         return [dict(zip(keys, value)) for value in batch_values]
 
     def to_ids(dicts: list[dict]) -> list[str]:
@@ -54,9 +81,7 @@ def create_train_configs(
 
         return [to_id(dictionary) for dictionary in dicts]
 
-    def create_batched_dicts(
-        keys: list, lists: list, max_parallel: 20
-    ) -> list[list[dict]]:
+    def create_batched_dicts(keys: list, lists: list) -> list[list[dict]]:
         prod_values = list(it.product(*lists))
         batch_size = (len(prod_values) + max_parallel - 1) // max_parallel
         batched_values = it.batched(prod_values, batch_size)
@@ -64,10 +89,10 @@ def create_train_configs(
 
     _keys = values_dict.keys()
     _values = [values_dict[k] for k in _keys]
-    batched_dicts = create_batched_dicts(_keys, _values, max_parallel)
+    batched_dicts = create_batched_dicts(_keys, _values)
 
     index_values = [range(len(list(value))) for value in _values]
-    batched_index_dicts = create_batched_dicts(_keys, index_values, max_parallel)
+    batched_index_dicts = create_batched_dicts(_keys, index_values)
     ids = [to_ids(d) for d in batched_index_dicts]
 
     double_zipped = [zip(a, b) for a, b in (zip(batched_dicts, ids))]
@@ -209,7 +234,7 @@ def start_training_configuration(
 ):
     out_dir.mkdir(exist_ok=True, parents=True)
     network_name = f"sumo{parallel_index:02d}"
-    sim_name = f"sumo{parallel_index:02d}"
+    sim_name = f"sumo-sim{parallel_index:02d}"
 
     network_id = create_network(network_name)
     print(f"Created network {network_name} {network_id}")

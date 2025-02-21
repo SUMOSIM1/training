@@ -65,10 +65,18 @@ def create_report(reports_data: dict, result_dir_paths: list[Path], out_dir: str
     out_path = sumosim_report_path(out_dir, must_exists=False)
     out_path.mkdir(parents=True, exist_ok=True)
 
+    # Copy style .css
     style_path = Path(__file__).parent.parent.parent.parent / "resources" / "styles.css"
     style_target = out_path / "styles.css"
     shutil.copy(style_path, style_target)
     # print(f"Created style {style_target}")
+
+    # Copy analyses
+    analysis_path = (
+        Path(__file__).parent.parent.parent.parent / "resources" / "analysis"
+    )
+    analysis_target = out_path / "analysis"
+    shutil.copytree(analysis_path, analysis_target, dirs_exist_ok=True)
 
     create_report_index(reports_data, out_path, resources)
 

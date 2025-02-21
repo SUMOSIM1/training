@@ -1,4 +1,5 @@
-FROM ghcr.io/astral-sh/uv:python3.12-alpine
+ARG DOCKERREG
+FROM ${DOCKERREG}ghcr.io/astral-sh/uv:python3.12-alpine
 LABEL authors="wwagner4"
 
 # Copy the project into the image

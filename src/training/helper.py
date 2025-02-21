@@ -1,11 +1,21 @@
 import math
 import uuid
-from datetime import datetime
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
 import subprocess as sp
+import easing_functions as easing
+
+
+_fn4 = easing.QuinticEaseIn()
+_fn3 = easing.QuarticEaseIn()
+_fn2 = easing.CubicEaseIn()
+_fn1 = easing.QuadEaseIn()
+_fp1 = easing.QuadEaseOut()
+_fp2 = easing.CubicEaseOut()
+_fp3 = easing.QuarticEaseOut()
+_fp4 = easing.QuinticEaseOut()
 
 
 def row_col(n: int) -> tuple[int, int]:
@@ -48,10 +58,32 @@ def unique() -> str:
 
 
 def cont_to_discrete(
-    value: float, min_value: float, max_value: float, step_count: int
+    x: float, min_value: float, max_value: float, step_count: int, linear: float
 ) -> int:
-    d = (max_value - min_value) / step_count
-    i = int(math.floor((value - min_value) / d))
+    def func(x: float, linear: int) -> float:
+        if linear <= -4:
+            return _fn4(x)
+        if linear == -3:
+            return _fn3(x)
+        if linear == -2:
+            return _fn2(x)
+        if linear == -1:
+            return _fn1(x)
+        if linear == 0:
+            return x
+        if linear == 1:
+            return _fp1(x)
+        if linear == 2:
+            return _fp2(x)
+        if linear == 3:
+            return _fp3(x)
+        if linear >= 4:
+            return _fp4(x)
+
+    x1 = (x - min_value) / (max_value - min_value)
+    y1 = func(x1, linear)
+    d = 1.0 / step_count
+    i = int(math.floor((y1 / d)))
     return min(max(0, i), (step_count - 1))
 
 
@@ -72,26 +104,8 @@ def compress_means(data: list[float], n: int) -> list[list[float], list[float]]:
     return xs, np.mean(split, axis=1)
 
 
-def progress_str(nr: int, count: int, start_time: datetime) -> str:
-    def f(t: datetime) -> str:
-        return t.strftime("%H:%M:%S")
-
-    def f1(seconds: int) -> str:
-        hours, remainder = divmod(seconds, 3600)
-        minutes, seconds = divmod(remainder, 60)
-        return f"{int(hours):02d}:{int(minutes):02d}:{int(seconds):02d}"
-
-    start = f(start_time)
-    now = datetime.now()
-    if nr == 0:
-        return f"{nr + 1}/{count} since::{start}"
-    diff = now - start_time
-    step_time = diff / nr
-    until_time = start_time + (count * step_time)
-    until = f(until_time)
-    _for = f1(int((until_time - now).total_seconds()))
-    _for_all = f1(int((until_time - start_time).total_seconds()))
-    return f"{nr + 1}/{count} {start} -> {until} {_for}/{_for_all}"
+def progress_str(nr: int, count: int) -> str:
+    return f"{nr + 1}/{count}"
 
 
 def create_values(n: int, min: float, max: float) -> list[float]:

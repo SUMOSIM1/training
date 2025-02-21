@@ -7,7 +7,7 @@
     Positive rewarded actions.
     
     *  Agent collides with the opponent consciously. 
-    *  Agent pushes the opponent from the field conscoiusly.
+    *  Agent pushes the opponent from the field consciously.
 
     Negative rewarded actions.
 
@@ -24,7 +24,7 @@
     Positive rewarded actions.
     
     *  Agent collides with the opponent consciously. 
-    *  Agent pushes the opponent from the field conscoiusly.
+    *  Agent pushes the opponent from the field consciously.
 
     Negative rewarded actions.
     
@@ -248,3 +248,108 @@
         <td>discount</td><td>0.95</td><td>0.99</td><td>0.995</td><td>0.999</td>
       </tr>
     </table>
+- class_name: training.parallel.ParallelConfig
+  value: q-map-0
+  desc: |
+    <table>
+      <tr>
+        <td></td><td>L0</td>
+      </tr>
+      <tr>
+        <td>learning rate</td><td>0.7</td>
+      </tr>
+    </table>
+    <table>
+      <tr>
+        <td></td><td>E0</td>
+      </tr>
+      <tr>
+        <td>epsilon</td><td>0.05</td>
+      </tr>
+    </table>
+    <table>
+      <tr>
+        <td></td><td>D0</td><td>D1</td>
+      </tr>
+      <tr>
+        <td>discount</td><td>0.5</td><td>0.8</td>
+      </tr>
+    </table>   
+    <table>
+      <tr>
+        <td></td><td>M0</td><td>M1</td><td>M2</td><td>M3</td>
+      </tr>
+      <tr>
+        <td>discount</td><td>non-linear-1</td><td>non-linear-2</td><td>non-linear-3</td><td>non-linear-4</td>
+      </tr>
+    </table>   
+- class_name: training.parallel.ParallelConfig
+  value: q-map-1
+  desc: |
+    <table>
+      <tr>
+        <td></td><td>L0</td><td>L1</td><td>L2</td>
+      </tr>
+      <tr>
+        <td>learning rate</td><td>0.01</td><td>0.1</td><td>0.5</td>
+      </tr>
+    </table>
+    <table>
+      <tr>
+        <td></td><td>E0</td><td>E1</td>
+      </tr>
+      <tr>
+        <td>epsilon</td><td>0.01</td><td>0.1</td>
+      </tr>
+    </table>
+    <table>
+      <tr>
+        <td></td><td>D0</td><td>D1</td><td>D2</td>
+      </tr>
+      <tr>
+        <td>discount</td><td>0.4</td><td>0.6</td><td>0.9</td>
+      </tr>
+    </table>   
+    <table>
+      <tr>
+        <td></td><td>M0</td><td>M1</td>
+      </tr>
+      <tr>
+        <td>discount</td><td>non-linear-1</td><td>non-linear-2</td>
+      </tr>
+    </table>   
+- class_name: training.parallel.ParallelConfig
+  value: q-map-2
+  desc: |
+    <table>
+      <tr>
+        <td></td><td>L0</td><td>L1</td><td>L2</td>
+      </tr>
+      <tr>
+        <td>learning rate</td><td>0.2</td><td>0.4</td><td>0.6</td>
+      </tr>
+    </table>
+    <table>
+      <tr>
+        <td></td><td>E0</td><td>E1</td><td>E1</td>
+      </tr>
+      <tr>
+        <td>epsilon</td><td>0.05</td><td>0.075</td><td>0.1</td>
+      </tr>
+    </table>
+    <table>
+      <tr>
+        <td></td><td>D0</td><td>D1</td><td>D2</td>
+      </tr>
+      <tr>
+        <td>discount</td><td>0.3</td><td>0.4</td><td>0.5</td>
+      </tr>
+    </table>   
+    <table>
+      <tr>
+        <td></td><td>M0</td><td>M1</td><td>M2</td><td>M3</td>
+      </tr>
+      <tr>
+        <td>discount</td><td>non-linear-1</td><td>non-linear-2</td><td>non-linear-3</td><td>non-linear-4</td>
+      </tr>
+    </table>   

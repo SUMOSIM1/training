@@ -21,8 +21,8 @@ sim_path_help = "Path to the simulator git module"
 sim_path_default = Path.home() / "prj" / "SUMOSIM" / "sumosim"
 
 
-@app.command(help="Simulations for combinations of controllers")
-def start(
+@app.command(help="Tournament of simulations for combinations of controllers")
+def tournament(
     sim_name: Annotated[str, typer.Option("--name", "-n", help="Simulation name")],
     sim_host: Annotated[
         str,
@@ -36,6 +36,14 @@ def start(
             "--sim-port", help="The port on which the simulation is listening"
         ),
     ] = 4444,
+    db_host: Annotated[
+        str,
+        typer.Option("--db-host", help="The host on which the simulation is listening"),
+    ] = "localhost",
+    db_port: Annotated[
+        int,
+        typer.Option("--db-port", help="The port on which the simulation is listening"),
+    ] = 27017,
     controllers: Annotated[
         list[sr.ControllerName],
         typer.Option("--controllers", "-c", help="Name of controllers"),
@@ -68,9 +76,11 @@ def start(
         ),
     ] = False,
 ):
-    srt.start(
+    srt.tournament(
         sim_host,
         sim_port,
+        db_host,
+        db_port,
         sim_name,
         controllers,
         reward_handler,
@@ -175,29 +185,10 @@ def qtrain(
         int,
         typer.Option("--db-port", help="The port on which the simulation is listening"),
     ] = 27017,
-    reward_handler: Annotated[
-        sr.RewardHandlerName,
-        typer.Option("--reward-handler", help="Name of the reward handler"),
-    ] = sr.RewardHandlerName.CONTINUOUS_CONSIDER_ALL,
-    opponent: Annotated[
-        sr.ControllerName,
-        typer.Option("--opponent", help="Name of the opponent controllers"),
-    ] = sr.ControllerName.STAND_STILL,
-    auto_naming: Annotated[
-        bool,
-        typer.Option("--auto-naming", help="Create automated unique name"),
-    ] = False,
     record: Annotated[
         bool,
         typer.Option(
             "--record", "-r", help="Define if the simulation is recorded or not"
-        ),
-    ] = False,
-    plot_q_values_full: Annotated[
-        bool,
-        typer.Option(
-            "--plot-q-values-full",
-            help="Plot q values for every simulation step. Use only with --epoch-count <= 10",
         ),
     ] = False,
     out_dir: Annotated[
@@ -206,18 +197,15 @@ def qtrain(
     ] = "/tmp",
 ):
     sgym_qlearn.q_train(
-        name,
-        auto_naming,
-        epoch_count,
-        sim_host,
-        sim_port,
-        db_host,
-        db_port,
-        opponent,
-        reward_handler,
-        record,
-        plot_q_values_full,
-        out_dir,
+        name=name,
+        epoch_count=epoch_count,
+        sim_host=sim_host,
+        sim_port=sim_port,
+        db_host=db_host,
+        db_port=db_port,
+        record=record,
+        out_dir=out_dir,
+        q_train_config=sgym_qlearn.default_q_learn_config,
     )
 
 

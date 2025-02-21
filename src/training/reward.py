@@ -66,6 +66,9 @@ class EventMapper(ABC):
 
 
 class ConsiderAllEventMapper(EventMapper):
+    def map_robot_end_events(self, events: RobotEndEvents) -> float:
+        return 0.0
+
     def map_robot_continuous_events(self, events: RobotContinuousEvents) -> float:
         match events.robot_push_events:
             case RobotPushEvents.PUSH:
@@ -74,6 +77,8 @@ class ConsiderAllEventMapper(EventMapper):
                 return -0.1
             case RobotPushEvents.NONE:
                 return 0.0
+            case _:
+                raise ValueError(f"Unknown RobotPushEvents;{events.robot_push_events}")
 
     def map_robot_continuous_end_events(
         self, events: RobotContinuousEndEvents
@@ -83,7 +88,7 @@ class ConsiderAllEventMapper(EventMapper):
                 match events.end:
                     case RobotPushEvents.PUSH:
                         # Return the highest possible reward extras for fast winning
-                        return 100.0 + self.fast_winning_reward(events)
+                        return 100.0 + fast_winning_reward(events)
                     case RobotPushEvents.NONE:
                         return 0.0
                     case RobotPushEvents.IS_PUSHED:
@@ -91,6 +96,8 @@ class ConsiderAllEventMapper(EventMapper):
                             f"Unexpected combination: result:{events.result} "
                             f"and end:{events.end}"
                         )
+                    case _:
+                        raise ValueError(f"Unknown RobotPushEvents:{events.end}")
             case RobotEventsResult.DRAW:
                 return 0.0
             case RobotEventsResult.LOOSER:
@@ -103,64 +110,73 @@ class ConsiderAllEventMapper(EventMapper):
                     case RobotPushEvents.NONE:
                         # Running unforced out of the field is the worst you can do.
                         # The penalty is higher if you leave the field earlier
-                        return -100.0 + self.fast_loosing_penalty(events)
+                        return -100.0 + fast_loosing_penalty(events)
                     case RobotPushEvents.IS_PUSHED:
                         return -10.0
+                    case _:
+                        raise ValueError(f"Unknown RobotPushEvents:{events.end}")
+            case _:
+                raise ValueError(f"Unknown RobotEventsResult:{events}")
 
-    def map_robot_end_events(self, events: RobotEndEvents) -> float:
-        match events.result:
-            case RobotEventsResult.WINNER:
-                match events.end:
-                    case RobotPushEvents.PUSH:
-                        # Return the highest possible reward extras for fast winning
-                        return 100.0 + self.fast_winning_reward(events)
-                    case RobotPushEvents.NONE:
-                        # You win because your opponent left the field.
-                        # You did not push him.
-                        # Just count the pushes and is_pushed like on draw
-                        return self.is_pushed_penalty(events) + self.pushing_reward(
-                            events
-                        )
-                    case RobotPushEvents.IS_PUSHED:
-                        raise ValueError(
-                            f"Unexpected combination: result:{events.result} "
-                            f"and end:{events.end}"
-                        )
-            case RobotEventsResult.DRAW:
-                # Just count the pushes and is_pushed. To push is higher rated
-                # than the being pushed penalty
-                return self.is_pushed_penalty(events) + self.pushing_reward(events)
-            case RobotEventsResult.LOOSER:
-                match events.end:
-                    case RobotPushEvents.PUSH:
-                        raise ValueError(
-                            f"Unexpected combination: result:{events.result} "
-                            f"and end:{events.end}"
-                        )
-                    case RobotPushEvents.NONE:
-                        # Running unforced out of the field is the worst you can do.
-                        # The penalty is higher if you leave the field earlier
-                        return -100.0 + self.fast_loosing_penalty(events)
-                    case RobotPushEvents.IS_PUSHED:
-                        # You get a moderate penalty for being pushed out.
-                        # How you behaved during the match is taken in account
-                        return (
-                            -10.0
-                            + self.is_pushed_penalty(events)
-                            + self.pushing_reward(events)
-                        )
 
-    def fast_winning_reward(self, events: RobotContinuousEndEvents) -> float:
-        return (1.0 - events.steps_count_relative) * 50
+def map_robot_end_events(self, events: RobotEndEvents) -> float:
+    match events.result:
+        case RobotEventsResult.WINNER:
+            match events.end:
+                case RobotPushEvents.PUSH:
+                    # Return the highest possible reward extras for fast winning
+                    return 100.0 + fast_winning_reward(events)
+                case RobotPushEvents.NONE:
+                    # You win because your opponent left the field.
+                    # You did not push him.
+                    # Just count the pushes and is_pushed like on draw
+                    return is_pushed_penalty(events) + pushing_reward(events)
+                case RobotPushEvents.IS_PUSHED:
+                    raise ValueError(
+                        f"Unexpected combination: result:{events.result} "
+                        f"and end:{events.end}"
+                    )
+                case _:
+                    raise ValueError(f"Unknown RobotPushEvents:{events.end}")
+        case RobotEventsResult.DRAW:
+            # Just count the pushes and is_pushed. To push is higher rated
+            # than the being pushed penalty
+            return self.is_pushed_penalty(events) + pushing_reward(events)
+        case RobotEventsResult.LOOSER:
+            match events.end:
+                case RobotPushEvents.PUSH:
+                    raise ValueError(
+                        f"Unexpected combination: result:{events.result} "
+                        f"and end:{events.end}"
+                    )
+                case RobotPushEvents.NONE:
+                    # Running unforced out of the field is the worst you can do.
+                    # The penalty is higher if you leave the field earlier
+                    return -100.0 + self.fast_loosing_penalty(events)
+                case RobotPushEvents.IS_PUSHED:
+                    # You get a moderate penalty for being pushed out.
+                    # How you behaved during the match is taken in account
+                    return -10.0 + is_pushed_penalty(events) + pushing_reward(events)
+                case _:
+                    raise ValueError(f"Unknown RobotPushEvents:{events.end}")
+        case _:
+            raise ValueError(f"Unknown RobotEventsResult:{events}")
 
-    def fast_loosing_penalty(self, events: RobotContinuousEndEvents) -> float:
-        return (1.0 - events.steps_count_relative) * -50
 
-    def pushing_reward(self, events: RobotEndEvents) -> float:
-        return events.push_collision_count * 10.0
+def fast_winning_reward(events: RobotContinuousEndEvents) -> float:
+    return (1.0 - events.steps_count_relative) * 50
 
-    def is_pushed_penalty(self, events: RobotEndEvents) -> float:
-        return events.is_pushed_collision_count * -2.0
+
+def fast_loosing_penalty(events: RobotContinuousEndEvents) -> float:
+    return (1.0 - events.steps_count_relative) * -50
+
+
+def pushing_reward(events: RobotEndEvents) -> float:
+    return events.push_collision_count * 10.0
+
+
+def is_pushed_penalty(events: RobotEndEvents) -> float:
+    return events.is_pushed_collision_count * -2.0
 
 
 class ContinuousRewardHandler(sr.RewardHandler):
@@ -267,7 +283,7 @@ def continuous_end_events_from_simulation_states(
         end=r2_end,
         steps_count_relative=steps_count_relative,
     )
-    return (e1, e2)
+    return e1, e2
 
 
 def continuous_events_from_simulation_state(
@@ -339,7 +355,7 @@ def end_events_from_simulation_states(
         end=r2_end,
         steps_count_relative=steps_count_relative,
     )
-    return (e1, e2)
+    return e1, e2
 
 
 def see_intervals(

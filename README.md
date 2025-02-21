@@ -33,71 +33,45 @@ in project root call: `ruff format`
 ### Linting
 in project root call: `ruff check` or `ruff check --fix`
 
-### Create a video from images
-`ffmpeg -framerate 10 -pattern_type glob -i '*.png' -c:v libx264 -pix_fmt yuv420p q-values-002.mp4`
+### Build a docker image
 
-### Docker 
+For work `docker buildx build --build-arg DOCKERREG=dockerregistry.seu.test.sozvers.at/ -t sumot .`
 
-TODO Docker
+Elsewhere `docker buildx build -t sumot .`
 
- * config host and port for database. db_host, db_port . host -> sim_host, sim_port
- * use local user in docker sumot. 
-  * create necesaaey directories during build and set to 775
+### Trainings
 
+#### Cross validation
+
+TODO
+
+#### Mapping
+
+Test at work
 ```
-docker network create sumo01
-docker run -d --rm --name sumo1 --network sumot01 sumo sumo udp --port 4401
-docker run  -e PYTHONUNBUFFERED=True --network sumot01 \
--v $HOME/tmp/sumosim/q/docker:/root/tmp/sumosim/q \
-sumot uv run sumot qtrain -n D01 --auto-naming -e 500 -p 4401 -h sumo1
-
-
-
-docker network create sumo02
-docker run -d --rm --name sumo2 --network sumot02 sumo sumo udp --port 4402
-
-docker run -e PYTHONUNBUFFERED=True --network sumot02 --user $(id -u):$(id -g) -v $(echo $HOME)/tmp:/tmp sumot uv run sumot qtrain -n D04 --auto-naming -e 20 -p 4402 -h sumo2 -o /tmp/sumosim/q/docker
-
-docker container ls -a -f "NAME=sumo-train" -q | xargs docker container rm
+sumot parallel -n M04 \
+--parallel-config q-map-0 -e 1000 \
+--db-host 10.133.20.219 \
+--record \
+--out-dir ~/tmp/sumosim/test/results/m04 --max-parallel 15
 ```
 
 
-# Concept CV values
-
+```
+sumot parallel -n QMAP01 \
+--parallel-config q-map-0 -e 20000 \
+--db-host ben.local \
+--record --keep-container \
+--out-dir ~/tmp/sumosim/results/results-2025-02-QMAP01 --max-parallel 15
+```
 
 ```
-variable
-
-class CvValue:
-	id: str,
-	learning_rate: float,
-	epsilon: float,
-	discount_factor: float,
-	
-class CvValuesName(Enum):
-	FIRST = "first"
-
-
-class CvValues:
-
-  def(self, index) -> CvValue 
-
-
-
-                    0        1     2     3      4  
-learning_rate    L  0.01     0.1,  0.01, 0.001, 0.0005 
-epsilon          E  0.05     0.1,  0.05, 0.005, 0.001 
-discount_factor  D  0.95     0.99, 0.95, 0.5,   0.25
-
-
-
-n = 125
-
-parallel_count = 25 paralelle läufe
-
-parallel_numbers = list[int] 
-
-parallel_numbers_1 = [ 0,  9] range(0, 10) für work computer
-parallel_numbers_2 = [10, 14] range(10, 15) für ben
+sumot report \
+-d $HOME/tmp/sumosim/results-2025-01/results \
+-d $HOME/tmp/sumosim/results-2025-003 -d $HOME/tmp/sumosim/results-2025-01-002 \
+-d $HOME/tmp/sumosim/results-2025-02-Q-CV5/ \
+-d $HOME/tmp/sumosim/results/results-2025-02-QMAP01 \
+-d $HOME/tmp/sumosim/results-2025-02-Q-CV7 \
+-o $HOME/tmp/sumosim/reports/r4 
 ```
 
