@@ -15,6 +15,7 @@ class ParallelConfig(Enum):
     Q_MAP_0 = "q-map-0"
     Q_MAP_1 = "q-map-1"
     Q_MAP_2 = "q-map-2"
+    Q_MAP_3 = "q-map-3"
 
 
 @dataclass(frozen=True)
@@ -63,6 +64,14 @@ def create_train_configs1(
                 "E": [0.05, 0.075, 0.1],
                 "D": [0.3, 0.4, 0.5],
                 "M": ["non-linear-1", "non-linear-2", "non-linear-3", "non-linear-4"],
+            }
+            return create_train_configs(values_dict, max_parallel)
+        case ParallelConfig.Q_MAP_3:
+            values_dict = {
+                "L": [0.0],
+                "E": [0.0],
+                "D": [0.0],
+                "M": ["non-linear-2", "non-linear-3", "non-linear-4"],
             }
             return create_train_configs(values_dict, max_parallel)
         case _:
