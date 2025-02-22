@@ -9,6 +9,7 @@ from dataclasses import dataclass
 import training.helper as hlp
 import training.explore.enumdescs as edesc
 import re
+import pprint
 
 from dominate.dom_tag import dom_tag
 
@@ -132,7 +133,7 @@ def create_report_method(
 
     with out_file.open("w") as f:
         f.write(str(doc))
-    return method_dict["abstract"], out_file_name
+    return method_dict["title"], out_file_name
 
 
 def create_report_training(
@@ -253,7 +254,7 @@ def create_report_training(
 
     with out_file.open("w") as f:
         f.write(str(doc))
-    return f"{t_id} {training_dict["abstract"]}", out_file_name
+    return f"{t_id} {training_dict["title"]}", out_file_name
 
 
 def create_final_ressources(reports_data: dict, result_dir_paths: list[Path]):

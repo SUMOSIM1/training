@@ -67,8 +67,10 @@ sumot report \
 -d $HOME/tmp/sumosim/results/results-2025-02-QMAP01 \
 -d $HOME/tmp/sumosim/results/results-2025-02-QMAP02 \
 -d $HOME/tmp/sumosim/results/results-2025-02-QMAP03 \
--d $HOME/tmp/sumosim/results/results-2025-02-QMAP04 \
--o $HOME/tmp/sumosim/reports/r10
+-d $HOME/tmp/sumosim/results/results-2025-02-QMAP05 \
+-d $HOME/tmp/sumosim/results/results-2025-02-QMAP06 \
+-d $HOME/tmp/sumosim/results/results-2025-02-QMAP08 \
+-o $HOME/tmp/sumosim/reports/r16
 
 docker container ls -a -f name=sumo-train -q | xargs docker container rm -f
 
@@ -83,6 +85,13 @@ sumot parallel \
 --out-dir ~/tmp/sumosim/results/results-2025-02-QMAP05 \
 --parallel-config q-map-3
 
+sumot parallel \
+--db-host 192.168.0.171 --record --keep-container --max-parallel 30 \
+--epoch-count 5000 \
+--name QMAP08 \
+--out-dir ~/tmp/sumosim/results/results-2025-02-QMAP08 \
+--parallel-config q-map-4
+
 sumot report \
 -d $HOME/tmp/sumosim/results/results-2025-02-QMAP03a  \
 -o $HOME/tmp/sumosim/reports/r10
@@ -90,6 +99,8 @@ sumot report \
 sumot report \
 -d $HOME/tmp/sumosim/results/results-2025-02-QMAP05 \
 -d $HOME/tmp/sumosim/results/results-2025-02-QMAP06 \
+-d $HOME/tmp/sumosim/results/results-2025-02-QMAP08 \
 -o $HOME/tmp/sumosim/reports/r11
 
+rsync -arv . root@entelijan.net:/root/app/hp-wolfi-kube/pages/sumosim-rl/reports
 
