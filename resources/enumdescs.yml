@@ -286,38 +286,21 @@
 - class_name: training.parallel.ParallelConfig
   value: q-map-1
   desc: |
-    <table>
-      <tr>
-        <td></td><td>L0</td><td>L1</td><td>L2</td>
-      </tr>
-      <tr>
-        <td>learning rate</td><td>0.01</td><td>0.1</td><td>0.5</td>
-      </tr>
-    </table>
-    <table>
-      <tr>
-        <td></td><td>E0</td><td>E1</td>
-      </tr>
-      <tr>
-        <td>epsilon</td><td>0.01</td><td>0.1</td>
-      </tr>
-    </table>
-    <table>
-      <tr>
-        <td></td><td>D0</td><td>D1</td><td>D2</td>
-      </tr>
-      <tr>
-        <td>discount</td><td>0.4</td><td>0.6</td><td>0.9</td>
-      </tr>
-    </table>
-    <table>
-      <tr>
-        <td></td><td>M0</td><td>M1</td>
-      </tr>
-      <tr>
-        <td>mapping</td><td>non-linear-1</td><td>non-linear-2</td>
-      </tr>
-    </table>
+    &#x200B;        | L0    | L1    | L2 
+    --------------- | ----- | ----- | -----          
+    learning rate   | 0.01   | 0.1   | 0.5   
+
+    &#x200B; | E0    | E1    
+    -------- | ----- | -----         
+    epsilon  | 0.01  | 0.1   
+
+    &#x200B; | D0    | D1    | D2 
+    -------- | ----- | ----- | -----        
+    discount | 0.4   | 0.6   | 0.9  
+
+    &#x200B; | M0           | M1 
+    -------- | ------------ | ----------- 
+    mapping  | non-linear-1 | non-linar-2 
 - class_name: training.parallel.ParallelConfig
   value: q-map-2
   desc: |

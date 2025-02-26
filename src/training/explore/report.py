@@ -4,12 +4,10 @@ import dominate
 import dominate.tags as dt
 import dominate.util as du
 import shutil
-import markdown as md
 from dataclasses import dataclass
 import training.helper as hlp
 import training.explore.enumdescs as edesc
 import re
-import pprint
 
 from dominate.dom_tag import dom_tag
 
@@ -97,7 +95,7 @@ def create_report_index(report_dict: dict, out_path: Path, resources: Resources)
         dt.link(rel="stylesheet", href="styles.css")
     with doc:
         dt.h1().add(report_dict["title"])
-        dt.p().add(du.raw(md.markdown(report_dict["description"])))
+        dt.p().add(du.raw(hlp.parse_markdown(report_dict["description"])))
         for text, link in method_tuples:
             dt.a(text, href=link)
             dt.br()
@@ -124,7 +122,7 @@ def create_report_method(
 
     with doc:
         dt.h1().add(method_dict["title"])
-        dt.p().add(du.raw(md.markdown(method_dict["description"])))
+        dt.p().add(du.raw(hlp.parse_markdown(method_dict["description"])))
         for training_tuple in training_tuples:
             if training_tuple is not None:
                 text, link = training_tuple
@@ -149,7 +147,7 @@ def create_report_training(
         # print("### enum_texts", enum_texts)
         return dt.p(
             [
-                (dt.h3(key), du.raw(md.markdown(txt)))
+                (dt.h3(key), du.raw(hlp.parse_markdown(txt)))
                 for key, txt in zip(enum_keys, enum_texts)
             ]
         )
@@ -248,7 +246,7 @@ def create_report_training(
 
     with doc.body:
         dt.h1().add(f"{t_id} {training_dict["title"]}")
-        dt.p().add(du.raw(md.markdown(training_dict["description"].strip())))
+        dt.p().add(du.raw(hlp.parse_markdown(training_dict["description"].strip())))
         tags_for_enumdescs(training_dict)
         tags_for_combis(resources, _combis, out_path)
 

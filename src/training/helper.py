@@ -5,6 +5,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import subprocess as sp
+import markdown as md
 import easing_functions as easing
 
 
@@ -146,3 +147,7 @@ def call1(command: list[str], work_path: Path | None = None) -> tuple[bool, str]
     b_out, b_err = process.communicate()
     rc = process.returncode == 0
     return rc, b_out.decode() + b_err.decode()
+
+
+def parse_markdown(md_txt: str) -> str:
+    return md.markdown(md_txt, extensions=["tables"])

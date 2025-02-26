@@ -1,30 +1,25 @@
+import training.helper as hlp
 from pathlib import Path
-import pandas as pd
-import training.sgym.qlearn as ql
 
 
 def main():
-    result_dirs_0 = [
-        "results-2025-01-000",
-        "results-2025-01-002",
-        "results-2025-01-003",
-        "results-2025-02-Q-CV5",
-        "results-2025-02-Q-CV7",
-        "results-2025-02-QMAP01",
-        "results-2025-02-QMAP02",
-        "results-2025-02-QMAP03",
-    ]
-    result_dirs = [
-        "results-2025-02-QMAP04",
-    ]
+    md_txt = """
+# This i a table tryout
 
-    config = ql.default_q_learn_config
-    base_dir = Path.home() / "tmp" / "sumosim" / "results"
-    for rdir in result_dirs:
-        work_dir = base_dir / rdir
-        print(f"--- work_dir {work_dir}")
-        for file in work_dir.iterdir():
-            if file.name.endswith("json"):
-                print(f"creating boxplots for {file}")
-                df = pd.read_json(file)
-                ql.plot_boxplot(df, file.stem, config, work_dir)
+some normal text
+
+&#x200B;      | Second Header
+------------- | -------------
+Content Cell  | Content Cell
+Content Cell  | Content Cell
+
+""".strip()
+
+    html = hlp.parse_markdown(md_txt)
+
+    out = Path.home() / "tmp" / "sumosim" / "mdtryout.html"
+
+    with out.open("w") as f:
+        f.write(html)
+
+    print(f"wrote to: {out}")
