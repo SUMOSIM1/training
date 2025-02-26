@@ -81,6 +81,11 @@ def q_config(
                 q_learn_config,
                 mapping_name=parallel_config_values["M"],
             )
+        if parallel_config_values.get("R") is not None:
+            q_learn_config = replace(
+                q_learn_config,
+                reward_handler_name=parallel_config_values["R"],
+            )
 
         q_train(
             name=f"{name}-{parallel_config.name}",

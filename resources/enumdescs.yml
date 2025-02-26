@@ -1,37 +1,79 @@
 - class_name: training.simrunner.RewardHandlerName
   value: continuous-consider-all
   desc: |
-    Considers all sensors.
-    Calculates a reward after every step.
+    Considers all simulation events for calculating the reward.
 
-    Positive rewarded actions.
+    Possible simulation events created for an agent:
 
-    *  Agent collides with the opponent consciously.
-    *  Agent pushes the opponent from the field consciously.
+    1) After every simulation step:
+     * Pushed the opponent. Reward = +0.5
+     * Is pushed by the opponent. Reward = -0.1
 
-    Negative rewarded actions.
+    2) At simulation end:
+     * Winner by pushing the opponent: Reward = 100 + t * 50 
+     * Looser without beeing pushed: Reward = -100 - t * 50
+     * Looser beeing pushed: Reward: -10
 
-    *  The agent moves from the field unforced. TODO find out reward values
-    *  The agent is pushed from the field.
+    ```
+    t = 1 - (s / max_s)
 
-    Rewards are calculated after every step and might be different from zero.
+      s: Number of steps when th simulatin ended
+      max_s: Max number of steps for a simulation 
+    ```
+    Means, the reward/penalty i higher the shorter the simulation ran. The agent gets a higher
+    reward when fast pushing out the opponent, or a higher penalty when fast moving
+    unforced out of the field.
+- class_name: training.simrunner.RewardHandlerName
+  value: reduced-push-reward
+  desc: |
+    Considers all simulation events for calculating the reward.
+
+    Possible simulation events created for an agent:
+
+    1) After every simulation step:
+     * Pushed the opponent. Reward = +0.05
+     * Is pushed by the opponent. Reward = -0.01
+
+    2) At simulation end:
+     * Winner by pushing the opponent: Reward = 100 + t * 50 
+     * Looser without beeing pushed: Reward = -100 - t * 50
+     * Looser beeing pushed: Reward: -10
+
+    ```
+    t = 1 - (s / max_s)
+
+      s: Number of steps when th simulatin ended
+      max_s: Max number of steps for a simulation 
+    ```
+    Means, the reward/penalty i higher the shorter the simulation ran. The agent gets a higher
+    reward when fast pushing out the opponent, or a higher penalty when fast moving
+    unforced out of the field.
 - class_name: training.simrunner.RewardHandlerName
   value: end-consider-all
   desc: |
-    Considers all sensors.
-    Calculates a reward after every step.
+    Considers all simulation events for calculating the reward.
 
-    Positive rewarded actions.
+    Possible simulation events created for an agent:
 
-    *  Agent collides with the opponent consciously.
-    *  Agent pushes the opponent from the field consciously.
+    1) After every simulation step:
+     * Always zero
 
-    Negative rewarded actions.
+    2) At simulation end:
+     * Winner by pushing the opponent: Reward = 100 + t * 50 
+     * Looser without beeing pushed: Reward = -100 - t * 50
+     * Looser beeing pushed: Reward: -10
+     * Number of pushing the opponent. Reward = n * 0.5
+     * Number of beeing pushed by the opponent. Reward = n * (-0.1)
 
-    *  The agent moves from the field unforced. TODO find out reward values
-    *  The agent is pushed from the field.
+    ```
+    t = 1 - (s / max_s)
 
-    Rewards are calculated only after the end of a match. All rewards before that are zero
+      s: Number of steps when th simulatin ended
+      max_s: Max number of steps for a simulation 
+    ```
+    Means, the reward/penalty i higher the shorter the simulation ran. The agent gets a higher
+    reward when fast pushing out the opponent, or a higher penalty when fast moving
+    unforced out of the field.
 - class_name: training.parallel.ParallelConfig
   value: q-disc-0
   desc: |

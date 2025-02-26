@@ -189,3 +189,13 @@ methods:
       of training results.
 
     epoch count: 5000
+  - prefix: QRW00
+    title: Compare reward handler
+    enumdescs:
+      - training.simrunner.RewardHandlerName.end-consider-all
+      - training.simrunner.RewardHandlerName.reduced-push-reward
+      - training.parallel.ParallelConfig.q-rw-0
+    description: |
+      Run multiple trainings with different reward handlers 
+
+    epoch count: 5000

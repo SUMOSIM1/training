@@ -83,6 +83,15 @@ def create_train_configs1(
                 "M": ["non-linear-3", "non-linear-3", "non-linear-3"],
             }
             return create_train_configs(values_dict, max_parallel)
+        case ParallelConfig.Q_RW_0:
+            values_dict = {
+                "L": [0.12, 0.12],
+                "E": [0.015, 0.015],
+                "D": [0.3, 0.3],
+                "M": ["non-linear-3", "non-linear-3"],
+                "R": ["continuous-consider-all", "reduced-push-reward"],
+            }
+            return create_train_configs(values_dict, max_parallel)
         case _:
             raise ValueError(f"Invalid Parallel Config {parallel_config.value}")
 

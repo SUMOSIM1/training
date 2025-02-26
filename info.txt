@@ -92,6 +92,13 @@ sumot parallel \
 --out-dir ~/tmp/sumosim/results/results-2025-02-QMAP08 \
 --parallel-config q-map-4
 
+sumot parallel \
+--db-host 192.168.0.171 --record --keep-container --max-parallel 30 \
+--epoch-count 5000 \
+--name QRW00 \
+--out-dir ~/tmp/sumosim/results/results-2025-02-QRW00 \
+--parallel-config q-rw-0
+
 sumot report \
 -d $HOME/tmp/sumosim/results/results-2025-02-QMAP03a  \
 -o $HOME/tmp/sumosim/reports/r10
