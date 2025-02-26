@@ -184,7 +184,7 @@ class ContinuousRewardHandler(sr.RewardHandler):
     def event_mapper(self) -> EventMapper:
         pass
 
-    def calculate_reward(self, state: sr.SimulationState) -> (float, float):
+    def calculate_reward(self, state: sr.SimulationState) -> tuple[float, float]:
         r1_events, r2_events = continuous_events_from_simulation_state(state)
         reward1 = self.event_mapper().map_robot_continuous_events(r1_events)
         reward2 = self.event_mapper().map_robot_continuous_events(r2_events)
@@ -196,7 +196,7 @@ class ContinuousRewardHandler(sr.RewardHandler):
         properties1: list[list],
         properties2: list[list],
         max_simulation_steps: int,
-    ) -> (float, float):
+    ) -> tuple[float, float]:
         r1_events, r2_events = continuous_end_events_from_simulation_states(
             states, properties1, properties2, max_simulation_steps
         )
@@ -210,7 +210,7 @@ class EndRewardHandler(sr.RewardHandler):
     def event_mapper(self) -> EventMapper:
         pass
 
-    def calculate_reward(self, state: sr.SimulationState) -> (float, float):
+    def calculate_reward(self, state: sr.SimulationState) -> tuple[float, float]:
         return 0.0, 0.0
 
     def calculate_end_reward(
@@ -219,7 +219,7 @@ class EndRewardHandler(sr.RewardHandler):
         properties1: list[list],
         properties2: list[list],
         max_simulation_steps: int,
-    ) -> (float, float):
+    ) -> tuple[float, float]:
         r1_events, r2_events = end_events_from_simulation_states(
             states, properties1, properties2, max_simulation_steps
         )
@@ -255,7 +255,7 @@ def continuous_end_events_from_simulation_states(
     properties1: list[list[(str, str)]],
     properties2: list[list[(str, str)]],
     simulation_max_steps: int,
-) -> (RobotContinuousEndEvents, RobotContinuousEndEvents):
+) -> tuple[RobotContinuousEndEvents, RobotContinuousEndEvents]:
     r1_result = _parse_robo_properties(properties1, properties2)
     r2_result = _parse_robo_properties(properties2, properties1)
 
@@ -288,7 +288,7 @@ def continuous_end_events_from_simulation_states(
 
 def continuous_events_from_simulation_state(
     state: sr.SimulationState,
-) -> (RobotContinuousEndEvents, RobotContinuousEndEvents):
+) -> tuple[RobotContinuousEndEvents, RobotContinuousEndEvents]:
     def push_events(dist: float, can_see: bool, other_can_see: bool) -> RobotPushEvents:
         if dist < consts.ROBOT_DIAMETER + 5:
             if can_see:
@@ -312,7 +312,7 @@ def end_events_from_simulation_states(
     properties1: list[list[(str, str)]],
     properties2: list[list[(str, str)]],
     max_simulation_steps: int,
-) -> (RobotEndEvents, RobotEndEvents):
+) -> tuple[RobotEndEvents, RobotEndEvents]:
     """
     Collect the events for both robots during the match
     :param max_simulation_steps: Maximum number of steps
@@ -360,7 +360,7 @@ def end_events_from_simulation_states(
 
 def see_intervals(
     states: list[sr.SimulationState],
-) -> (list[rh.Interval], list[rh.Interval]):
+) -> tuple[list[rh.Interval], list[rh.Interval]]:
     r1_see = [bool(can_see(s.robot1, s.robot2)) for s in states]
     r2_see = [bool(can_see(s.robot2, s.robot1)) for s in states]
 
@@ -408,7 +408,7 @@ def end_push_events(
     r1_see_intervals: list[rh.Interval],
     r2_see_intervals: list[rh.Interval],
     winner: SimWinner,
-) -> (RobotPushEvents, RobotPushEvents):
+) -> tuple[RobotPushEvents, RobotPushEvents]:
     def is_winner_push(
         end_interval: rh.Interval, see_intervals: list[rh.Interval]
     ) -> bool:
