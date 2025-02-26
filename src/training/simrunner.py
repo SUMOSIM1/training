@@ -470,12 +470,12 @@ class RewardHandlerProvider:
     def get(name: RewardHandlerName) -> RewardHandler:
         match name:
             case RewardHandlerName.END_CONSIDER_ALL:
-                module = importlib.import_module("training.reward")
+                module = importlib.import_module("training.reward.reward")
                 class_ = module.EndConsiderAllRewardHandler
                 return class_()
         match name:
             case RewardHandlerName.CONTINUOUS_CONSIDER_ALL:
-                module = importlib.import_module("training.reward")
+                module = importlib.import_module("training.reward.reward")
                 class_ = module.ConsiderAllRewardHandler
                 return class_()
             case _:

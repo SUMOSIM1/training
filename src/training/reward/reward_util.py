@@ -8,7 +8,7 @@ from time import sleep
 
 import matplotlib.pyplot as plt
 
-import training.reward as rw
+import training.reward.reward as rw
 import training.simdb as sd
 import training.simrunner as sr
 

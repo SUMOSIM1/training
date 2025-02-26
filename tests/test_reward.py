@@ -6,12 +6,11 @@ from typing import Tuple
 import numpy as np
 import pytest
 
-import training.reward as rw
-import training.reward_helper as rwh
-import training.reward_util as rwu
+import training.reward.reward as rw
+import training.reward.reward_helper as rwh
+import training.reward.reward_util as rwu
 import training.simrunner as sr
 import training.vector_helper as vh
-from training.reward import SimWinner
 from training.simrunner import PosDir, RewardHandler, SimulationState
 
 can_see_testdata = [
@@ -144,14 +143,14 @@ def test_can_see(desc: str, r1: Tuple, r2: Tuple, expected: float | None):
 
 
 winner_testdata = [
-    ([["draw", "true"]], SimWinner.NONE),
-    ([["winner", "true"]], SimWinner.ROBOT1),
-    ([], SimWinner.ROBOT2),
+    ([["draw", "true"]], rw.SimWinner.NONE),
+    ([["winner", "true"]], rw.SimWinner.ROBOT1),
+    ([], rw.SimWinner.ROBOT2),
 ]
 
 
 @pytest.mark.parametrize("properties, expected", winner_testdata)
-def test_winner(properties: list[list[(str, str)]], expected: SimWinner):
+def test_winner(properties: list[list[(str, str)]], expected: rw.SimWinner):
     result = rw._parse_sim_winner(properties)
     assert result == expected
 
