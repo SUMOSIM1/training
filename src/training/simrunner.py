@@ -49,6 +49,7 @@ class ControllerName(str, Enum):
 
 class RewardHandlerName(str, Enum):
     CONTINUOUS_CONSIDER_ALL = "continuous-consider-all"
+    REDUCED_PUSH_REWARD = "reduced-push-reward"
 
 
 class SectorName(Enum):
@@ -471,6 +472,10 @@ class RewardHandlerProvider:
             case RewardHandlerName.CONTINUOUS_CONSIDER_ALL:
                 module = importlib.import_module("training.reward.reward1")
                 class_ = module.ConsiderAllRewardHandler
+                return class_()
+            case RewardHandlerName.REDUCED_PUSH_REWARD:
+                module = importlib.import_module("training.reward.reward1")
+                class_ = module.ReducedPushRewardHandler
                 return class_()
             case _:
                 raise RuntimeError(f"Unknown reward handler {name}")

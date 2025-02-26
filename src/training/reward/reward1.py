@@ -55,17 +55,48 @@ class EventMapper(ABC):
         pass
 
 
-class ConsiderAllEventMapper(EventMapper):
+@dataclass
+class AbstractEventMapperPoperties:
+    win_by_push_reward: float
+    max_win_by_push_duration_reward: float
+    loose_unforced_penalty: float
+    max_loose_unforced_duration_penalty: float
+    loose_forced_penalty: float
+    push_reward: float
+    is_pushed_penalty: float
+
+
+class AbstractEventMapper(EventMapper):
+    @abstractmethod
+    def properties(self) -> AbstractEventMapperPoperties:
+        pass
+
+    def win_by_push_duratin_reward(self, events: RobotContinuousEndEvents) -> float:
+        r = (
+            1.0 - events.steps_count_relative
+        ) * self.properties().max_win_by_push_duration_reward
+        # print(f"---- winning {r}")
+        return r
+
+    def loose_unforced_duration_penalty(
+        self, events: RobotContinuousEndEvents
+    ) -> float:
+        r = (
+            1.0 - events.steps_count_relative
+        ) * self.properties().max_loose_unforced_duration_penalty
+        # print(f"---- loosing {r}")
+        return r
+
     def map_robot_continuous_events(self, events: RobotContinuousEvents) -> float:
         match events.robot_push_events:
             case RobotPushEvents.PUSH:
                 # print("----- map_robot_continuous_events -----")
                 # pp.pprint(events)
-                return 0.5
+                return self.properties().push_reward
             case RobotPushEvents.IS_PUSHED:
                 # print("----- map_robot_continuous_events -----")
                 # pp.pprint(events)
-                return -0.1
+                return self.properties().is_pushed_penalty
             case RobotPushEvents.NONE:
                 return 0.0
             case _:
@@ -81,7 +112,10 @@ class ConsiderAllEventMapper(EventMapper):
                 match events.end:
                     case RobotPushEvents.PUSH:
                         # Return the highest possible reward extras for fast winning
-                        return 100.0 + fast_winning_reward(events)
+                        return (
+                            self.properties().win_by_push_reward
+                            + self.win_by_push_duratin_reward(events)
+                        )
                     case RobotPushEvents.NONE:
                         return 0.0
                     case RobotPushEvents.IS_PUSHED:
@@ -103,21 +137,16 @@ class ConsiderAllEventMapper(EventMapper):
                     case RobotPushEvents.NONE:
                         # Running unforced out of the field is the worst you can do.
                         # The penalty is higher if you leave the field earlier
-                        return -100.0 + fast_loosing_penalty(events)
+                        return (
+                            self.properties().loose_unforced_penalty
+                            + self.loose_unforced_duration_penalty(events)
+                        )
                     case RobotPushEvents.IS_PUSHED:
-                        return -10.0
+                        return self.properties().loose_forced_penalty
                     case _:
                         raise ValueError(f"Unknown RobotPushEvents:{events.end}")
             case _:
                 raise ValueError(f"Unknown RobotEventsResult:{events}")
-
-
-def fast_winning_reward(events: RobotContinuousEndEvents) -> float:
-    return (1.0 - events.steps_count_relative) * 50
-
-
-def fast_loosing_penalty(events: RobotContinuousEndEvents) -> float:
-    return (1.0 - events.steps_count_relative) * -50
 
 
 class ContinuousRewardHandler(sr.RewardHandler):
@@ -147,8 +176,47 @@ class ContinuousRewardHandler(sr.RewardHandler):
 
 
 class ConsiderAllRewardHandler(ContinuousRewardHandler):
+    class Mapper(AbstractEventMapper):
+        mapper_props = AbstractEventMapperPoperties(
+            win_by_push_reward=100.0,
+            max_win_by_push_duration_reward=50.0,
+            loose_unforced_penalty=-100.0,
+            max_loose_unforced_duration_penalty=-50.0,
+            loose_forced_penalty=-10.0,
+            push_reward=0.5,
+            is_pushed_penalty=-0.1,
+        )
+
+        def properties(self):
+            return self.mapper_props
+
     def __init__(self):
-        self.em: EventMapper = ConsiderAllEventMapper()
+        self.em: EventMapper = self.Mapper()
+
+    def event_mapper(self) -> EventMapper:
+        return self.em
+
+    def name(self) -> str:
+        return sr.RewardHandlerName.CONTINUOUS_CONSIDER_ALL.value
+
+
+class ReducedPushRewardHandler(ContinuousRewardHandler):
+    class Mapper(AbstractEventMapper):
+        mapper_props = AbstractEventMapperPoperties(
+            win_by_push_reward=100.0,
+            max_win_by_push_duration_reward=50.0,
+            loose_unforced_penalty=-100.0,
+            max_loose_unforced_duration_penalty=-50.0,
+            loose_forced_penalty=-10.0,
+            push_reward=0.05,
+            is_pushed_penalty=-0.01,
+        )
+
+        def properties(self):
+            return self.mapper_props
+
+    def __init__(self):
+        self.em: EventMapper = self.Mapper()
 
     def event_mapper(self) -> EventMapper:
         return self.em
