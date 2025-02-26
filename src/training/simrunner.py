@@ -48,7 +48,6 @@ class ControllerName(str, Enum):
 
 
 class RewardHandlerName(str, Enum):
-    END_CONSIDER_ALL = "end-consider-all"
     CONTINUOUS_CONSIDER_ALL = "continuous-consider-all"
 
 
@@ -469,13 +468,8 @@ class RewardHandlerProvider:
     @staticmethod
     def get(name: RewardHandlerName) -> RewardHandler:
         match name:
-            case RewardHandlerName.END_CONSIDER_ALL:
-                module = importlib.import_module("training.reward.reward")
-                class_ = module.EndConsiderAllRewardHandler
-                return class_()
-        match name:
             case RewardHandlerName.CONTINUOUS_CONSIDER_ALL:
-                module = importlib.import_module("training.reward.reward")
+                module = importlib.import_module("training.reward.reward1")
                 class_ = module.ConsiderAllRewardHandler
                 return class_()
             case _:
