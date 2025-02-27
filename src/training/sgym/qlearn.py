@@ -9,6 +9,7 @@ import numpy as np
 import pandas as pd
 import seaborn as sbn
 import yaml
+import pprint as pp
 
 import training.helper as hlp
 import training.sgym.core as sgym
@@ -36,6 +37,36 @@ default_senv_config = sgym.SEnvConfig(
     dtype=np.float32,
 )
 
+
+def parallel_to_qtrain_config(parallel_train_config: parallel.TrainConfig):
+    q_learn_config = default_q_learn_config
+    parallel_config_values: dict = parallel_train_config.values
+    if parallel_config_values.get("L") is not None:
+        q_learn_config = replace(
+            q_learn_config, learning_rate=parallel_config_values["L"]
+        )
+    if parallel_config_values.get("E") is not None:
+        q_learn_config = replace(
+            q_learn_config,
+            epsilon=parallel_config_values["E"],
+        )
+    if parallel_config_values.get("D") is not None:
+        q_learn_config = replace(
+            q_learn_config, discount_factor=parallel_config_values["D"]
+        )
+    if parallel_config_values.get("M") is not None:
+        q_learn_config = replace(
+            q_learn_config,
+            mapping_name=parallel_config_values["M"],
+        )
+    if parallel_config_values.get("R") is not None:
+        q_learn_config = replace(
+            q_learn_config,
+            reward_handler_name=parallel_config_values["R"],
+        )
+    return q_learn_config
+
+
 default_q_learn_config = QTrainConfig(
     learning_rate=0.1,
     epsilon=0.1,
@@ -59,36 +90,10 @@ def q_config(
     epoch_count: int,
     out_dir: str,
 ):
-    def call_q_train_with_config(parallel_config: parallel.ParallelConfig):
-        q_learn_config = default_q_learn_config
-        parallel_config_values: dict = parallel_config.values
-        if parallel_config_values.get("L") is not None:
-            q_learn_config = replace(
-                q_learn_config, learning_rate=parallel_config_values["L"]
-            )
-        if parallel_config_values.get("E") is not None:
-            q_learn_config = replace(
-                q_learn_config,
-                epsilon=parallel_config_values["E"],
-            )
-        if parallel_config_values.get("D") is not None:
-            q_learn_config = replace(
-                q_learn_config, discount_factor=parallel_config_values["D"]
-            )
-
-        if parallel_config_values.get("M") is not None:
-            q_learn_config = replace(
-                q_learn_config,
-                mapping_name=parallel_config_values["M"],
-            )
-        if parallel_config_values.get("R") is not None:
-            q_learn_config = replace(
-                q_learn_config,
-                reward_handler_name=parallel_config_values["R"],
-            )
-
+    def call_q_train_with_config(parallel_train_config: parallel.TrainConfig):
+        q_train_config = parallel_to_qtrain_config(parallel_train_config)
         q_train(
-            name=f"{name}-{parallel_config.name}",
+            name=f"{name}-{parallel_train_config.name}",
             epoch_count=epoch_count,
             sim_host=sim_host,
             sim_port=sim_port,
@@ -96,7 +101,7 @@ def q_config(
             db_port=db_port,
             record=record,
             out_dir=out_dir,
-            q_train_config=q_learn_config,
+            q_train_config=q_train_config,
         )
 
     configs = parallel.create_train_configs1(parallel_config, max_parallel)
@@ -104,7 +109,7 @@ def q_config(
         raise ValueError(
             f"Cannot run 'q_config' because the parallel index {parallel_index} exceeds the maximum index for parallel_config {parallel_config.value}. Max index is {len(configs) - 1}"
         )
-    _configs = configs[parallel_index]
+    _configs: list[parallel.TrainConfig] = configs[parallel_index]
     for c in _configs:
         call_q_train_with_config(c)
     print(f"Finished parallel training n:{name}")
@@ -121,6 +126,7 @@ def q_train(
     out_dir: str,
     q_train_config: QTrainConfig,
 ) -> int:
+    print(f"--- q_train {name} {pp.pformat(q_train_config)}")
     senv_config: sgym.SEnvConfig = default_senv_config
     reward_handler = sr.RewardHandlerProvider.get(
         sr.RewardHandlerName(q_train_config.reward_handler_name)
@@ -343,10 +349,8 @@ class QAgent:
         match self.reward_handler:
             case sr.RewardHandlerName.END_CONSIDER_ALL:
                 reward = adjust_end(reward)
-            case sr.RewardHandlerName.CONTINUOUS_CONSIDER_ALL:
-                reward = adjust_cont(reward)
             case _:
-                raise ValueError(f"Unknown reward handler {self.reward_handler}")
+                reward = adjust_cont(reward)
 
         temporal_difference, self.q_values[obs][action] = calc_next_q_value(
             reward,

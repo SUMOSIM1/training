@@ -189,7 +189,7 @@ methods:
       of training results.
 
     epoch count: 5000
-  - prefix: QRW02
+  - prefix: QRW04
     title: Compare reward handler
     enumdescs:
       - training.simrunner.RewardHandlerName.continuous-consider-all
@@ -197,5 +197,15 @@ methods:
       - training.parallel.ParallelConfig.q-rw-0
     description: |
       Run multiple trainings with different reward handlers 
+      
+      * continuous-consider-all
+      * reduced-push-reward
+
+      The agents tended to push opponents as often as possible instead of
+      pushing them as soon as possible. Reason was that the sum of rewards
+      for just pushing was higher than for winning a game.
+      
+      The push reward for the 'reduced-push-reward' reward handler
+      is 0.1 times the reward for the 'continuous-consider-all' reward handler.
 
     epoch count: 5000

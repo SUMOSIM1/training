@@ -1,25 +1,19 @@
-import training.helper as hlp
-from pathlib import Path
+import training.parallel as pr
+import training.sgym.qlearn as ql
+import training.simrunner as sr
+import pprint as pp
 
 
 def main():
-    md_txt = """
-# This i a table tryout
+    pcfg = pr.ParallelConfig.Q_RW_0
+    ptcs1 = pr.create_train_configs1(pcfg, 10)
+    pp.pprint(ptcs1)
 
-some normal text
-
-&#x200B;      | Second Header
-------------- | -------------
-Content Cell  | Content Cell
-Content Cell  | Content Cell
-
-""".strip()
-
-    html = hlp.parse_markdown(md_txt)
-
-    out = Path.home() / "tmp" / "sumosim" / "mdtryout.html"
-
-    with out.open("w") as f:
-        f.write(html)
-
-    print(f"wrote to: {out}")
+    for i, ptcs in enumerate(ptcs1):
+        for ptc in ptcs:
+            qlc = ql.parallel_to_qtrain_config(ptc)
+            # print(f"{i} -- {pp.pformat(qlc)}")
+            reward_handler = sr.RewardHandlerProvider.get(
+                sr.RewardHandlerName(qlc.reward_handler_name)
+            )
+            print(f"{i} -- {ptc.name} {reward_handler}")
