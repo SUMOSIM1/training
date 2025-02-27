@@ -51,6 +51,7 @@ class RewardHandlerName(str, Enum):
     CONTINUOUS_CONSIDER_ALL = "continuous-consider-all"
     END_CONSIDER_ALL = "end-consider-all"
     REDUCED_PUSH_REWARD = "reduced-push-reward"
+    SPEED_BONUS = "speed-bonus"
 
 
 class SectorName(Enum):
