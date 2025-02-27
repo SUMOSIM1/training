@@ -158,7 +158,7 @@ methods:
   - prefix: QMAP04
     title: Cross validation mapping 10k epochs
     enumdescs:
-      - training.simrunner.RewardHandlerName.end-consider-all
+      - training.simrunner.RewardHandlerName.continuous-consider-all
       - training.parallel.ParallelConfig.q-map-2
     description: |
       number of epochs: 10k
@@ -166,7 +166,7 @@ methods:
   - prefix: QMAP05
     title: Cross validation mapping 2k epochs
     enumdescs:
-      - training.simrunner.RewardHandlerName.end-consider-all
+      - training.simrunner.RewardHandlerName.continuous-consider-all
       - training.parallel.ParallelConfig.q-map-3
     description: |
       number of epochs: 2k
@@ -174,7 +174,7 @@ methods:
   - prefix: QMAP06
     title: Cross validation mapping 5k epochs
     enumdescs:
-      - training.simrunner.RewardHandlerName.end-consider-all
+      - training.simrunner.RewardHandlerName.continuous-consider-all
       - training.parallel.ParallelConfig.q-map-3
     description: |
       number of epochs: 5k
@@ -182,17 +182,17 @@ methods:
   - prefix: QMAP08
     title: Check variance of equal parameters
     enumdescs:
-      - training.simrunner.RewardHandlerName.end-consider-all
+      - training.simrunner.RewardHandlerName.continuous-consider-all
       - training.parallel.ParallelConfig.q-map-4
     description: |
       Run multiple trainings with equal parameters explore the variance 
       of training results.
 
     epoch count: 5000
-  - prefix: QRW00
+  - prefix: QRW02
     title: Compare reward handler
     enumdescs:
-      - training.simrunner.RewardHandlerName.end-consider-all
+      - training.simrunner.RewardHandlerName.continuous-consider-all
       - training.simrunner.RewardHandlerName.reduced-push-reward
       - training.parallel.ParallelConfig.q-rw-0
     description: |

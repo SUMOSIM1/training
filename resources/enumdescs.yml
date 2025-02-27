@@ -5,47 +5,49 @@
 
     Possible simulation events created for an agent:
 
-    1) After every simulation step:
-     * Pushed the opponent. Reward = +0.5
-     * Is pushed by the opponent. Reward = -0.1
+    1. After every simulation step:
+        * Pushed the opponent. Reward = +0.5
+        * Is pushed by the opponent. Reward = -0.1
 
-    2) At simulation end:
-     * Winner by pushing the opponent: Reward = 100 + t * 50 
-     * Looser without beeing pushed: Reward = -100 - t * 50
-     * Looser beeing pushed: Reward: -10
-
-    ```
-    t = 1 - (s / max_s)
-
-      s: Number of steps when th simulatin ended
-      max_s: Max number of steps for a simulation 
-    ```
-    Means, the reward/penalty i higher the shorter the simulation ran. The agent gets a higher
+    1. At simulation end:
+        * Winner by pushing the opponent: Reward = 100 + t * 50 
+        * Looser without being pushed: Reward = -100 - t * 50
+        * Looser being pushed: Reward: -10
+  
+    ---   
+   
+        t = 1 - (s / max_s)
+        
+        s:     Number of steps when th simulation ended   
+        max_s: Max number of steps for a simulation   
+    
+    Means, the reward/penalty is higher the shorter the simulation ran. The agent gets a higher
     reward when fast pushing out the opponent, or a higher penalty when fast moving
     unforced out of the field.
 - class_name: training.simrunner.RewardHandlerName
   value: reduced-push-reward
   desc: |
     Considers all simulation events for calculating the reward.
-
+    
     Possible simulation events created for an agent:
-
-    1) After every simulation step:
-     * Pushed the opponent. Reward = +0.05
-     * Is pushed by the opponent. Reward = -0.01
-
-    2) At simulation end:
-     * Winner by pushing the opponent: Reward = 100 + t * 50 
-     * Looser without beeing pushed: Reward = -100 - t * 50
-     * Looser beeing pushed: Reward: -10
-
-    ```
-    t = 1 - (s / max_s)
-
-      s: Number of steps when th simulatin ended
-      max_s: Max number of steps for a simulation 
-    ```
-    Means, the reward/penalty i higher the shorter the simulation ran. The agent gets a higher
+    
+    1. After every simulation step:
+        * Pushed the opponent. Reward = +0.05
+        * Is pushed by the opponent. Reward = -0.01
+    
+    1. At simulation end:
+        * Winner by pushing the opponent: Reward = 100 + t * 50 
+        * Looser without being pushed: Reward = -100 - t * 50
+        * Looser being pushed: Reward: -10
+    
+    ---
+    
+        t = 1 - (s / max_s)
+        
+        s:     Number of steps when th simulation ended   
+        max_s: Max number of steps for a simulation   
+    
+    Means, the reward/penalty is higher the shorter the simulation ran. The agent gets a higher
     reward when fast pushing out the opponent, or a higher penalty when fast moving
     unforced out of the field.
 - class_name: training.simrunner.RewardHandlerName
@@ -55,23 +57,24 @@
 
     Possible simulation events created for an agent:
 
-    1) After every simulation step:
-     * Always zero
+    1. After every simulation step:
+        * Always zero
 
-    2) At simulation end:
-     * Winner by pushing the opponent: Reward = 100 + t * 50 
-     * Looser without beeing pushed: Reward = -100 - t * 50
-     * Looser beeing pushed: Reward: -10
-     * Number of pushing the opponent. Reward = n * 0.5
-     * Number of beeing pushed by the opponent. Reward = n * (-0.1)
+    1. At simulation end:
+        * Winner by pushing the opponent: Reward = 100 + t * 50 
+        * Looser without being pushed: Reward = -100 - t * 50
+        * Looser being pushed: Reward: -10
+        * Number of pushing the opponent. Reward = n * 0.5
+        * Number of being pushed by the opponent. Reward = n * (-0.1)
 
-    ```
-    t = 1 - (s / max_s)
+    ---
 
-      s: Number of steps when th simulatin ended
-      max_s: Max number of steps for a simulation 
-    ```
-    Means, the reward/penalty i higher the shorter the simulation ran. The agent gets a higher
+        t = 1 - (s / max_s)  
+        
+        s:     Number of steps when th simulation ended   
+        max_s: Max number of steps for a simulation
+    
+    Means, the reward/penalty is higher the shorter the simulation ran. The agent gets a higher
     reward when fast pushing out the opponent, or a higher penalty when fast moving
     unforced out of the field.
 - class_name: training.parallel.ParallelConfig
@@ -448,3 +451,25 @@
         <td>mapping</td><td>non-linear-3</td><td>non-linear-3</td><td>non-linear-3</td>
       </tr>
     </table>
+- class_name: training.parallel.ParallelConfig
+  value: q-rw-0
+  desc: |
+    &#x200B;        | L0    | L1     
+    --------------- | ----- | -----           
+    learning rate   | 0.12  | 0.12      
+
+    &#x200B; | E0    | E1    
+    -------- | ----- | -----         
+    epsilon  | 0.0o15  | 0.015   
+
+    &#x200B; | D0    | D1    
+    -------- | ----- | -----      
+    discount | 0.3   | 0.3     
+
+    &#x200B; | M0           | M1 
+    -------- | ------------ | ----------- 
+    mapping  | non-linear-3 | non-linear-3 
+
+    &#x200B;        | R0                      | R1 
+    --------------- | ----------------------- | -------------------- 
+    reward handler  | continuous-consider-all | reduced-push-reward

@@ -426,14 +426,14 @@ def export(
 
 @app.command(help="List of learning sessions in parallel")
 def report(
-    results_dir: Annotated[
-        list[str],
+    result_dir: Annotated[
+        Path,
         typer.Option("--results-dir", "-d", help="Input directory(s) for results"),
     ],
-    out_dir: Annotated[str, typer.Option("--out-dir", "-o", help="Output directory")],
+    out_dir: Annotated[Path, typer.Option("--out-dir", "-o", help="Output directory")],
 ):
     _report.report(
-        results_dir_list=results_dir,
+        result_dir=result_dir,
         out_dir=out_dir,
     )
 

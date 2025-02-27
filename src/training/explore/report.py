@@ -37,15 +37,6 @@ def extract_combis(lead_resources: list[Path], prefix: str) -> list[str]:
     return sorted(list(keys_set))
 
 
-def sumosim_report_path(dir: str, must_exists: bool = True) -> Path:
-    p = Path(dir)
-    if not p.is_absolute():
-        p = Path.home() / p
-    if must_exists and not p.exists():
-        raise ValueError(f"path {dir} does not exit")
-    return p
-
-
 def collect_resources(results_dirs: list[Path], result_name: str) -> list[Path]:
     out = []
     for result_path in results_dirs:
@@ -55,14 +46,11 @@ def collect_resources(results_dirs: list[Path], result_name: str) -> list[Path]:
     return sorted(out)
 
 
-def create_report(reports_data: dict, result_dir_paths: list[Path], out_dir: str):
+def create_report(reports_data: dict, result_dir_paths: list[Path], out_path: Path):
     videos = collect_resources(result_dir_paths, "sumosim-video")
     q_values = collect_resources(result_dir_paths, "q-values-heat")
     boxplots = collect_resources(result_dir_paths, "boxplot")
     resources = Resources(videos=videos, q_values_heat=q_values, boxplots=boxplots)
-
-    out_path = sumosim_report_path(out_dir, must_exists=False)
-    out_path.mkdir(parents=True, exist_ok=True)
 
     # Copy style .css
     style_path = Path(__file__).parent.parent.parent.parent / "resources" / "styles.css"
@@ -341,13 +329,14 @@ def create_final_ressources(reports_data: dict, result_dir_paths: list[Path]):
                 create(p, prefix)
 
 
-def report(results_dir_list: list[str], out_dir: str):
+def report(result_dir: Path, out_dir: Path):
+    out_dir.mkdir(parents=True, exist_ok=True)
     report_path = (
         Path(__file__).parent.parent.parent.parent / "resources" / "report.yml"
     )
+    result_dir_paths = [d for d in result_dir.iterdir() if d.is_dir()]
     with report_path.open() as f:
         reports_data = yaml.safe_load(f)
     # pprint(reports_data)
-    result_dir_paths = [sumosim_report_path(dir) for dir in results_dir_list]
     create_final_ressources(reports_data, result_dir_paths)
     create_report(reports_data, result_dir_paths, out_dir)

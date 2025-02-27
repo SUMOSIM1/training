@@ -222,7 +222,7 @@ class ReducedPushRewardHandler(ContinuousRewardHandler):
         return self.em
 
     def name(self) -> str:
-        return sr.RewardHandlerName.CONTINUOUS_CONSIDER_ALL.value
+        return sr.RewardHandlerName.REDUCED_PUSH_REWARD.value
 
 
 def continuous_end_events_from_simulation_states(

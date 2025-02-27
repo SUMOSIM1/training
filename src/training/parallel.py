@@ -17,6 +17,7 @@ class ParallelConfig(Enum):
     Q_MAP_2 = "q-map-2"
     Q_MAP_3 = "q-map-3"
     Q_MAP_4 = "q-map-4"
+    Q_RW_0 = "q-rw-0"
 
 
 @dataclass(frozen=True)
@@ -114,7 +115,7 @@ def create_train_configs(
         batched_values = it.batched(prod_values, batch_size)
         return [to_dict(keys, values) for values in batched_values]
 
-    _keys = values_dict.keys()
+    _keys = list(values_dict.keys())
     _values = [values_dict[k] for k in _keys]
     batched_dicts = create_batched_dicts(_keys, _values)
 
@@ -254,7 +255,7 @@ def start_training_configuration(
     parallel_index: int,
     epoch_count: int,
     db_host: str,
-    db_port: int,
+    db_port: str,
     keep_container: bool,
     record: bool,
     out_dir: Path,
@@ -300,7 +301,7 @@ def parallel_main(
     parallel_indexes: str,
     epoch_count: str,
     db_host: str,
-    db_port: int,
+    db_port: str,
     keep_container: bool,
     record: bool,
     out_dir: str,
@@ -318,7 +319,7 @@ def parallel_main(
             parallel_config,
             max_parallel,
             parallel_index,
-            epoch_count,
+            int(epoch_count),
             db_host,
             db_port,
             keep_container,

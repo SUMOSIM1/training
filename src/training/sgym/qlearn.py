@@ -122,7 +122,9 @@ def q_train(
     q_train_config: QTrainConfig,
 ) -> int:
     senv_config: sgym.SEnvConfig = default_senv_config
-    reward_handler = sr.RewardHandlerProvider.get(q_train_config.reward_handler_name)
+    reward_handler = sr.RewardHandlerProvider.get(
+        sr.RewardHandlerName(q_train_config.reward_handler_name)
+    )
     results = []
     out_path = Path(out_dir)
     out_path.mkdir(parents=True, exist_ok=True)
