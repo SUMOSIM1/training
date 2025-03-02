@@ -6,12 +6,12 @@ from typing import Tuple
 import numpy as np
 import pytest
 
-import training.reward as rw
-import training.reward_helper as rwh
-import training.reward_util as rwu
+import training.reward.reward as rw
+import training.reward.reward_helper as rh
+import training.reward.reward_helper as rwh
+import training.reward.reward_util as rwu
 import training.simrunner as sr
 import training.vector_helper as vh
-from training.reward import SimWinner
 from training.simrunner import PosDir, RewardHandler, SimulationState
 
 can_see_testdata = [
@@ -140,19 +140,19 @@ def fmt(value: float | None) -> str:
 def test_can_see(desc: str, r1: Tuple, r2: Tuple, expected: float | None):
     rs1 = sr.PosDir(xpos=r1[0], ypos=r1[1], direction=r1[2])
     rs2 = sr.PosDir(xpos=r2[0], ypos=r2[1], direction=r2[2])
-    assert fmt(rw.can_see(rs1, rs2)) == fmt(expected)
+    assert fmt(rh.can_see(rs1, rs2)) == fmt(expected)
 
 
 winner_testdata = [
-    ([["draw", "true"]], SimWinner.NONE),
-    ([["winner", "true"]], SimWinner.ROBOT1),
-    ([], SimWinner.ROBOT2),
+    ([["draw", "true"]], rh.SimWinner.NONE),
+    ([["winner", "true"]], rh.SimWinner.ROBOT1),
+    ([], rh.SimWinner.ROBOT2),
 ]
 
 
 @pytest.mark.parametrize("properties, expected", winner_testdata)
-def test_winner(properties: list[list[(str, str)]], expected: SimWinner):
-    result = rw._parse_sim_winner(properties)
+def test_winner(properties: list[list[(str, str)]], expected: rh.SimWinner):
+    result = rh.parse_sim_winner(properties)
     assert result == expected
 
 
@@ -175,7 +175,7 @@ def test_validate_properties(
     properties2: list[list[(str, str)]],
     expected: bool,
 ):
-    result = rw._validate_properties(properties1, properties2)
+    result = rh.validate_properties(properties1, properties2)
     assert result is not None != expected
 
 
@@ -183,340 +183,340 @@ robot_events_from_simulation_states_testdata = [
     (
         "wall-rw-6b1d59-00_stay-in-field_stay-in-field.json",
         rw.RobotEndEvents(
-            result=rw.RobotEventsResult.DRAW,
+            result=rh.RobotEventsResult.DRAW,
             push_collision_count=1,
             is_pushed_collision_count=1,
-            end=rw.RobotPushEvents.NONE,
+            end=rh.RobotPushEvents.NONE,
             steps_count_relative=1.0,
         ),
         rw.RobotEndEvents(
-            result=rw.RobotEventsResult.DRAW,
+            result=rh.RobotEventsResult.DRAW,
             push_collision_count=2,
             is_pushed_collision_count=0,
-            end=rw.RobotPushEvents.NONE,
+            end=rh.RobotPushEvents.NONE,
             steps_count_relative=1.0,
         ),
     ),
     (
         "wall-rw-6b1d59-01_tumblr_stay-in-field.json",
         rw.RobotEndEvents(
-            result=rw.RobotEventsResult.WINNER,
+            result=rh.RobotEventsResult.WINNER,
             push_collision_count=0,
             is_pushed_collision_count=1,
-            end=rw.RobotPushEvents.PUSH,
+            end=rh.RobotPushEvents.PUSH,
             steps_count_relative=0.764,
         ),
         rw.RobotEndEvents(
-            result=rw.RobotEventsResult.LOOSER,
+            result=rh.RobotEventsResult.LOOSER,
             push_collision_count=0,
             is_pushed_collision_count=1,
-            end=rw.RobotPushEvents.IS_PUSHED,
+            end=rh.RobotPushEvents.IS_PUSHED,
             steps_count_relative=0.764,
         ),
     ),
     (
         "wall-rw-6b1d59-02_stay-in-field_stay-in-field.json",
         rw.RobotEndEvents(
-            result=rw.RobotEventsResult.DRAW,
+            result=rh.RobotEventsResult.DRAW,
             push_collision_count=3,
             is_pushed_collision_count=0,
-            end=rw.RobotPushEvents.NONE,
+            end=rh.RobotPushEvents.NONE,
             steps_count_relative=1.0,
         ),
         rw.RobotEndEvents(
-            result=rw.RobotEventsResult.DRAW,
+            result=rh.RobotEventsResult.DRAW,
             push_collision_count=2,
             is_pushed_collision_count=1,
-            end=rw.RobotPushEvents.NONE,
+            end=rh.RobotPushEvents.NONE,
             steps_count_relative=1.0,
         ),
     ),
     (
         "wall-rw-6b1d59-03_stay-in-field_stay-in-field.json",
         rw.RobotEndEvents(
-            result=rw.RobotEventsResult.DRAW,
+            result=rh.RobotEventsResult.DRAW,
             push_collision_count=1,
             is_pushed_collision_count=0,
-            end=rw.RobotPushEvents.NONE,
+            end=rh.RobotPushEvents.NONE,
             steps_count_relative=1.0,
         ),
         rw.RobotEndEvents(
-            result=rw.RobotEventsResult.DRAW,
+            result=rh.RobotEventsResult.DRAW,
             push_collision_count=0,
             is_pushed_collision_count=1,
-            end=rw.RobotPushEvents.NONE,
+            end=rh.RobotPushEvents.NONE,
             steps_count_relative=1.0,
         ),
     ),
     (
         "wall-rw-6b1d59-04_tumblr_stay-in-field.json",
         rw.RobotEndEvents(
-            result=rw.RobotEventsResult.DRAW,
+            result=rh.RobotEventsResult.DRAW,
             push_collision_count=1,
             is_pushed_collision_count=0,
-            end=rw.RobotPushEvents.NONE,
+            end=rh.RobotPushEvents.NONE,
             steps_count_relative=1.0,
         ),
         rw.RobotEndEvents(
-            result=rw.RobotEventsResult.DRAW,
+            result=rh.RobotEventsResult.DRAW,
             push_collision_count=0,
             is_pushed_collision_count=1,
-            end=rw.RobotPushEvents.NONE,
+            end=rh.RobotPushEvents.NONE,
             steps_count_relative=1.0,
         ),
     ),
     (
         "wall-rw-6b1d59-05_stay-in-field_blind-tumblr.json",
         rw.RobotEndEvents(
-            result=rw.RobotEventsResult.DRAW,
+            result=rh.RobotEventsResult.DRAW,
             push_collision_count=3,
             is_pushed_collision_count=2,
-            end=rw.RobotPushEvents.NONE,
+            end=rh.RobotPushEvents.NONE,
             steps_count_relative=1.0,
         ),
         rw.RobotEndEvents(
-            result=rw.RobotEventsResult.DRAW,
+            result=rh.RobotEventsResult.DRAW,
             push_collision_count=3,
             is_pushed_collision_count=2,
-            end=rw.RobotPushEvents.NONE,
+            end=rh.RobotPushEvents.NONE,
             steps_count_relative=1.0,
         ),
     ),
     (
         "wall-rw-6b1d59-06_tumblr_blind-tumblr.json",
         rw.RobotEndEvents(
-            result=rw.RobotEventsResult.WINNER,
+            result=rh.RobotEventsResult.WINNER,
             push_collision_count=0,
             is_pushed_collision_count=0,
-            end=rw.RobotPushEvents.NONE,
+            end=rh.RobotPushEvents.NONE,
             steps_count_relative=0.35,
         ),
         rw.RobotEndEvents(
-            result=rw.RobotEventsResult.LOOSER,
+            result=rh.RobotEventsResult.LOOSER,
             push_collision_count=0,
             is_pushed_collision_count=0,
-            end=rw.RobotPushEvents.NONE,
+            end=rh.RobotPushEvents.NONE,
             steps_count_relative=0.35,
         ),
     ),
     (
         "wall-rw-6b1d59-07_stay-in-field_stay-in-field.json",
         rw.RobotEndEvents(
-            result=rw.RobotEventsResult.DRAW,
+            result=rh.RobotEventsResult.DRAW,
             push_collision_count=0,
             is_pushed_collision_count=2,
-            end=rw.RobotPushEvents.NONE,
+            end=rh.RobotPushEvents.NONE,
             steps_count_relative=1.0,
         ),
         rw.RobotEndEvents(
-            result=rw.RobotEventsResult.DRAW,
+            result=rh.RobotEventsResult.DRAW,
             push_collision_count=1,
             is_pushed_collision_count=1,
-            end=rw.RobotPushEvents.NONE,
+            end=rh.RobotPushEvents.NONE,
             steps_count_relative=1.0,
         ),
     ),
     (
         "wall-rw-6b1d59-08_stay-in-field_stay-in-field.json",
         rw.RobotEndEvents(
-            result=rw.RobotEventsResult.DRAW,
+            result=rh.RobotEventsResult.DRAW,
             push_collision_count=0,
             is_pushed_collision_count=0,
-            end=rw.RobotPushEvents.NONE,
+            end=rh.RobotPushEvents.NONE,
             steps_count_relative=1.0,
         ),
         rw.RobotEndEvents(
-            result=rw.RobotEventsResult.DRAW,
+            result=rh.RobotEventsResult.DRAW,
             push_collision_count=0,
             is_pushed_collision_count=0,
-            end=rw.RobotPushEvents.NONE,
+            end=rh.RobotPushEvents.NONE,
             steps_count_relative=1.0,
         ),
     ),
     (
         "wall-rw-6b1d59-09_stay-in-field_stay-in-field.json",
         rw.RobotEndEvents(
-            result=rw.RobotEventsResult.DRAW,
+            result=rh.RobotEventsResult.DRAW,
             push_collision_count=1,
             is_pushed_collision_count=0,
-            end=rw.RobotPushEvents.NONE,
+            end=rh.RobotPushEvents.NONE,
             steps_count_relative=1.0,
         ),
         rw.RobotEndEvents(
-            result=rw.RobotEventsResult.DRAW,
+            result=rh.RobotEventsResult.DRAW,
             push_collision_count=1,
             is_pushed_collision_count=0,
-            end=rw.RobotPushEvents.NONE,
+            end=rh.RobotPushEvents.NONE,
             steps_count_relative=1.0,
         ),
     ),
     (
         "wall-rw-6b1d59-10_tumblr_blind-tumblr.json",
         rw.RobotEndEvents(
-            result=rw.RobotEventsResult.WINNER,
+            result=rh.RobotEventsResult.WINNER,
             push_collision_count=2,
             is_pushed_collision_count=1,
-            end=rw.RobotPushEvents.NONE,
+            end=rh.RobotPushEvents.NONE,
             steps_count_relative=0.474,
         ),
         rw.RobotEndEvents(
-            result=rw.RobotEventsResult.LOOSER,
+            result=rh.RobotEventsResult.LOOSER,
             push_collision_count=2,
             is_pushed_collision_count=1,
-            end=rw.RobotPushEvents.NONE,
+            end=rh.RobotPushEvents.NONE,
             steps_count_relative=0.474,
         ),
     ),
     (
         "wall-rw-6b1d59-11_tumblr_stay-in-field.json",
         rw.RobotEndEvents(
-            result=rw.RobotEventsResult.WINNER,
+            result=rh.RobotEventsResult.WINNER,
             push_collision_count=1,
             is_pushed_collision_count=1,
-            end=rw.RobotPushEvents.PUSH,
+            end=rh.RobotPushEvents.PUSH,
             steps_count_relative=0.924,
         ),
         rw.RobotEndEvents(
-            result=rw.RobotEventsResult.LOOSER,
+            result=rh.RobotEventsResult.LOOSER,
             push_collision_count=0,
             is_pushed_collision_count=2,
-            end=rw.RobotPushEvents.IS_PUSHED,
+            end=rh.RobotPushEvents.IS_PUSHED,
             steps_count_relative=0.924,
         ),
     ),
     (
         "wall-rw-6b1d59-12_stay-in-field_blind-tumblr.json",
         rw.RobotEndEvents(
-            result=rw.RobotEventsResult.WINNER,
+            result=rh.RobotEventsResult.WINNER,
             push_collision_count=1,
             is_pushed_collision_count=1,
-            end=rw.RobotPushEvents.NONE,
+            end=rh.RobotPushEvents.NONE,
             steps_count_relative=0.761,
         ),
         rw.RobotEndEvents(
-            result=rw.RobotEventsResult.LOOSER,
+            result=rh.RobotEventsResult.LOOSER,
             push_collision_count=2,
             is_pushed_collision_count=0,
-            end=rw.RobotPushEvents.NONE,
+            end=rh.RobotPushEvents.NONE,
             steps_count_relative=0.761,
         ),
     ),
     (
         "wall-rw-6b1d59-13_tumblr_stay-in-field.json",
         rw.RobotEndEvents(
-            result=rw.RobotEventsResult.WINNER,
+            result=rh.RobotEventsResult.WINNER,
             push_collision_count=2,
             is_pushed_collision_count=0,
-            end=rw.RobotPushEvents.PUSH,
+            end=rh.RobotPushEvents.PUSH,
             steps_count_relative=0.725,
         ),
         rw.RobotEndEvents(
-            result=rw.RobotEventsResult.LOOSER,
+            result=rh.RobotEventsResult.LOOSER,
             push_collision_count=1,
             is_pushed_collision_count=1,
-            end=rw.RobotPushEvents.IS_PUSHED,
+            end=rh.RobotPushEvents.IS_PUSHED,
             steps_count_relative=0.725,
         ),
     ),
     (
         "wall-rw-6b1d59-14_stay-in-field_stay-in-field.json",
         rw.RobotEndEvents(
-            result=rw.RobotEventsResult.DRAW,
+            result=rh.RobotEventsResult.DRAW,
             push_collision_count=1,
             is_pushed_collision_count=0,
-            end=rw.RobotPushEvents.NONE,
+            end=rh.RobotPushEvents.NONE,
             steps_count_relative=1.0,
         ),
         rw.RobotEndEvents(
-            result=rw.RobotEventsResult.DRAW,
+            result=rh.RobotEventsResult.DRAW,
             push_collision_count=1,
             is_pushed_collision_count=0,
-            end=rw.RobotPushEvents.NONE,
+            end=rh.RobotPushEvents.NONE,
             steps_count_relative=1.0,
         ),
     ),
     (
         "wall-rw-6b1d59-15_tumblr_blind-tumblr.json",
         rw.RobotEndEvents(
-            result=rw.RobotEventsResult.WINNER,
+            result=rh.RobotEventsResult.WINNER,
             push_collision_count=0,
             is_pushed_collision_count=0,
-            end=rw.RobotPushEvents.PUSH,
+            end=rh.RobotPushEvents.PUSH,
             steps_count_relative=0.411,
         ),
         rw.RobotEndEvents(
-            result=rw.RobotEventsResult.LOOSER,
+            result=rh.RobotEventsResult.LOOSER,
             push_collision_count=0,
             is_pushed_collision_count=0,
-            end=rw.RobotPushEvents.IS_PUSHED,
+            end=rh.RobotPushEvents.IS_PUSHED,
             steps_count_relative=0.411,
         ),
     ),
     (
         "wall-rw-6b1d59-16_stay-in-field_blind-tumblr.json",
         rw.RobotEndEvents(
-            result=rw.RobotEventsResult.WINNER,
+            result=rh.RobotEventsResult.WINNER,
             push_collision_count=0,
             is_pushed_collision_count=0,
-            end=rw.RobotPushEvents.NONE,
+            end=rh.RobotPushEvents.NONE,
             steps_count_relative=0.716,
         ),
         rw.RobotEndEvents(
-            result=rw.RobotEventsResult.LOOSER,
+            result=rh.RobotEventsResult.LOOSER,
             push_collision_count=0,
             is_pushed_collision_count=0,
-            end=rw.RobotPushEvents.NONE,
+            end=rh.RobotPushEvents.NONE,
             steps_count_relative=0.716,
         ),
     ),
     (
         "wall-rw-6b1d59-17_tumblr_stay-in-field.json",
         rw.RobotEndEvents(
-            result=rw.RobotEventsResult.WINNER,
+            result=rh.RobotEventsResult.WINNER,
             push_collision_count=2,
             is_pushed_collision_count=0,
-            end=rw.RobotPushEvents.PUSH,
+            end=rh.RobotPushEvents.PUSH,
             steps_count_relative=0.599,
         ),
         rw.RobotEndEvents(
-            result=rw.RobotEventsResult.LOOSER,
+            result=rh.RobotEventsResult.LOOSER,
             push_collision_count=1,
             is_pushed_collision_count=1,
-            end=rw.RobotPushEvents.IS_PUSHED,
+            end=rh.RobotPushEvents.IS_PUSHED,
             steps_count_relative=0.599,
         ),
     ),
     (
         "wall-rw-6b1d59-18_stay-in-field_blind-tumblr.json",
         rw.RobotEndEvents(
-            result=rw.RobotEventsResult.WINNER,
+            result=rh.RobotEventsResult.WINNER,
             push_collision_count=1,
             is_pushed_collision_count=0,
-            end=rw.RobotPushEvents.NONE,
+            end=rh.RobotPushEvents.NONE,
             steps_count_relative=0.369,
         ),
         rw.RobotEndEvents(
-            result=rw.RobotEventsResult.LOOSER,
+            result=rh.RobotEventsResult.LOOSER,
             push_collision_count=1,
             is_pushed_collision_count=0,
-            end=rw.RobotPushEvents.NONE,
+            end=rh.RobotPushEvents.NONE,
             steps_count_relative=0.369,
         ),
     ),
     (
         "wall-rw-6b1d59-19_tumblr_stay-in-field.json",
         rw.RobotEndEvents(
-            result=rw.RobotEventsResult.WINNER,
+            result=rh.RobotEventsResult.WINNER,
             push_collision_count=0,
             is_pushed_collision_count=1,
-            end=rw.RobotPushEvents.PUSH,
+            end=rh.RobotPushEvents.PUSH,
             steps_count_relative=0.507,
         ),
         rw.RobotEndEvents(
-            result=rw.RobotEventsResult.LOOSER,
+            result=rh.RobotEventsResult.LOOSER,
             push_collision_count=1,
             is_pushed_collision_count=0,
-            end=rw.RobotPushEvents.IS_PUSHED,
+            end=rh.RobotPushEvents.IS_PUSHED,
             steps_count_relative=0.507,
         ),
     ),
@@ -576,14 +576,14 @@ winner_testdata = [
     (
         [["draw", "true"], ["x1", "y"], ["x2", "y"], ["x3", "y"]],
         [["draw", "true"]],
-        rw.RobotEventsResult.DRAW,
+        rh.RobotEventsResult.DRAW,
     ),
-    ([["draw", "true"]], [["draw", "true"]], rw.RobotEventsResult.DRAW),
-    ([["draw", "true"]], [["draw", "true"], ["x", "y"]], rw.RobotEventsResult.DRAW),
-    ([["winner", "true"]], [], rw.RobotEventsResult.WINNER),
-    ([["winner", "true"]], [["x", "y"]], rw.RobotEventsResult.WINNER),
-    ([["winner", "true"], ["x", "y"]], [], rw.RobotEventsResult.WINNER),
-    ([], [["winner", "true"]], rw.RobotEventsResult.LOOSER),
+    ([["draw", "true"]], [["draw", "true"]], rh.RobotEventsResult.DRAW),
+    ([["draw", "true"]], [["draw", "true"], ["x", "y"]], rh.RobotEventsResult.DRAW),
+    ([["winner", "true"]], [], rh.RobotEventsResult.WINNER),
+    ([["winner", "true"]], [["x", "y"]], rh.RobotEventsResult.WINNER),
+    ([["winner", "true"], ["x", "y"]], [], rh.RobotEventsResult.WINNER),
+    ([], [["winner", "true"]], rh.RobotEventsResult.LOOSER),
 ]
 
 
@@ -591,9 +591,9 @@ winner_testdata = [
 def test_parse_robot_result(
     props1: list[list[(str, str)]],
     props2: list[list[(str, str)]],
-    expected: rw.RobotEventsResult,
+    expected: rh.RobotEventsResult,
 ):
-    result = rw._parse_robo_properties(props1, props2)
+    result = rh.parse_robo_properties(props1, props2)
     assert result == expected
 
 

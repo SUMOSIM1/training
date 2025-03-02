@@ -15,10 +15,17 @@ sumot parallel \
 --parallel-config q-map-1
 
 sumot parallel \
---db-host ben.local --record --keep-container --max-parallel 15 \
+--db-host 192.168.0.171 --record --keep-container --max-parallel 20 \
 --epoch-count 2000 \
 --name QMAP03 \
 --out-dir ~/tmp/sumosim/results/results-2025-02-QMAP03 \
+--parallel-config q-map-2
+
+sumot parallel \
+--db-host ben.local --record --keep-container --max-parallel 15 \
+--epoch-count 10000 \
+--name QMAP04 \
+--out-dir ~/tmp/sumosim/results/results-2025-02-QMAP04 \
 --parallel-config q-map-2
 
 sumot report \
@@ -51,6 +58,20 @@ sumot report \
 -d $HOME/tmp/sumosim/results/results-2025-02-QMAP03/  \
 -o $HOME/tmp/sumosim/reports/r9
 
+sumot report \
+-d $HOME/tmp/sumosim/results/results-2025-01-000 \
+-d $HOME/tmp/sumosim/results/results-2025-01-003 \
+-d $HOME/tmp/sumosim/results/results-2025-01-002 \
+-d $HOME/tmp/sumosim/results/results-2025-02-Q-CV5 \
+-d $HOME/tmp/sumosim/results/results-2025-02-Q-CV7 \
+-d $HOME/tmp/sumosim/results/results-2025-02-QMAP01 \
+-d $HOME/tmp/sumosim/results/results-2025-02-QMAP02 \
+-d $HOME/tmp/sumosim/results/results-2025-02-QMAP03 \
+-d $HOME/tmp/sumosim/results/results-2025-02-QMAP05 \
+-d $HOME/tmp/sumosim/results/results-2025-02-QMAP06 \
+-d $HOME/tmp/sumosim/results/results-2025-02-QMAP08 \
+-o $HOME/tmp/sumosim/reports/r16
+
 docker container ls -a -f name=sumo-train -q | xargs docker container rm -f
 
 ### WORK
@@ -58,12 +79,38 @@ docker container ls -a -f name=sumo-train -q | xargs docker container rm -f
 docker buildx build --build-arg DOCKERREG=dockerregistry.seu.test.sozvers.at/ -t sumot .
 
 sumot parallel \
---db-host 172.23.133.172 --record --keep-container --max-parallel 20 \
+--db-host 192.168.0.171 --record --keep-container --max-parallel 25 \
 --epoch-count 2000 \
---name QMAP03a \
---out-dir ~/tmp/sumosim/r.veesults/results-2025-02-QMAP03a \
---parallel-config q-map-2
+--name QMAP05 \
+--out-dir ~/tmp/sumosim/results/results-2025-02-QMAP05 \
+--parallel-config q-map-3
+
+sumot parallel \
+--db-host 192.168.0.171 --record --keep-container --max-parallel 30 \
+--epoch-count 5000 \
+--name QMAP08 \
+--out-dir ~/tmp/sumosim/results/results-2025-02-QMAP08 \
+--parallel-config q-map-4
+
+sumot parallel \
+--db-host 192.168.0.171 --record --keep-container --max-parallel 30 \
+--epoch-count 5000 \
+--name QRW00 \
+--out-dir ~/tmp/sumosim/results/results-2025-02-QRW00 \
+--parallel-config q-rw-0
 
 sumot report \
 -d $HOME/tmp/sumosim/results/results-2025-02-QMAP03a  \
 -o $HOME/tmp/sumosim/reports/r10
+
+sumot report \
+-d $HOME/tmp/sumosim/results/results-2025-02-QMAP05 \
+-d $HOME/tmp/sumosim/results/results-2025-02-QMAP06 \
+-d $HOME/tmp/sumosim/results/results-2025-02-QMAP08 \
+-o $HOME/tmp/sumosim/reports/r11
+
+sumot report -d ~/tmp/sumosim/results -o ~/tmp/sumosim/reports/rw03
+
+
+rsync -arv . root@entelijan.net:/root/app/hp-wolfi-kube/pages/sumosim-rl/reports
+

@@ -4,6 +4,7 @@ from pathlib import Path
 from dataclasses import dataclass
 from enum import Enum
 import training.helper as hlp
+from typing import cast
 
 
 _port = 4444
@@ -15,6 +16,12 @@ class ParallelConfig(Enum):
     Q_MAP_0 = "q-map-0"
     Q_MAP_1 = "q-map-1"
     Q_MAP_2 = "q-map-2"
+    Q_MAP_3 = "q-map-3"
+    Q_MAP_4 = "q-map-4"
+    Q_RW_0 = "q-rw-0"
+    Q_RW_1 = "q-rw-1"
+    Q_RW_2 = "q-rw-2"
+    Q_RW_3 = "q-rw-3"
 
 
 @dataclass(frozen=True)
@@ -65,6 +72,58 @@ def create_train_configs1(
                 "M": ["non-linear-1", "non-linear-2", "non-linear-3", "non-linear-4"],
             }
             return create_train_configs(values_dict, max_parallel)
+        case ParallelConfig.Q_MAP_3:
+            values_dict = {
+                "L": [0.05, 0.1, 0.15],
+                "E": [0.01, 0.02, 0.03],
+                "D": [0.25, 0.3, 0.35],
+                "M": ["non-linear-2", "non-linear-3", "non-linear-4"],
+            }
+            return create_train_configs(values_dict, max_parallel)
+        case ParallelConfig.Q_MAP_4:
+            values_dict = {
+                "L": [0.12, 0.12, 0.12],
+                "E": [0.015, 0.015, 0.015],
+                "D": [0.3, 0.3, 0.3],
+                "M": ["non-linear-3", "non-linear-3", "non-linear-3"],
+            }
+            return create_train_configs(values_dict, max_parallel)
+        case ParallelConfig.Q_RW_0:
+            values_dict = {
+                "L": [0.12, 0.12],
+                "E": [0.015, 0.015],
+                "D": [0.3, 0.3],
+                "M": ["non-linear-3", "non-linear-3"],
+                "R": ["continuous-consider-all", "reduced-push-reward"],
+            }
+            return create_train_configs(values_dict, max_parallel)
+        case ParallelConfig.Q_RW_1:
+            values_dict = {
+                "L": [0.12, 0.12],
+                "E": [0.015, 0.015],
+                "D": [0.3, 0.3],
+                "M": ["non-linear-3", "non-linear-3"],
+                "R": ["continuous-consider-all", "reduced-push-reward", "speed-bonus"],
+            }
+            return create_train_configs(values_dict, max_parallel)
+        case ParallelConfig.Q_RW_2:
+            values_dict = {
+                "L": [0.15, 0.1, 0.05],
+                "E": [0.015, 0.01, 0.005],
+                "D": [0.3],
+                "M": ["non-linear-3"],
+                "R": ["speed-bonus", "speed-bonus", "speed-bonus"],
+            }
+            return create_train_configs(values_dict, max_parallel)
+        case ParallelConfig.Q_RW_3:
+            values_dict = {
+                "L": [0.25, 0.2, 0.15],
+                "E": [0.025, 0.02, 0.015],
+                "D": [0.3],
+                "M": ["non-linear-3"],
+                "R": ["speed-bonus", "speed-bonus", "speed-bonus"],
+            }
+            return create_train_configs(values_dict, max_parallel)
         case _:
             raise ValueError(f"Invalid Parallel Config {parallel_config.value}")
 
@@ -85,9 +144,9 @@ def create_train_configs(
         prod_values = list(it.product(*lists))
         batch_size = (len(prod_values) + max_parallel - 1) // max_parallel
         batched_values = it.batched(prod_values, batch_size)
-        return [to_dict(keys, values) for values in batched_values]
+        return [to_dict(keys, cast(list, values)) for values in batched_values]
 
-    _keys = values_dict.keys()
+    _keys = list(values_dict.keys())
     _values = [values_dict[k] for k in _keys]
     batched_dicts = create_batched_dicts(_keys, _values)
 
@@ -227,7 +286,7 @@ def start_training_configuration(
     parallel_index: int,
     epoch_count: int,
     db_host: str,
-    db_port: int,
+    db_port: str,
     keep_container: bool,
     record: bool,
     out_dir: Path,
@@ -273,7 +332,7 @@ def parallel_main(
     parallel_indexes: str,
     epoch_count: str,
     db_host: str,
-    db_port: int,
+    db_port: str,
     keep_container: bool,
     record: bool,
     out_dir: str,
@@ -291,7 +350,7 @@ def parallel_main(
             parallel_config,
             max_parallel,
             parallel_index,
-            epoch_count,
+            int(epoch_count),
             db_host,
             db_port,
             keep_container,

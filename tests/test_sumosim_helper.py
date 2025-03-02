@@ -1,4 +1,5 @@
 import pytest
+import random as rnd
 
 import training.helper as hlp
 
@@ -60,3 +61,27 @@ def test_compress_means(len_data: int, n: int):
     data = [float(n) for n in range(len_data - 1)]
     xs, ys = hlp.compress_means(data, n)
     assert len(xs) == len(ys)
+
+
+split_data_data = [
+    (22, 2, ["0", "11"], [11, 11], 2),
+    (23, 2, ["0", "11"], [11, 11], 2),
+    (24, 2, ["0", "12"], [12, 12], 2),
+    (19, 2, ["19"], [19], None),
+    (2, 19, ["2"], [2], None),
+    (80, 5, ["0", "16", "32", "48", "64"], [16, 16, 16, 16, 16], 5),
+]
+
+
+@pytest.mark.parametrize("n, n1, labels, all_lengths, mean_length", split_data_data)
+def test_compress_means(
+    n: int, n1: int, labels: list[str], all_lengths: list[int], mean_length: int | None
+):
+    data = [rnd.random() for _ in range(n)]
+
+    a, b, c = hlp.split_data(data, n1)
+    u = [len(x) for x in b]
+    v = None if c is None else len(c)
+    assert a == labels
+    assert u == all_lengths
+    assert v == mean_length

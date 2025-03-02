@@ -48,8 +48,10 @@ class ControllerName(str, Enum):
 
 
 class RewardHandlerName(str, Enum):
-    END_CONSIDER_ALL = "end-consider-all"
     CONTINUOUS_CONSIDER_ALL = "continuous-consider-all"
+    END_CONSIDER_ALL = "end-consider-all"
+    REDUCED_PUSH_REWARD = "reduced-push-reward"
+    SPEED_BONUS = "speed-bonus"
 
 
 class SectorName(Enum):
@@ -469,14 +471,17 @@ class RewardHandlerProvider:
     @staticmethod
     def get(name: RewardHandlerName) -> RewardHandler:
         match name:
-            case RewardHandlerName.END_CONSIDER_ALL:
-                module = importlib.import_module("training.reward")
-                class_ = module.EndConsiderAllRewardHandler
-                return class_()
-        match name:
             case RewardHandlerName.CONTINUOUS_CONSIDER_ALL:
-                module = importlib.import_module("training.reward")
+                module = importlib.import_module("training.reward.reward1")
                 class_ = module.ConsiderAllRewardHandler
+                return class_()
+            case RewardHandlerName.REDUCED_PUSH_REWARD:
+                module = importlib.import_module("training.reward.reward1")
+                class_ = module.ReducedPushRewardHandler
+                return class_()
+            case RewardHandlerName.SPEED_BONUS:
+                module = importlib.import_module("training.reward.reward1")
+                class_ = module.SpeedBonusRewardHandler
                 return class_()
             case _:
                 raise RuntimeError(f"Unknown reward handler {name}")

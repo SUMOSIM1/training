@@ -4,7 +4,6 @@ import dominate
 import dominate.tags as dt
 import dominate.util as du
 import shutil
-import markdown as md
 from dataclasses import dataclass
 import training.helper as hlp
 import training.explore.enumdescs as edesc
@@ -38,15 +37,6 @@ def extract_combis(lead_resources: list[Path], prefix: str) -> list[str]:
     return sorted(list(keys_set))
 
 
-def sumosim_report_path(dir: str, must_exists: bool = True) -> Path:
-    p = Path(dir)
-    if not p.is_absolute():
-        p = Path.home() / p
-    if must_exists and not p.exists():
-        raise ValueError(f"path {dir} does not exit")
-    return p
-
-
 def collect_resources(results_dirs: list[Path], result_name: str) -> list[Path]:
     out = []
     for result_path in results_dirs:
@@ -56,14 +46,11 @@ def collect_resources(results_dirs: list[Path], result_name: str) -> list[Path]:
     return sorted(out)
 
 
-def create_report(reports_data: dict, result_dir_paths: list[Path], out_dir: str):
+def create_report(reports_data: dict, result_dir_paths: list[Path], out_path: Path):
     videos = collect_resources(result_dir_paths, "sumosim-video")
     q_values = collect_resources(result_dir_paths, "q-values-heat")
     boxplots = collect_resources(result_dir_paths, "boxplot")
     resources = Resources(videos=videos, q_values_heat=q_values, boxplots=boxplots)
-
-    out_path = sumosim_report_path(out_dir, must_exists=False)
-    out_path.mkdir(parents=True, exist_ok=True)
 
     # Copy style .css
     style_path = Path(__file__).parent.parent.parent.parent / "resources" / "styles.css"
@@ -96,7 +83,7 @@ def create_report_index(report_dict: dict, out_path: Path, resources: Resources)
         dt.link(rel="stylesheet", href="styles.css")
     with doc:
         dt.h1().add(report_dict["title"])
-        dt.p().add(du.raw(md.markdown(report_dict["description"])))
+        dt.p().add(du.raw(hlp.parse_markdown(report_dict["description"])))
         for text, link in method_tuples:
             dt.a(text, href=link)
             dt.br()
@@ -123,7 +110,7 @@ def create_report_method(
 
     with doc:
         dt.h1().add(method_dict["title"])
-        dt.p().add(du.raw(md.markdown(method_dict["description"])))
+        dt.p().add(du.raw(hlp.parse_markdown(method_dict["description"])))
         for training_tuple in training_tuples:
             if training_tuple is not None:
                 text, link = training_tuple
@@ -132,7 +119,7 @@ def create_report_method(
 
     with out_file.open("w") as f:
         f.write(str(doc))
-    return method_dict["abstract"], out_file_name
+    return method_dict["title"], out_file_name
 
 
 def create_report_training(
@@ -148,7 +135,7 @@ def create_report_training(
         # print("### enum_texts", enum_texts)
         return dt.p(
             [
-                (dt.h3(key), du.raw(md.markdown(txt)))
+                (dt.h3(key), du.raw(hlp.parse_markdown(txt)))
                 for key, txt in zip(enum_keys, enum_texts)
             ]
         )
@@ -238,6 +225,7 @@ def create_report_training(
     if not _combis:
         return None
 
+    t_id = training_dict["prefix"]
     doc = dominate.document(title=training_dict["title"])
 
     with doc.head:
@@ -245,14 +233,14 @@ def create_report_training(
         dt.link(rel="stylesheet", href="styles.css")
 
     with doc.body:
-        dt.h1().add(training_dict["title"])
-        dt.p().add(du.raw(md.markdown(training_dict["description"].strip())))
+        dt.h1().add(f"{t_id} {training_dict["title"]}")
+        dt.p().add(du.raw(hlp.parse_markdown(training_dict["description"].strip())))
         tags_for_enumdescs(training_dict)
         tags_for_combis(resources, _combis, out_path)
 
     with out_file.open("w") as f:
         f.write(str(doc))
-    return training_dict["abstract"], out_file_name
+    return f"{t_id} {training_dict["title"]}", out_file_name
 
 
 def create_final_ressources(reports_data: dict, result_dir_paths: list[Path]):
@@ -341,13 +329,14 @@ def create_final_ressources(reports_data: dict, result_dir_paths: list[Path]):
                 create(p, prefix)
 
 
-def report(results_dir_list: list[str], out_dir: str):
+def report(result_dir: Path, out_dir: Path):
+    out_dir.mkdir(parents=True, exist_ok=True)
     report_path = (
         Path(__file__).parent.parent.parent.parent / "resources" / "report.yml"
     )
+    result_dir_paths = [d for d in result_dir.iterdir() if d.is_dir()]
     with report_path.open() as f:
         reports_data = yaml.safe_load(f)
     # pprint(reports_data)
-    result_dir_paths = [sumosim_report_path(dir) for dir in results_dir_list]
     create_final_ressources(reports_data, result_dir_paths)
     create_report(reports_data, result_dir_paths, out_dir)

@@ -1,37 +1,108 @@
 - class_name: training.simrunner.RewardHandlerName
   value: continuous-consider-all
   desc: |
-    Considers all sensors.  
-    Calculates a reward after every step.  
-    
-    Positive rewarded actions.
-    
-    *  Agent collides with the opponent consciously. 
-    *  Agent pushes the opponent from the field consciously.
+    Considers all simulation events for calculating the reward.
 
-    Negative rewarded actions.
+    Possible simulation events created for an agent:
 
-    *  The agent moves from the field unforced. TODO find out reward values 
-    *  The agent is pushed from the field. 
-     
-    Rewards are calculated after every step and might be different from zero.
+    1. After every simulation step:
+        * Pushed the opponent. Reward = +0.5
+        * Is pushed by the opponent. Reward = -0.1
+
+    1. At simulation end:
+        * Winner by pushing the opponent: Reward = 100 + t * 50 
+        * Looser without being pushed: Reward = -100 - t * 50
+        * Looser being pushed: Reward: -10
+    
+    (t * x) is the 'speed bonus' 
+   
+        t = 1 - (s / max_s)
+        
+        s:     Number of steps when th simulation ended   
+        max_s: Max number of steps for a simulation   
+    
+    Means, the reward/penalty is higher the shorter the simulation ran. The agent gets a higher
+    reward when fast pushing out the opponent, or a higher penalty when fast moving
+    unforced out of the field.
+- class_name: training.simrunner.RewardHandlerName
+  value: reduced-push-reward
+  desc: |
+    Considers all simulation events for calculating the reward.
+    
+    Possible simulation events created for an agent:
+    
+    1. After every simulation step:
+        * Pushed the opponent. Reward = +0.05
+        * Is pushed by the opponent. Reward = -0.01
+    
+    1. At simulation end:
+        * Winner by pushing the opponent: Reward = 100 + t * 50 
+        * Looser without being pushed: Reward = -100 - t * 50
+        * Looser being pushed: Reward: -10
+    
+    (t * x) is the 'speed bonus' 
+    
+        t = 1 - (s / max_s)
+    
+        s:     Number of steps when th simulation ended   
+        max_s: Max number of steps for a simulation   
+    
+    Means, the reward/penalty is higher the shorter the simulation ran. The agent gets a higher
+    reward when fast pushing out the opponent, or a higher penalty when fast moving
+    unforced out of the field.
+- class_name: training.simrunner.RewardHandlerName
+  value: speed-bonus
+  desc: |
+    Considers all simulation events for calculating the reward.
+    
+    Possible simulation events created for an agent:
+    
+    1. After every simulation step:
+        * Pushed the opponent. Reward = +0.05
+        * Is pushed by the opponent. Reward = -0.01
+    
+    1. At simulation end:
+        * Winner by pushing the opponent: Reward = 100 + t * 150 
+        * Looser without being pushed: Reward = -100 - t * 150
+        * Looser being pushed: Reward: -10
+    
+    (t * x) is the 'speed bonus' 
+    
+        t = 1 - (s / max_s)
+    
+        s:     Number of steps when th simulation ended   
+        max_s: Max number of steps for a simulation   
+    
+    Means, the reward/penalty is higher the shorter the simulation ran. The agent gets a higher
+    reward when fast pushing out the opponent, or a higher penalty when fast moving
+    unforced out of the field.
 - class_name: training.simrunner.RewardHandlerName
   value: end-consider-all
   desc: |
-    Considers all sensors.  
-    Calculates a reward after every step.  
-    
-    Positive rewarded actions.
-    
-    *  Agent collides with the opponent consciously. 
-    *  Agent pushes the opponent from the field consciously.
+    Considers all simulation events for calculating the reward.
 
-    Negative rewarded actions.
+    Possible simulation events created for an agent:
+
+    1. After every simulation step:
+        * Always zero
+
+    1. At simulation end:
+        * Winner by pushing the opponent: Reward = 100 + t * 50 
+        * Looser without being pushed: Reward = -100 - t * 50
+        * Looser being pushed: Reward: -10
+        * Number of pushing the opponent. Reward = n * 0.5
+        * Number of being pushed by the opponent. Reward = n * (-0.1)
+
+    ---
+
+        t = 1 - (s / max_s)  
+        
+        s:     Number of steps when th simulation ended   
+        max_s: Max number of steps for a simulation
     
-    *  The agent moves from the field unforced. TODO find out reward values 
-    *  The agent is pushed from the field. 
-     
-    Rewards are calculated only after the end of a match. All rewards before that are zero
+    Means, the reward/penalty is higher the shorter the simulation ran. The agent gets a higher
+    reward when fast pushing out the opponent, or a higher penalty when fast moving
+    unforced out of the field.
 - class_name: training.parallel.ParallelConfig
   value: q-disc-0
   desc: |
@@ -274,50 +345,33 @@
       <tr>
         <td>discount</td><td>0.5</td><td>0.8</td>
       </tr>
-    </table>   
+    </table>
     <table>
       <tr>
         <td></td><td>M0</td><td>M1</td><td>M2</td><td>M3</td>
       </tr>
       <tr>
-        <td>discount</td><td>non-linear-1</td><td>non-linear-2</td><td>non-linear-3</td><td>non-linear-4</td>
+        <td>mapping</td><td>non-linear-1</td><td>non-linear-2</td><td>non-linear-3</td><td>non-linear-4</td>
       </tr>
-    </table>   
+    </table>
 - class_name: training.parallel.ParallelConfig
   value: q-map-1
   desc: |
-    <table>
-      <tr>
-        <td></td><td>L0</td><td>L1</td><td>L2</td>
-      </tr>
-      <tr>
-        <td>learning rate</td><td>0.01</td><td>0.1</td><td>0.5</td>
-      </tr>
-    </table>
-    <table>
-      <tr>
-        <td></td><td>E0</td><td>E1</td>
-      </tr>
-      <tr>
-        <td>epsilon</td><td>0.01</td><td>0.1</td>
-      </tr>
-    </table>
-    <table>
-      <tr>
-        <td></td><td>D0</td><td>D1</td><td>D2</td>
-      </tr>
-      <tr>
-        <td>discount</td><td>0.4</td><td>0.6</td><td>0.9</td>
-      </tr>
-    </table>   
-    <table>
-      <tr>
-        <td></td><td>M0</td><td>M1</td>
-      </tr>
-      <tr>
-        <td>discount</td><td>non-linear-1</td><td>non-linear-2</td>
-      </tr>
-    </table>   
+    &#x200B;        | L0    | L1    | L2 
+    --------------- | ----- | ----- | -----          
+    learning rate   | 0.01   | 0.1   | 0.5   
+
+    &#x200B; | E0    | E1    
+    -------- | ----- | -----         
+    epsilon  | 0.01  | 0.1   
+
+    &#x200B; | D0    | D1    | D2 
+    -------- | ----- | ----- | -----        
+    discount | 0.4   | 0.6   | 0.9  
+
+    &#x200B; | M0           | M1 
+    -------- | ------------ | ----------- 
+    mapping  | non-linear-1 | non-linar-2 
 - class_name: training.parallel.ParallelConfig
   value: q-map-2
   desc: |
@@ -331,7 +385,7 @@
     </table>
     <table>
       <tr>
-        <td></td><td>E0</td><td>E1</td><td>E1</td>
+        <td></td><td>E0</td><td>E1</td><td>E2</td>
       </tr>
       <tr>
         <td>epsilon</td><td>0.05</td><td>0.075</td><td>0.1</td>
@@ -344,12 +398,170 @@
       <tr>
         <td>discount</td><td>0.3</td><td>0.4</td><td>0.5</td>
       </tr>
-    </table>   
+    </table>
     <table>
       <tr>
         <td></td><td>M0</td><td>M1</td><td>M2</td><td>M3</td>
       </tr>
       <tr>
-        <td>discount</td><td>non-linear-1</td><td>non-linear-2</td><td>non-linear-3</td><td>non-linear-4</td>
+        <td>mapping</td><td>non-linear-1</td><td>non-linear-2</td><td>non-linear-3</td><td>non-linear-4</td>
       </tr>
-    </table>   
+    </table>
+- class_name: training.parallel.ParallelConfig
+  value: q-map-3
+  desc: |
+    <table>
+      <tr>
+        <td></td><td>L0</td><td>L1</td><td>L2</td>
+      </tr>
+      <tr>
+        <td>learning rate</td><td>0.05</td><td>0.1</td><td>0.15</td>
+      </tr>
+    </table>
+    <table>
+      <tr>
+        <td></td><td>E0</td><td>E1</td><td>E2</td>
+      </tr>
+      <tr>
+        <td>epsilon</td><td>0.01</td><td>0.02</td><td>0.03</td>
+      </tr>
+    </table>
+    <table>
+      <tr>
+        <td></td><td>D0</td><td>D1</td><td>D2</td>
+      </tr>
+      <tr>
+        <td>discount</td><td>0.25</td><td>0.3</td><td>0.35</td>
+      </tr>
+    </table>
+    <table>
+      <tr>
+        <td></td><td>M0</td><td>M1</td><td>M2</td>
+      </tr>
+      <tr>
+        <td>mapping</td><td>non-linear-2</td><td>non-linear-3</td><td>non-linear-4</td>
+      </tr>
+    </table>
+- class_name: training.parallel.ParallelConfig
+  value: q-map-4
+  desc: |
+    <table>
+      <tr>
+        <td></td><td>L0</td><td>L1</td><td>L2</td>
+      </tr>
+      <tr>
+        <td>learning rate</td><td>0.12</td><td>0.12</td><td>0.12</td>
+      </tr>
+    </table>
+    <table>
+      <tr>
+        <td></td><td>E0</td><td>E1</td><td>E2</td>
+      </tr>
+      <tr>
+        <td>epsilon</td><td>0.015</td><td>0.015</td><td>0.015</td>
+      </tr>
+    </table>
+    <table>
+      <tr>
+        <td></td><td>D0</td><td>D1</td><td>D2</td>
+      </tr>
+      <tr>
+        <td>discount</td><td>0.3</td><td>0.3</td><td>0.3</td>
+      </tr>
+    </table>
+    <table>
+      <tr>
+        <td></td><td>M0</td><td>M1</td><td>M2</td>
+      </tr>
+      <tr>
+        <td>mapping</td><td>non-linear-3</td><td>non-linear-3</td><td>non-linear-3</td>
+      </tr>
+    </table>
+- class_name: training.parallel.ParallelConfig
+  value: q-rw-0
+  desc: |
+    &#x200B;        | L0    | L1     
+    --------------- | ----- | -----           
+    learning rate   | 0.12  | 0.12      
+
+    &#x200B; | E0    | E1    
+    -------- | ----- | -----         
+    epsilon  | 0.0o15  | 0.015   
+
+    &#x200B; | D0    | D1    
+    -------- | ----- | -----      
+    discount | 0.3   | 0.3     
+
+    &#x200B; | M0           | M1 
+    -------- | ------------ | ----------- 
+    mapping  | non-linear-3 | non-linear-3 
+
+    &#x200B;        | R0                      | R1 
+    --------------- | ----------------------- | -------------------- 
+    reward handler  | continuous-consider-all | reduced-push-reward
+- class_name: training.parallel.ParallelConfig
+  value: q-rw-1
+  desc: |
+    &#x200B;        | L0    | L1     
+    --------------- | ----- | -----           
+    learning rate   | 0.12  | 0.12      
+
+    &#x200B; | E0    | E1    
+    -------- | ----- | -----         
+    epsilon  | 0.015  | 0.015   
+
+    &#x200B; | D0    | D1    
+    -------- | ----- | -----      
+    discount | 0.3   | 0.3     
+
+    &#x200B; | M0           | M1 
+    -------- | ------------ | ----------- 
+    mapping  | non-linear-3 | non-linear-3 
+
+    &#x200B;        | R0                      | R1                   | R2
+    --------------- | ----------------------- | -------------------- | ------------
+    reward handler  | continuous-consider-all | reduced-push-reward  | speed-bonus
+- class_name: training.parallel.ParallelConfig
+  value: q-rw-2
+  desc: |
+    &#x200B;        | L0    | L1  | L1    
+    --------------- | ----- | --- | ----          
+    learning rate   | 0.15  | 0.1 | 0.05      
+
+    &#x200B; | E0     | E1   | E2   
+    -------- | ------ | ---- | -----         
+    epsilon  | 0.015  | 0.01 | 0.005   
+
+    &#x200B; | D0      
+    -------- | -----       
+    discount | 0.3  
+
+    &#x200B; | M0          
+    -------- | ------------ 
+    mapping  | non-linear-3
+
+    &#x200B;        | R0                      | R1                   | R2
+    --------------- | ----------------------- | -------------------- | ------------
+    reward handler  | speed-bonus             | speed-bonus          | speed-bonus
+- class_name: training.parallel.ParallelConfig
+  value: q-rw-3
+  desc: |
+    &#x200B;        | L0    | L1  | L1    
+    --------------- | ----- | --- | ----          
+    learning rate   | 0.25  | 0.2 | 0.15      
+
+    &#x200B; | E0     | E1   | E2   
+    -------- | ------ | ---- | -----         
+    epsilon  | 0.025  | 0.02 | 0.015   
+
+    &#x200B; | D0      
+    -------- | -----       
+    discount | 0.3  
+
+    &#x200B; | M0          
+    -------- | ------------ 
+    mapping  | non-linear-3
+
+    &#x200B;        | R0                      | R1                   | R2
+    --------------- | ----------------------- | -------------------- | ------------
+    reward handler  | speed-bonus             | speed-bonus          | speed-bonus

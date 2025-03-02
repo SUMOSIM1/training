@@ -1,6 +1,10 @@
 body {
     font-family: "Century Gothic", CenturyGothic, AppleGothic, sans-serif;
 }
+code {
+    font-family: monospace;
+}
+
 
 td {
     border: lightgray 1px solid;

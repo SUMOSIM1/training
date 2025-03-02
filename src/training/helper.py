@@ -1,10 +1,12 @@
 import math
 import uuid
 from pathlib import Path
+from typing import cast
 
 import numpy as np
 import pandas as pd
 import subprocess as sp
+import markdown as md
 import easing_functions as easing
 
 
@@ -58,30 +60,30 @@ def unique() -> str:
 
 
 def cont_to_discrete(
-    x: float, min_value: float, max_value: float, step_count: int, linear: float
+    x: float, min_value: float, max_value: float, step_count: int, linear: int
 ) -> int:
-    def func(x: float, linear: int) -> float:
+    def func(_x: float) -> any:
         if linear <= -4:
-            return _fn4(x)
+            return _fn4(_x)
         if linear == -3:
-            return _fn3(x)
+            return _fn3(_x)
         if linear == -2:
-            return _fn2(x)
+            return _fn2(_x)
         if linear == -1:
-            return _fn1(x)
+            return _fn1(_x)
         if linear == 0:
-            return x
+            return _x
         if linear == 1:
-            return _fp1(x)
+            return _fp1(_x)
         if linear == 2:
-            return _fp2(x)
+            return _fp2(_x)
         if linear == 3:
-            return _fp3(x)
+            return _fp3(_x)
         if linear >= 4:
-            return _fp4(x)
+            return _fp4(_x)
 
     x1 = (x - min_value) / (max_value - min_value)
-    y1 = func(x1, linear)
+    y1 = float(func(x1))
     d = 1.0 / step_count
     i = int(math.floor((y1 / d)))
     return min(max(0, i), (step_count - 1))
@@ -92,15 +94,15 @@ def cont_values(min_value: float, max_value: float, n: int) -> list[float]:
     return [min_value + i * diff for i in range(n)]
 
 
-def compress_means(data: list[float], n: int) -> list[list[float], list[float]]:
+def compress_means(data: list[float], n: int) -> tuple[list[float], list[float]]:
     data_len = len(data)
     if data_len <= n:
-        return range(data_len), data
+        return list(range(data_len)), data
     d = np.array(data)
     cropped = (data_len // n) * n
     split = np.split(d[0:cropped], n)
     diff = cropped // n
-    xs = range(0, cropped, diff)
+    xs = list(range(0, cropped, diff))
     return xs, np.mean(split, axis=1)
 
 
@@ -146,3 +148,24 @@ def call1(command: list[str], work_path: Path | None = None) -> tuple[bool, str]
     b_out, b_err = process.communicate()
     rc = process.returncode == 0
     return rc, b_out.decode() + b_err.decode()
+
+
+def parse_markdown(md_txt: str) -> str:
+    return md.markdown(md_txt, extensions=["tables"])
+
+
+def split_data(
+    _data: list[float], n: int
+) -> tuple[list[str], list[list[float]], list[float] | None]:
+    data_len = len(_data)
+    if data_len < 10 * n:
+        # Less than 10 data per boxplot
+        return [str(data_len)], [_data], None
+    np_data = np.array(_data)
+    cropped = (data_len // n) * n
+    split = cast(list[list[float]], np.split(np_data[0:cropped], n))
+    medians = [float(np.median(d)) for d in split]
+    diff = cropped // n
+    xs = range(0, cropped, diff)
+    xs_str = [str(x) for x in xs]
+    return xs_str, split, medians
