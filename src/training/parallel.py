@@ -22,6 +22,9 @@ class ParallelConfig(Enum):
     Q_RW_1 = "q-rw-1"
     Q_RW_2 = "q-rw-2"
     Q_RW_3 = "q-rw-3"
+    Q_LOW_0 = "q-low-0"
+    Q_LOW_1 = "q-low-1"
+    Q_LOW_2 = "q-low-2"
 
 
 @dataclass(frozen=True)
@@ -122,6 +125,33 @@ def create_train_configs1(
                 "D": [0.3],
                 "M": ["non-linear-3"],
                 "R": ["speed-bonus", "speed-bonus", "speed-bonus"],
+            }
+            return create_train_configs(values_dict, max_parallel)
+        case ParallelConfig.Q_LOW_0:
+            values_dict = {
+                "L": [0.001, 0.0001],
+                "E": [0.001, 0.0001],
+                "D": [0.3],
+                "M": ["non-linear-3"],
+                "R": ["speed-bonus", "speed-bonus", "speed-bonus"],
+            }
+            return create_train_configs(values_dict, max_parallel)
+        case ParallelConfig.Q_LOW_1:
+            values_dict = {
+                "L": [0.01, 0.005, 0.001],
+                "E": [0.01, 0.005, 0.001],
+                "D": [0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3],
+                "M": ["non-linear-3"],
+                "R": ["speed-bonus"],
+            }
+            return create_train_configs(values_dict, max_parallel)
+        case ParallelConfig.Q_LOW_2:
+            values_dict = {
+                "L": [0.01, 0.005, 0.001],
+                "E": [0.01, 0.005, 0.001],
+                "D": [0.3, 0.3, 0.3, 0.5, 0.5, 0.5, 0.8, 0.8, 0.8],
+                "M": ["non-linear-3"],
+                "R": ["speed-bonus"],
             }
             return create_train_configs(values_dict, max_parallel)
         case _:

@@ -74,7 +74,7 @@ split_data_data = [
 
 
 @pytest.mark.parametrize("n, n1, labels, all_lengths, mean_length", split_data_data)
-def test_compress_means(
+def test_split_data(
     n: int, n1: int, labels: list[str], all_lengths: list[int], mean_length: int | None
 ):
     data = [rnd.random() for _ in range(n)]

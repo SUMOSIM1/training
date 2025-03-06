@@ -15,6 +15,7 @@ class SEnvConfig:
     max_view_distance: float
     view_distance_steps: int
     max_simulation_steps: int
+    opponent_see_steps: int
     dtype: np.generic = np.float32
 
 
@@ -31,6 +32,7 @@ default_senv_config = SEnvConfig(
     wheel_speed_steps=10,
     max_view_distance=700,
     view_distance_steps=10,
+    opponent_see_steps=4,
     max_simulation_steps=1000,
     dtype=np.float32,
 )

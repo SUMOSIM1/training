@@ -279,7 +279,7 @@ def create_final_ressources(reports_data: dict, result_dir_paths: list[Path]):
                 )
             )
             image_pattern = f"{image_prefix}*.png"
-            frame_rate = image_count // 5
+            frame_rate = 1 + (image_count // 30)
             cmd = [
                 "ffmpeg",
                 "-framerate",

@@ -1,3 +1,4 @@
+import json
 from collections import defaultdict
 from dataclasses import dataclass, replace, asdict
 from typing import cast
@@ -17,6 +18,7 @@ import training.sgym.core as sgym
 import training.simrunner as sr
 import training.parallel as parallel
 import training.sgym.sim_mapping as sm
+import training.sgym.qtables as qt
 
 
 @dataclass(frozen=True)
@@ -34,6 +36,7 @@ default_senv_config = sgym.SEnvConfig(
     wheel_speed_steps=10,
     max_view_distance=700,
     view_distance_steps=3,
+    opponent_see_steps=4,
     max_simulation_steps=1000,
     dtype=np.float32,
 )
@@ -421,19 +424,11 @@ def plot_q_values(
     name: str,
     work_dir: Path,
     q_learn_env_config: sgym.SEnvConfig,
+    report_q_table: bool = False
 ) -> Path:
     matplotlib.use("agg")
 
-    def all_obs() -> list:
-        all = []
-        for i0 in range(4):
-            for i1 in range(q_learn_env_config.view_distance_steps):
-                for i2 in range(q_learn_env_config.view_distance_steps):
-                    for i3 in range(q_learn_env_config.view_distance_steps):
-                        all.append((i0, i1, i2, i3))
-        return all
-
-    _all = all_obs()
+    _all = qt.all_obs(q_learn_env_config)
     obs_action_data = []
     for obs in _all:
         values = agent.q_values[obs]
@@ -448,6 +443,15 @@ def plot_q_values(
     out_path = work_dir / f"{name}-{epoch_nr:08d}{sim_nr:08d}-heat.png"
     fig.savefig(out_path)
     plt.close(fig)
+
+    if report_q_table:
+        json_dict = qt.to_json(agent.q_values, _all)
+        all_data = {"epoch_nr": epoch_nr, "sim_nr": sim_nr, "q_values": json_dict}
+        data_out_path = work_dir / f"{name}-{epoch_nr:08d}{sim_nr:08d}-data.json"
+        with data_out_path.open("w") as f:
+            json.dump(all_data, f)
+        print(f"Wrote data to {data_out_path}")
+
     return out_path
 
 

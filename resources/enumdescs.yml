@@ -565,3 +565,69 @@
     &#x200B;        | R0                      | R1                   | R2
     --------------- | ----------------------- | -------------------- | ------------
     reward handler  | speed-bonus             | speed-bonus          | speed-bonus
+- class_name: training.parallel.ParallelConfig
+  value: q-low-0
+  desc: |
+    &#x200B;        | L0    | L1      
+    --------------- | ----- | ---          
+    learning rate   | 0.001  | 0.0001       
+
+    &#x200B; | E0     | E1     
+    -------- | ------ | ----          
+    epsilon  | 0.001  | 0.0001
+
+    &#x200B; | D0      
+    -------- | -----       
+    discount | 0.3  
+
+    &#x200B; | M0          
+    -------- | ------------ 
+    mapping  | non-linear-3
+
+    &#x200B;        | R0                      | R1                   | R2
+    --------------- | ----------------------- | -------------------- | ------------
+    reward handler  | speed-bonus             | speed-bonus          | speed-bonus
+- class_name: training.parallel.ParallelConfig
+  value: q-low-1
+  desc: |
+    &#x200B;        | L0   | L1    | L2      
+    --------------- | ---- | ----- | ---         
+    learning rate   | 0.01 | 0.005 | 0.001      
+
+    &#x200B; | E0     | E1    | E2   
+    -------- | ------ | ----- | ---        
+    epsilon  | 0.01   | 0.005 | 0.001
+
+    &#x200B; | D0  | D1  | D2  | D3  | D4  | D5  | D6  | D7  | D8  | D9      
+    -------- | --- | --- | --- | --- | --- | --- | --- | --- | --- | ---     
+    discount | 0.3 | 0.3 | 0.3 | 0.3 | 0.3 | 0.3 | 0.3 | 0.3 | 0.3 | 0.3  
+
+    &#x200B; | M0          
+    -------- | ------------ 
+    mapping  | non-linear-3
+
+    &#x200B;        | R0          
+    --------------- | ----------- 
+    reward handler  | speed-bonus 
+- class_name: training.parallel.ParallelConfig
+  value: q-low-2
+  desc: |
+    &#x200B;        | L0   | L1    | L2      
+    --------------- | ---- | ----- | ---         
+    learning rate   | 0.01 | 0.005 | 0.001      
+
+    &#x200B; | E0     | E1    | E2   
+    -------- | ------ | ----- | ---        
+    epsilon  | 0.01   | 0.005 | 0.001
+
+    &#x200B; | D0  | D1  | D2  | D3  | D4  | D5  | D6  | D7  | D8       
+    -------- | --- | --- | --- | --- | --- | --- | --- | --- | ---      
+    discount | 0.3 | 0.3 | 0.3 | 0.5 | 0.5 | 0.5 | 0.8 | 0.8 | 0.8    
+
+    &#x200B; | M0          
+    -------- | ------------ 
+    mapping  | non-linear-3
+
+    &#x200B;        | R0          
+    --------------- | ----------- 
+    reward handler  | speed-bonus 

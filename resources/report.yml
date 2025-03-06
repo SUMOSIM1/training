@@ -261,3 +261,35 @@ methods:
       and higher values.
 
       epoch count: 10k
+  - prefix: QLOW00
+    title: Very low values for L and E test
+    enumdescs:
+      - training.parallel.ParallelConfig.q-low-0
+    description: |
+      Problem QRW7: Results still too unstable. 
+      
+      Goal: Find better values for L and E based on the results of QRW07
+  - prefix: QLOW03
+    title: Very low values for L and E 30k epochs
+    enumdescs:
+      - training.parallel.ParallelConfig.q-low-0
+    description: |
+      Problem QRW7: Results still too unstable. 
+      
+      Goal: Find better values for L and E based on the results of QRW07
+
+  - prefix: QLOW04
+    title: Very low values for L, E 1k epochs
+    enumdescs:
+      - training.parallel.ParallelConfig.q-low-1
+    description: |
+      Problem QLOW03: Results do not change
+      
+      Goal: Find better values for L and E based on the results of QLOW03
+  - prefix: QLOW05
+    title: Very low values for L E wit D 1k epochs
+    enumdescs:
+      - training.parallel.ParallelConfig.q-low-2
+    description: |
+      Goal: Find better values for D based on the results of QLOW04
+

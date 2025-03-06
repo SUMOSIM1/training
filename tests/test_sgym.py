@@ -16,6 +16,7 @@ _config_a = sgym.SEnvConfig(
     wheel_speed_steps=10,
     max_view_distance=200.0,
     view_distance_steps=20,
+    opponent_see_steps=4,
     max_simulation_steps=1000,
 )
 

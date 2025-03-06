@@ -1,5 +1,3 @@
-### ben
-
 sumot parallel \
 --db-host ben.local --record --keep-container --max-parallel 15 \
 --epoch-count 20000 \
@@ -109,8 +107,19 @@ sumot report \
 -d $HOME/tmp/sumosim/results/results-2025-02-QMAP08 \
 -o $HOME/tmp/sumosim/reports/r11
 
-sumot report -d ~/tmp/sumosim/results -o ~/tmp/sumosim/reports/rw03
+sumot report -d ~/tmp/sumosim/results -o ~/tmp/sumosim/reports/r15
 
 
 rsync -arv . root@entelijan.net:/root/app/hp-wolfi-kube/pages/sumosim-rl/reports
+
+sumot parallel \
+--db-host ben.local --record --keep-container --max-parallel 15 \
+--epoch-count 1000 \
+--name QLOW04 \
+--out-dir ~/tmp/sumosim/results/results-2025-03-QLOW04 \
+--parallel-config q-low-1
+
+docker buildx build -t sumot .
+
+docker container ls -a -f name=sumo-train -q | xargs docker container rm -f
 
