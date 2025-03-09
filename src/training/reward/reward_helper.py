@@ -49,6 +49,12 @@ class RobotPushEvents(Enum):
     NONE = "none"
 
 
+class RobotSeeEvents(Enum):
+    FRONT = "front"
+    SIDE = "side"
+    NONE = "none"
+
+
 def intervals_from_threshold(
     values1: list[float], threshold: float, end_len: int
 ) -> CollisionIntervals:
