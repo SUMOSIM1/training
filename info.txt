@@ -75,6 +75,7 @@ docker container ls -a -f name=sumo-train -q | xargs docker container rm -f
 ### WORK
 
 docker buildx build --build-arg DOCKERREG=dockerregistry.seu.test.sozvers.at/ -t sumot .
+docker buildx build -t sumot .
 
 sumot parallel \
 --db-host 192.168.0.171 --record --keep-container --max-parallel 25 \
@@ -123,3 +124,12 @@ docker buildx build -t sumot .
 
 docker container ls -a -f name=sumo-train -q | xargs docker container rm -f
 
+
+sumot parallel --db-host ben.local --record --keep-container --max-parallel 15 \
+  --epoch-count 1000 --name QSEE02 \
+  --out-dir ~/tmp/sumosim/results/results-2025-02-QSEE02 \
+  --parallel-config q-see-1
+
+sumot report \
+-d $HOME/tmp/sumosim/results/results-2025-02-QSEE02  \
+-o $HOME/tmp/sumosim/reports/r10

@@ -293,3 +293,36 @@ methods:
     description: |
       Goal: Find better values for D based on the results of QLOW04
 
+  - prefix: QSEE00
+    title: Zero reward for 'seeing' as a baseline 1k epochs
+    enumdescs:
+      - training.parallel.ParallelConfig.q-see-0
+    description: |
+      Goal: Create a baseline for cross validation of see rewards
+      Based on the values from QRW07
+  - prefix: QSEE02
+    title: Can see. 1k epochs
+    enumdescs:
+      - training.parallel.ParallelConfig.q-see-1
+    description: |
+      First usge of the 'can-see' reward handler      
+  - prefix: QSEE03
+    title: Can see. 5k epochs
+    enumdescs:
+      - training.parallel.ParallelConfig.q-see-1
+    description: |
+      Uasge of the 'can-see' reward handler
+  - prefix: QSEE06
+    title: Can see. 20k epochs
+    enumdescs:
+      - training.parallel.ParallelConfig.q-see-1
+    description: |
+      Uasge of the 'can-see' reward handler with 20k epochs
+  - prefix: QSEE07
+    title: Can see. 10k epochs small E
+    enumdescs:
+      - training.parallel.ParallelConfig.q-see-2
+    description: |
+      Uasge of the 'can-see' reward handler with 20k epochs.  
+      Small epsilon
+                                                            

@@ -11,10 +11,10 @@ import training.simrunner as sr
 import training.simrunner_tournament as srt
 import training.util
 import training.tryout as to
-import training.explore.analysis as an
-import training.explore.export as exp
+import training.explore.analysis as _analysis
+import training.explore.export as _export
 import training.explore.report as _report
-import training.parallel as prl
+import training.parallel as _parallel
 
 app = typer.Typer(pretty_exceptions_enable=False, add_completion=False)
 
@@ -214,7 +214,7 @@ def qtrain(
 def qconfig(
     name: Annotated[str, typer.Option("--name", help="Name of the run")],
     parallel_config: Annotated[
-        prl.ParallelConfig,
+        _parallel.ParallelConfig,
         typer.Option(
             "--parallel-config",
             help="Parallel configuration",
@@ -291,7 +291,7 @@ def qconfig(
 def parallel(
     name: Annotated[str, typer.Option("--name", "-n", help="Name of the run")],
     parallel_config: Annotated[
-        prl.ParallelConfig,
+        _parallel.ParallelConfig,
         typer.Option(
             "--parallel-config",
             help="Parallel configuration",
@@ -346,7 +346,7 @@ def parallel(
         typer.Option("--out-dir", "-o", help="Output directory. Must be absolute"),
     ] = "/tmp",
 ):
-    prl.parallel_main(
+    _parallel.parallel_main(
         name=name,
         parallel_config=parallel_config,
         max_parallel=max_parallel,
@@ -377,31 +377,14 @@ def db(
 @app.command(help="Various Analyses")
 def analysis(
     analysis_name: Annotated[
-        an.AnalysisName,
+        _analysis.AnalysisName,
         typer.Option("--analysis", "-a", help="Name of the analysis to be processed"),
-    ] = an.AnalysisName.ADJUST_REWARD,
+    ] = _analysis.AnalysisName.ADJUST_REWARD,
+    out_dir: Annotated[
+        Path, typer.Option("--out-dir", "-o", help="Output directory")
+    ] = Path.home() / "tmp" / "sumosim" / "analysis",
 ):
-    an.analysis_main(analysis_name)
-
-
-@app.command(help="Reports for results")
-def analysis_report(
-    base_dir: Annotated[
-        str,
-        typer.Option("--base-dir", "-d", help="Base directory. Must be absolute"),
-    ],
-    prefix: Annotated[
-        str,
-        typer.Option("--prefix", "-p", help="Prefix for directories to be analysed"),
-    ],
-    analysis_report_name: Annotated[
-        an.AnalysisReportName,
-        typer.Option(
-            "--analysis-report", "-a", help="Name of the analysis to be processed"
-        ),
-    ] = "videos",
-):
-    an.analysis_report_main(analysis_report_name, base_dir, prefix)
+    _analysis.analysis_main(analysis_name, out_dir)
 
 
 @app.command(help="Export simulations from the local database to a file")
@@ -422,7 +405,7 @@ def export(
     ],
 ):
     multi_line = description.replace("\\n", "\n")
-    exp.export_simulations(name, multi_line)
+    _export.export_simulations(name, multi_line)
 
 
 @app.command(help="List of learning sessions in parallel")
