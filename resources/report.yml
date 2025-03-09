@@ -293,3 +293,12 @@ methods:
     description: |
       Goal: Find better values for D based on the results of QLOW04
 
+  - prefix: QSEE00
+    title: Zero reward for 'seeing' as a baseline 1k epochs
+    enumdescs:
+      - training.parallel.ParallelConfig.q-see-0
+    description: |
+      Goal: Create a baseline for cross validation of see rewards
+      Based on the values from QRW07
+      
+

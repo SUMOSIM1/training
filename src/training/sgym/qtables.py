@@ -2,7 +2,6 @@
 Functions for creating, dump/load, manipulate q-tables
 """
 
-
 import training.sgym.core as sgym
 
 

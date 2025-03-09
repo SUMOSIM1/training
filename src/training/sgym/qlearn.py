@@ -424,7 +424,7 @@ def plot_q_values(
     name: str,
     work_dir: Path,
     q_learn_env_config: sgym.SEnvConfig,
-    report_q_table: bool = False
+    report_q_table: bool = False,
 ) -> Path:
     matplotlib.use("agg")
 

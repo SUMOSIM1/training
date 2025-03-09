@@ -41,6 +41,8 @@ class AbstractEventMapperPoperties:
     loose_forced_penalty: float
     push_reward: float
     is_pushed_penalty: float
+    see_front_reward: float = 0.001
+    see_side_reward: float = 0.0005
 
 
 class AbstractEventMapper(EventMapper):
