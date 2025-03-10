@@ -4,7 +4,8 @@ from dataclasses import dataclass
 
 import training.consts as consts
 import training.reward.reward_helper as rh
-import training.simrunner as sr
+import training.reward.reward_core as rhc
+import training.simrunner_core as src
 
 
 @dataclass
@@ -128,12 +129,12 @@ class AbstractEventMapper(EventMapper):
                 raise ValueError(f"Unknown RobotEventsResult:{events}")
 
 
-class ContinuousRewardHandler(sr.RewardHandler):
+class ContinuousRewardHandler(rhc.RewardHandler):
     @abstractmethod
     def event_mapper(self) -> EventMapper:
         pass
 
-    def calculate_reward(self, state: sr.SimulationState) -> tuple[float, float]:
+    def calculate_reward(self, state: src.SimulationState) -> tuple[float, float]:
         r1_events, r2_events = continuous_events_from_simulation_state(state)
         reward1 = self.event_mapper().map_robot_continuous_events(r1_events)
         reward2 = self.event_mapper().map_robot_continuous_events(r2_events)
@@ -141,7 +142,7 @@ class ContinuousRewardHandler(sr.RewardHandler):
 
     def calculate_end_reward(
         self,
-        states: list[sr.SimulationState],
+        states: list[src.SimulationState],
         properties1: list[list],
         properties2: list[list],
         max_simulation_steps: int,
@@ -176,7 +177,7 @@ class ConsiderAllRewardHandler(ContinuousRewardHandler):
         return self.em
 
     def name(self) -> str:
-        return sr.RewardHandlerName.CONTINUOUS_CONSIDER_ALL.value
+        return rhc.RewardHandlerName.CONTINUOUS_CONSIDER_ALL.value
 
 
 class ReducedPushRewardHandler(ContinuousRewardHandler):
@@ -201,7 +202,7 @@ class ReducedPushRewardHandler(ContinuousRewardHandler):
         return self.em
 
     def name(self) -> str:
-        return sr.RewardHandlerName.REDUCED_PUSH_REWARD.value
+        return rhc.RewardHandlerName.REDUCED_PUSH_REWARD.value
 
 
 class SpeedBonusRewardHandler(ContinuousRewardHandler):
@@ -226,11 +227,11 @@ class SpeedBonusRewardHandler(ContinuousRewardHandler):
         return self.em
 
     def name(self) -> str:
-        return sr.RewardHandlerName.SPEED_BONUS.value
+        return rhc.RewardHandlerName.SPEED_BONUS.value
 
 
 def continuous_end_events_from_simulation_states(
-    states: list[sr.SimulationState],
+    states: list[src.SimulationState],
     properties1: list[list[(str, str)]],
     properties2: list[list[(str, str)]],
     simulation_max_steps: int,
@@ -266,7 +267,7 @@ def continuous_end_events_from_simulation_states(
 
 
 def continuous_events_from_simulation_state(
-    state: sr.SimulationState,
+    state: src.SimulationState,
 ) -> tuple[RobotContinuousEvents, RobotContinuousEvents]:
     def push_events(
         dist: float, _can_see: bool, other_can_see: bool

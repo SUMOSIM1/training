@@ -12,7 +12,8 @@ from dataclasses import dataclass
 
 import training.consts as consts
 import training.reward.reward_helper as rh
-import training.simrunner as sr
+import training.reward.reward_core as rhc
+import training.simrunner_core as src
 
 
 @dataclass
@@ -164,17 +165,17 @@ def is_pushed_penalty(events: RobotEndEvents) -> float:
     return events.is_pushed_collision_count * -2.0
 
 
-class EndRewardHandler(sr.RewardHandler):
+class EndRewardHandler(rhc.RewardHandler):
     @abstractmethod
     def event_mapper(self) -> EventMapper:
         pass
 
-    def calculate_reward(self, state: sr.SimulationState) -> tuple[float, float]:
+    def calculate_reward(self, state: src.SimulationState) -> tuple[float, float]:
         return 0.0, 0.0
 
     def calculate_end_reward(
         self,
-        states: list[sr.SimulationState],
+        states: list[src.SimulationState],
         properties1: list[list],
         properties2: list[list],
         max_simulation_steps: int,
@@ -192,14 +193,14 @@ class EndConsiderAllRewardHandler(EndRewardHandler):
         self.em: EventMapper = ConsiderAllEventMapper()
 
     def name(self) -> str:
-        return sr.RewardHandlerName.END_CONSIDER_ALL.value
+        return rhc.RewardHandlerName.END_CONSIDER_ALL.value
 
     def event_mapper(self) -> EventMapper:
         return self.em
 
 
 def end_events_from_simulation_states(
-    states: list[sr.SimulationState],
+    states: list[src.SimulationState],
     properties1: list[list[(str, str)]],
     properties2: list[list[(str, str)]],
     max_simulation_steps: int,

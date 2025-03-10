@@ -6,6 +6,7 @@ import gymnasium as gym
 import numpy as np
 
 import training.simrunner as sr
+import training.reward.reward_core as rhc
 
 
 @dataclass(frozen=True)
@@ -48,7 +49,7 @@ class SEnv(gym.Env):
         db_host: str,
         db_port: int,
         opponent: sr.Controller,
-        reward_handler: sr.RewardHandler,
+        reward_handler: rhc.RewardHandler,
     ):
         self.senv_config = senv_config
         self.senv_mapping = senv_mapping

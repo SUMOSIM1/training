@@ -1,11 +1,13 @@
 from dataclasses import dataclass
-import math
 from enum import Enum
+
+
+import math
 import pprint as pp
 import numpy as np
 
-import training.simrunner as sr
 import training.vector_helper as vh
+import training.simrunner_core as src
 
 
 @dataclass(frozen=True)
@@ -121,7 +123,7 @@ def collisions_count(
 
 
 def see_intervals(
-    states: list[sr.SimulationState],
+    states: list[src.SimulationState],
 ) -> tuple[list[Interval], list[Interval]]:
     r1_see = [bool(can_see(s.robot1, s.robot2)) for s in states]
     r2_see = [bool(can_see(s.robot2, s.robot1)) for s in states]
@@ -135,7 +137,7 @@ def see_intervals(
     )
 
 
-def can_see(robot1: sr.PosDir, robot2: sr.PosDir) -> float | None:
+def can_see(robot1: src.PosDir, robot2: src.PosDir) -> float | None:
     def are_clockwise(v1, v2):
         return (-(v1[0] * v2[1]) + (v1[1] * v2[0])) < 0.0
 
@@ -190,7 +192,7 @@ def end_push_events(
     return RobotPushEvents.NONE, RobotPushEvents.NONE
 
 
-def dist(state: sr.SimulationState) -> float:
+def dist(state: src.SimulationState) -> float:
     r1 = state.robot1
     r2 = state.robot2
     dx = r1.xpos - r2.xpos

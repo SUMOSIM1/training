@@ -3,6 +3,7 @@ from pathlib import Path
 import typer
 from typing_extensions import Annotated
 
+import training.reward.reward_core as rhc
 import training.sgym.qlearn as sgym_qlearn
 import training.sgym.sample as sgym_sample
 import training.simdb
@@ -49,9 +50,9 @@ def tournament(
         typer.Option("--controllers", "-c", help="Name of controllers"),
     ] = (sr.ControllerName.TUMBLR, sr.ControllerName.BLIND_TUMBLR),
     reward_handler: Annotated[
-        sr.RewardHandlerName,
+        rhc.RewardHandlerName,
         typer.Option("--reward-handler", help="Name of the reward handler"),
-    ] = sr.RewardHandlerName.CONTINUOUS_CONSIDER_ALL,
+    ] = rhc.RewardHandlerName.CONTINUOUS_CONSIDER_ALL,
     combination_type: Annotated[
         srt.CombinationType,
         typer.Option(
@@ -133,9 +134,9 @@ def sample(
         typer.Option("--db-port", help="The port on which the simulation is listening"),
     ] = 27017,
     reward_handler: Annotated[
-        sr.RewardHandlerName,
+        rhc.RewardHandlerName,
         typer.Option("--reward-handler", help="Name of the reward handler"),
-    ] = sr.RewardHandlerName.CONTINUOUS_CONSIDER_ALL,
+    ] = rhc.RewardHandlerName.CONTINUOUS_CONSIDER_ALL,
     opponent: Annotated[
         sr.ControllerName,
         typer.Option("--opponent", help="Name of the opponent controllers"),
