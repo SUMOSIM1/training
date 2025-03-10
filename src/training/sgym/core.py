@@ -1,11 +1,11 @@
 from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any
 
 import gymnasium as gym
 import numpy as np
 
 import training.simrunner as sr
+import training.reward.reward_core as rhc
 
 
 @dataclass(frozen=True)
@@ -16,7 +16,7 @@ class SEnvConfig:
     view_distance_steps: int
     max_simulation_steps: int
     opponent_see_steps: int
-    dtype: np.generic = np.float32
+    dtype: np.floating = np.float32
 
 
 @dataclass(frozen=True)
@@ -48,7 +48,7 @@ class SEnv(gym.Env):
         db_host: str,
         db_port: int,
         opponent: sr.Controller,
-        reward_handler: sr.RewardHandler,
+        reward_handler: rhc.RewardHandler,
     ):
         self.senv_config = senv_config
         self.senv_mapping = senv_mapping
@@ -71,8 +71,8 @@ class SEnv(gym.Env):
         sim_info: sr.SimInfo | None,
         sim_name: str,
         seed: int | None = None,
-        options: dict[str, Any] | None = None,
-    ) -> tuple[dict[str, Any], dict[str, Any]]:
+        options: dict[str, any] | None = None,
+    ) -> tuple[dict[str, any], dict[str, any]]:
         super().reset(seed=seed)
         self.sim_info = sim_info
         self.sim_name = sim_name
@@ -93,6 +93,8 @@ class SEnv(gym.Env):
                 raise RuntimeError(f"Error on reset: '{msg}'")
             case sr.FinishedResponse(msg):
                 raise RuntimeError(f"Error on reset: Finished immediately '{msg}'")
+            case _else:
+                raise RuntimeError(f"Illegal response '{response}'")
 
     def step(self, action):
         sensor2 = self.sim_action_response.sensor2

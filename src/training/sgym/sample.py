@@ -8,6 +8,7 @@ import numpy as np
 import training.helper as helper
 import training.sgym.core as sgym
 import training.simrunner as sr
+import training.reward.reward_core as rhc
 
 
 def cont_act_space(config: sgym.SEnvConfig) -> gym.Space:
@@ -73,7 +74,7 @@ def sample(
     sim_host: str,
     sim_port: int,
     opponent_name: sr.ControllerName,
-    reward_handler_name: sr.RewardHandlerName,
+    reward_handler_name: rhc.RewardHandlerName,
 ):
     reward_handler = sr.RewardHandlerProvider.get(reward_handler_name)
     print(

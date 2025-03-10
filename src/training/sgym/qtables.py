@@ -2,7 +2,6 @@
 Functions for creating, dump/load, manipulate q-tables
 """
 
-
 import training.sgym.core as sgym
 
 
@@ -27,6 +26,6 @@ def to_key(strval: str) -> tuple[int, int, int, int]:
 
 def to_json(q_table: dict, q_table_keys: list[tuple]) -> dict:
     json_dict = {}
-    for k in q_table_keys:
+    for k, _ in q_table_keys:
         json_dict[from_key(k)] = q_table[k]
     return json_dict

@@ -8,11 +8,9 @@ import pytest
 
 import training.reward.reward as rw
 import training.reward.reward_helper as rh
-import training.reward.reward_helper as rwh
-import training.reward.reward_util as rwu
-import training.simrunner as sr
+import training.reward.reward_core as rwc
+import training.simrunner_core as src
 import training.vector_helper as vh
-from training.simrunner import PosDir, RewardHandler, SimulationState
 
 can_see_testdata = [
     ("can_see_T3_A1_0", (0.00, 0.00, 0.00), (250.00, 75.00, 4.70), None),
@@ -138,8 +136,8 @@ def fmt(value: float | None) -> str:
 
 @pytest.mark.parametrize("desc, r1, r2, expected", can_see_testdata)
 def test_can_see(desc: str, r1: Tuple, r2: Tuple, expected: float | None):
-    rs1 = sr.PosDir(xpos=r1[0], ypos=r1[1], direction=r1[2])
-    rs2 = sr.PosDir(xpos=r2[0], ypos=r2[1], direction=r2[2])
+    rs1 = src.PosDir(xpos=r1[0], ypos=r1[1], direction=r1[2])
+    rs2 = src.PosDir(xpos=r2[0], ypos=r2[1], direction=r2[2])
     assert fmt(rh.can_see(rs1, rs2)) == fmt(expected)
 
 
@@ -182,340 +180,260 @@ def test_validate_properties(
 robot_events_from_simulation_states_testdata = [
     (
         "wall-rw-6b1d59-00_stay-in-field_stay-in-field.json",
-        rw.RobotEndEvents(
+        rw.RobotContinuousEndEvents(
             result=rh.RobotEventsResult.DRAW,
-            push_collision_count=1,
-            is_pushed_collision_count=1,
             end=rh.RobotPushEvents.NONE,
             steps_count_relative=1.0,
         ),
-        rw.RobotEndEvents(
+        rw.RobotContinuousEndEvents(
             result=rh.RobotEventsResult.DRAW,
-            push_collision_count=2,
-            is_pushed_collision_count=0,
             end=rh.RobotPushEvents.NONE,
             steps_count_relative=1.0,
         ),
     ),
     (
         "wall-rw-6b1d59-01_tumblr_stay-in-field.json",
-        rw.RobotEndEvents(
+        rw.RobotContinuousEndEvents(
             result=rh.RobotEventsResult.WINNER,
-            push_collision_count=0,
-            is_pushed_collision_count=1,
             end=rh.RobotPushEvents.PUSH,
             steps_count_relative=0.764,
         ),
-        rw.RobotEndEvents(
+        rw.RobotContinuousEndEvents(
             result=rh.RobotEventsResult.LOOSER,
-            push_collision_count=0,
-            is_pushed_collision_count=1,
             end=rh.RobotPushEvents.IS_PUSHED,
             steps_count_relative=0.764,
         ),
     ),
     (
         "wall-rw-6b1d59-02_stay-in-field_stay-in-field.json",
-        rw.RobotEndEvents(
+        rw.RobotContinuousEndEvents(
             result=rh.RobotEventsResult.DRAW,
-            push_collision_count=3,
-            is_pushed_collision_count=0,
             end=rh.RobotPushEvents.NONE,
             steps_count_relative=1.0,
         ),
-        rw.RobotEndEvents(
+        rw.RobotContinuousEndEvents(
             result=rh.RobotEventsResult.DRAW,
-            push_collision_count=2,
-            is_pushed_collision_count=1,
             end=rh.RobotPushEvents.NONE,
             steps_count_relative=1.0,
         ),
     ),
     (
         "wall-rw-6b1d59-03_stay-in-field_stay-in-field.json",
-        rw.RobotEndEvents(
+        rw.RobotContinuousEndEvents(
             result=rh.RobotEventsResult.DRAW,
-            push_collision_count=1,
-            is_pushed_collision_count=0,
             end=rh.RobotPushEvents.NONE,
             steps_count_relative=1.0,
         ),
-        rw.RobotEndEvents(
+        rw.RobotContinuousEndEvents(
             result=rh.RobotEventsResult.DRAW,
-            push_collision_count=0,
-            is_pushed_collision_count=1,
             end=rh.RobotPushEvents.NONE,
             steps_count_relative=1.0,
         ),
     ),
     (
         "wall-rw-6b1d59-04_tumblr_stay-in-field.json",
-        rw.RobotEndEvents(
+        rw.RobotContinuousEndEvents(
             result=rh.RobotEventsResult.DRAW,
-            push_collision_count=1,
-            is_pushed_collision_count=0,
             end=rh.RobotPushEvents.NONE,
             steps_count_relative=1.0,
         ),
-        rw.RobotEndEvents(
+        rw.RobotContinuousEndEvents(
             result=rh.RobotEventsResult.DRAW,
-            push_collision_count=0,
-            is_pushed_collision_count=1,
             end=rh.RobotPushEvents.NONE,
             steps_count_relative=1.0,
         ),
     ),
     (
         "wall-rw-6b1d59-05_stay-in-field_blind-tumblr.json",
-        rw.RobotEndEvents(
+        rw.RobotContinuousEndEvents(
             result=rh.RobotEventsResult.DRAW,
-            push_collision_count=3,
-            is_pushed_collision_count=2,
             end=rh.RobotPushEvents.NONE,
             steps_count_relative=1.0,
         ),
-        rw.RobotEndEvents(
+        rw.RobotContinuousEndEvents(
             result=rh.RobotEventsResult.DRAW,
-            push_collision_count=3,
-            is_pushed_collision_count=2,
             end=rh.RobotPushEvents.NONE,
             steps_count_relative=1.0,
         ),
     ),
     (
         "wall-rw-6b1d59-06_tumblr_blind-tumblr.json",
-        rw.RobotEndEvents(
+        rw.RobotContinuousEndEvents(
             result=rh.RobotEventsResult.WINNER,
-            push_collision_count=0,
-            is_pushed_collision_count=0,
             end=rh.RobotPushEvents.NONE,
             steps_count_relative=0.35,
         ),
-        rw.RobotEndEvents(
+        rw.RobotContinuousEndEvents(
             result=rh.RobotEventsResult.LOOSER,
-            push_collision_count=0,
-            is_pushed_collision_count=0,
             end=rh.RobotPushEvents.NONE,
             steps_count_relative=0.35,
         ),
     ),
     (
         "wall-rw-6b1d59-07_stay-in-field_stay-in-field.json",
-        rw.RobotEndEvents(
+        rw.RobotContinuousEndEvents(
             result=rh.RobotEventsResult.DRAW,
-            push_collision_count=0,
-            is_pushed_collision_count=2,
             end=rh.RobotPushEvents.NONE,
             steps_count_relative=1.0,
         ),
-        rw.RobotEndEvents(
+        rw.RobotContinuousEndEvents(
             result=rh.RobotEventsResult.DRAW,
-            push_collision_count=1,
-            is_pushed_collision_count=1,
             end=rh.RobotPushEvents.NONE,
             steps_count_relative=1.0,
         ),
     ),
     (
         "wall-rw-6b1d59-08_stay-in-field_stay-in-field.json",
-        rw.RobotEndEvents(
+        rw.RobotContinuousEndEvents(
             result=rh.RobotEventsResult.DRAW,
-            push_collision_count=0,
-            is_pushed_collision_count=0,
             end=rh.RobotPushEvents.NONE,
             steps_count_relative=1.0,
         ),
-        rw.RobotEndEvents(
+        rw.RobotContinuousEndEvents(
             result=rh.RobotEventsResult.DRAW,
-            push_collision_count=0,
-            is_pushed_collision_count=0,
             end=rh.RobotPushEvents.NONE,
             steps_count_relative=1.0,
         ),
     ),
     (
         "wall-rw-6b1d59-09_stay-in-field_stay-in-field.json",
-        rw.RobotEndEvents(
+        rw.RobotContinuousEndEvents(
             result=rh.RobotEventsResult.DRAW,
-            push_collision_count=1,
-            is_pushed_collision_count=0,
             end=rh.RobotPushEvents.NONE,
             steps_count_relative=1.0,
         ),
-        rw.RobotEndEvents(
+        rw.RobotContinuousEndEvents(
             result=rh.RobotEventsResult.DRAW,
-            push_collision_count=1,
-            is_pushed_collision_count=0,
             end=rh.RobotPushEvents.NONE,
             steps_count_relative=1.0,
         ),
     ),
     (
         "wall-rw-6b1d59-10_tumblr_blind-tumblr.json",
-        rw.RobotEndEvents(
+        rw.RobotContinuousEndEvents(
             result=rh.RobotEventsResult.WINNER,
-            push_collision_count=2,
-            is_pushed_collision_count=1,
             end=rh.RobotPushEvents.NONE,
             steps_count_relative=0.474,
         ),
-        rw.RobotEndEvents(
+        rw.RobotContinuousEndEvents(
             result=rh.RobotEventsResult.LOOSER,
-            push_collision_count=2,
-            is_pushed_collision_count=1,
             end=rh.RobotPushEvents.NONE,
             steps_count_relative=0.474,
         ),
     ),
     (
         "wall-rw-6b1d59-11_tumblr_stay-in-field.json",
-        rw.RobotEndEvents(
+        rw.RobotContinuousEndEvents(
             result=rh.RobotEventsResult.WINNER,
-            push_collision_count=1,
-            is_pushed_collision_count=1,
             end=rh.RobotPushEvents.PUSH,
             steps_count_relative=0.924,
         ),
-        rw.RobotEndEvents(
+        rw.RobotContinuousEndEvents(
             result=rh.RobotEventsResult.LOOSER,
-            push_collision_count=0,
-            is_pushed_collision_count=2,
             end=rh.RobotPushEvents.IS_PUSHED,
             steps_count_relative=0.924,
         ),
     ),
     (
         "wall-rw-6b1d59-12_stay-in-field_blind-tumblr.json",
-        rw.RobotEndEvents(
+        rw.RobotContinuousEndEvents(
             result=rh.RobotEventsResult.WINNER,
-            push_collision_count=1,
-            is_pushed_collision_count=1,
             end=rh.RobotPushEvents.NONE,
             steps_count_relative=0.761,
         ),
-        rw.RobotEndEvents(
+        rw.RobotContinuousEndEvents(
             result=rh.RobotEventsResult.LOOSER,
-            push_collision_count=2,
-            is_pushed_collision_count=0,
             end=rh.RobotPushEvents.NONE,
             steps_count_relative=0.761,
         ),
     ),
     (
         "wall-rw-6b1d59-13_tumblr_stay-in-field.json",
-        rw.RobotEndEvents(
+        rw.RobotContinuousEndEvents(
             result=rh.RobotEventsResult.WINNER,
-            push_collision_count=2,
-            is_pushed_collision_count=0,
             end=rh.RobotPushEvents.PUSH,
             steps_count_relative=0.725,
         ),
-        rw.RobotEndEvents(
+        rw.RobotContinuousEndEvents(
             result=rh.RobotEventsResult.LOOSER,
-            push_collision_count=1,
-            is_pushed_collision_count=1,
             end=rh.RobotPushEvents.IS_PUSHED,
             steps_count_relative=0.725,
         ),
     ),
     (
         "wall-rw-6b1d59-14_stay-in-field_stay-in-field.json",
-        rw.RobotEndEvents(
+        rw.RobotContinuousEndEvents(
             result=rh.RobotEventsResult.DRAW,
-            push_collision_count=1,
-            is_pushed_collision_count=0,
             end=rh.RobotPushEvents.NONE,
             steps_count_relative=1.0,
         ),
-        rw.RobotEndEvents(
+        rw.RobotContinuousEndEvents(
             result=rh.RobotEventsResult.DRAW,
-            push_collision_count=1,
-            is_pushed_collision_count=0,
             end=rh.RobotPushEvents.NONE,
             steps_count_relative=1.0,
         ),
     ),
     (
         "wall-rw-6b1d59-15_tumblr_blind-tumblr.json",
-        rw.RobotEndEvents(
+        rw.RobotContinuousEndEvents(
             result=rh.RobotEventsResult.WINNER,
-            push_collision_count=0,
-            is_pushed_collision_count=0,
             end=rh.RobotPushEvents.PUSH,
             steps_count_relative=0.411,
         ),
-        rw.RobotEndEvents(
+        rw.RobotContinuousEndEvents(
             result=rh.RobotEventsResult.LOOSER,
-            push_collision_count=0,
-            is_pushed_collision_count=0,
             end=rh.RobotPushEvents.IS_PUSHED,
             steps_count_relative=0.411,
         ),
     ),
     (
         "wall-rw-6b1d59-16_stay-in-field_blind-tumblr.json",
-        rw.RobotEndEvents(
+        rw.RobotContinuousEndEvents(
             result=rh.RobotEventsResult.WINNER,
-            push_collision_count=0,
-            is_pushed_collision_count=0,
             end=rh.RobotPushEvents.NONE,
             steps_count_relative=0.716,
         ),
-        rw.RobotEndEvents(
+        rw.RobotContinuousEndEvents(
             result=rh.RobotEventsResult.LOOSER,
-            push_collision_count=0,
-            is_pushed_collision_count=0,
             end=rh.RobotPushEvents.NONE,
             steps_count_relative=0.716,
         ),
     ),
     (
         "wall-rw-6b1d59-17_tumblr_stay-in-field.json",
-        rw.RobotEndEvents(
+        rw.RobotContinuousEndEvents(
             result=rh.RobotEventsResult.WINNER,
-            push_collision_count=2,
-            is_pushed_collision_count=0,
             end=rh.RobotPushEvents.PUSH,
             steps_count_relative=0.599,
         ),
-        rw.RobotEndEvents(
+        rw.RobotContinuousEndEvents(
             result=rh.RobotEventsResult.LOOSER,
-            push_collision_count=1,
-            is_pushed_collision_count=1,
             end=rh.RobotPushEvents.IS_PUSHED,
             steps_count_relative=0.599,
         ),
     ),
     (
         "wall-rw-6b1d59-18_stay-in-field_blind-tumblr.json",
-        rw.RobotEndEvents(
+        rw.RobotContinuousEndEvents(
             result=rh.RobotEventsResult.WINNER,
-            push_collision_count=1,
-            is_pushed_collision_count=0,
             end=rh.RobotPushEvents.NONE,
             steps_count_relative=0.369,
         ),
-        rw.RobotEndEvents(
+        rw.RobotContinuousEndEvents(
             result=rh.RobotEventsResult.LOOSER,
-            push_collision_count=1,
-            is_pushed_collision_count=0,
             end=rh.RobotPushEvents.NONE,
             steps_count_relative=0.369,
         ),
     ),
     (
         "wall-rw-6b1d59-19_tumblr_stay-in-field.json",
-        rw.RobotEndEvents(
+        rw.RobotContinuousEndEvents(
             result=rh.RobotEventsResult.WINNER,
-            push_collision_count=0,
-            is_pushed_collision_count=1,
             end=rh.RobotPushEvents.PUSH,
             steps_count_relative=0.507,
         ),
-        rw.RobotEndEvents(
+        rw.RobotContinuousEndEvents(
             result=rh.RobotEventsResult.LOOSER,
-            push_collision_count=1,
-            is_pushed_collision_count=0,
             end=rh.RobotPushEvents.IS_PUSHED,
             steps_count_relative=0.507,
         ),
@@ -527,12 +445,14 @@ robot_events_from_simulation_states_testdata = [
     "file_name, expected1, expected2", robot_events_from_simulation_states_testdata
 )
 def test_robot_events_from_simulation_states(
-    file_name: str, expected1: rw.RobotEndEvents, expected2: rw.RobotEndEvents
+    file_name: str,
+    expected1: rw.RobotContinuousEndEvents,
+    expected2: rw.RobotContinuousEndEvents,
 ):
     base_dir = Path(__file__).parent / "data"
     file = base_dir / file_name
-    sim = rwu.read_sim_from_file(file)
-    result1, result2 = rw.end_events_from_simulation_states(
+    sim = rh.read_sim_from_file(file)
+    result1, result2 = rw.continuous_end_events_from_simulation_states(
         sim.states, sim.properties1, sim.properties2, 1000
     )
     assert result1 == expected1
@@ -540,36 +460,36 @@ def test_robot_events_from_simulation_states(
 
 
 overlap_Interval_testdata = [
-    (rwh.Interval(0, 10), rwh.Interval(20, 41), False),
-    (rwh.Interval(0, 21), rwh.Interval(20, 41), True),
-    (rwh.Interval(21, 22), rwh.Interval(20, 41), True),
-    (rwh.Interval(40, 42), rwh.Interval(20, 41), True),
-    (rwh.Interval(45, 52), rwh.Interval(20, 41), False),
+    (rh.Interval(0, 10), rh.Interval(20, 41), False),
+    (rh.Interval(0, 21), rh.Interval(20, 41), True),
+    (rh.Interval(21, 22), rh.Interval(20, 41), True),
+    (rh.Interval(40, 42), rh.Interval(20, 41), True),
+    (rh.Interval(45, 52), rh.Interval(20, 41), False),
 ]
 
 
 @pytest.mark.parametrize("i1, i2, expected", overlap_Interval_testdata)
-def test_overlap_interval(i1: rwh.Interval, i2: rwh.Interval, expected: bool):
-    rwh.validate_interval(i1)
-    rwh.validate_interval(i2)
-    result = rwh.overlapping(i1, i2)
+def test_overlap_interval(i1: rh.Interval, i2: rh.Interval, expected: bool):
+    rh.validate_interval(i1)
+    rh.validate_interval(i2)
+    result = rh.overlapping(i1, i2)
     assert result == expected
 
 
 validate_interval_testdata = [
-    (rwh.Interval(10, 20), True),
-    (rwh.Interval(21, 21), True),
-    (rwh.Interval(20, 10), False),
+    (rh.Interval(10, 20), True),
+    (rh.Interval(21, 21), True),
+    (rh.Interval(20, 10), False),
 ]
 
 
 @pytest.mark.parametrize("i, is_valid", validate_interval_testdata)
-def test_validate_interval(i: rwh.Interval, is_valid: bool):
+def test_validate_interval(i: rh.Interval, is_valid: bool):
     if is_valid:
-        rwh.validate_interval(i)
+        rh.validate_interval(i)
     else:
         with pytest.raises(ValueError):
-            rwh.validate_interval(i)
+            rh.validate_interval(i)
 
 
 winner_testdata = [
@@ -620,14 +540,14 @@ def test_consider_all_reward_handler_both_rotating(
         return math.pi * 2.0 * random.random()
 
     def random_dist_pos_dir(
-        origin: PosDir, xoff: float, yoff: float, direction: float
-    ) -> sr.PosDir:
-        return sr.PosDir(
+        origin: src.PosDir, xoff: float, yoff: float, direction: float
+    ) -> src.PosDir:
+        return src.PosDir(
             xpos=origin.xpos + xoff, ypos=origin.ypos + yoff, direction=direction
         )
 
-    rh: RewardHandler = sr.RewardHandlerProvider.get(
-        sr.RewardHandlerName.CONTINUOUS_CONSIDER_ALL
+    handler: rwc.RewardHandler = rwc.RewardHandlerProvider.get(
+        rwc.RewardHandlerName.CONTINUOUS_CONSIDER_ALL
     )
 
     for _j in range(10):
@@ -637,13 +557,13 @@ def test_consider_all_reward_handler_both_rotating(
         for w in [i * (math.pi / 4.0) for i in range(8)]:
             xpos = r()
             ypos = r()
-            pd1 = PosDir(xpos=xpos, ypos=ypos, direction=w)
+            pd1 = src.PosDir(xpos=xpos, ypos=ypos, direction=w)
             pd2 = random_dist_pos_dir(pd1, off[0], off[1], w)
-            state = SimulationState(
+            state = src.SimulationState(
                 robot1=pd1,
                 robot2=pd2,
             )
-            r1, r2 = rh.calculate_reward(state)
+            r1, r2 = handler.calculate_reward(state)
             rsum1 += r1
             rsum2 += r2
         cs = [rsum1 == r and rsum2 == r for r in rewards]
@@ -685,20 +605,20 @@ consider_all_reward_handler_one_rotating_testdata = [
 def test_consider_all_reward_handler_one_rotating(
     angle: int, distance: float, expected_reward1: float, expected_reward2: float
 ):
-    rh: RewardHandler = sr.RewardHandlerProvider.get(
-        sr.RewardHandlerName.CONTINUOUS_CONSIDER_ALL
+    reward_candler: rwc.RewardHandler = rwc.RewardHandlerProvider.get(
+        rwc.RewardHandlerName.CONTINUOUS_CONSIDER_ALL
     )
     off = vh.pol2cart(np.array([distance, math.pi / 2.0]))
     xpos = off[0]
     ypos = off[1]
-    pd1 = PosDir(xpos=xpos, ypos=ypos, direction=0.0)
+    pd1 = src.PosDir(xpos=xpos, ypos=ypos, direction=0.0)
     w = angle * (math.pi / 4.0)
-    pd2 = PosDir(0.0, 0.0, w)
-    state = SimulationState(
+    pd2 = src.PosDir(0.0, 0.0, w)
+    state = src.SimulationState(
         robot1=pd1,
         robot2=pd2,
     )
-    r1, r2 = rh.calculate_reward(state)
+    r1, r2 = reward_candler.calculate_reward(state)
     print(f"\n### {w:.2f} {r1:.2f} {r2:.2f} [{xpos:.2f}, {ypos:.2f}]")
     assert r1 == expected_reward1
     assert r2 == expected_reward2

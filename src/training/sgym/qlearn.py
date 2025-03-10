@@ -19,6 +19,7 @@ import training.simrunner as sr
 import training.parallel as parallel
 import training.sgym.sim_mapping as sm
 import training.sgym.qtables as qt
+import training.reward.reward_core as rhc
 
 
 @dataclass(frozen=True)
@@ -77,7 +78,7 @@ default_q_learn_config = QTrainConfig(
     discount_factor=0.8,
     mapping_name=sm.SEnvMappingName.NON_LINEAR_3.value,
     opponent_name=sr.ControllerName.STAND_STILL.value,
-    reward_handler_name=sr.RewardHandlerName.CONTINUOUS_CONSIDER_ALL.value,
+    reward_handler_name=rhc.RewardHandlerName.CONTINUOUS_CONSIDER_ALL.value,
 )
 
 
@@ -132,8 +133,8 @@ def q_train(
 ) -> int:
     print(f"--- q_train {name} {pp.pformat(q_train_config)}")
     senv_config: sgym.SEnvConfig = default_senv_config
-    reward_handler = sr.RewardHandlerProvider.get(
-        sr.RewardHandlerName(q_train_config.reward_handler_name)
+    reward_handler = rhc.RewardHandlerProvider.get(
+        rhc.RewardHandlerName(q_train_config.reward_handler_name)
     )
     results = []
     out_path = Path(out_dir)
@@ -163,7 +164,7 @@ def q_train(
     )
     agent = QAgent(
         env=env,
-        reward_handler=sr.RewardHandlerName(q_train_config.reward_handler_name),
+        reward_handler=rhc.RewardHandlerName(q_train_config.reward_handler_name),
         learning_rate=q_train_config.learning_rate,
         initial_epsilon=q_train_config.epsilon,
         epsilon_decay=0.0,
@@ -296,7 +297,7 @@ class QAgent:
     def __init__(
         self,
         env: gym.Env,
-        reward_handler: sr.RewardHandlerName,
+        reward_handler: rhc.RewardHandlerName,
         learning_rate: float,
         initial_epsilon: float,
         epsilon_decay: float,
@@ -351,7 +352,7 @@ class QAgent:
         """Updates the Q-value of an action."""
 
         match self.reward_handler:
-            case sr.RewardHandlerName.END_CONSIDER_ALL:
+            case rhc.RewardHandlerName.END_CONSIDER_ALL:
                 reward = adjust_end(reward)
             case _:
                 reward = adjust_cont(reward)
@@ -395,7 +396,7 @@ def document(
     df.to_json(data_path, indent=2)
     plot_boxplot(df, name, config, work_dir)
     plot_all(df, name, config, work_dir)
-    print(f"Wrote plots for {name} to {work_dir.absolute()}")
+    # print(f"Wrote plots for {name} to {work_dir.absolute()}")
 
 
 def document_config(
@@ -424,7 +425,7 @@ def plot_q_values(
     name: str,
     work_dir: Path,
     q_learn_env_config: sgym.SEnvConfig,
-    report_q_table: bool = False
+    report_q_table: bool = False,
 ) -> Path:
     matplotlib.use("agg")
 

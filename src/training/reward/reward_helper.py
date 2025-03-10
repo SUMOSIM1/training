@@ -1,11 +1,15 @@
 from dataclasses import dataclass
-import math
 from enum import Enum
+from pathlib import Path
+import json
+
+
+import math
 import pprint as pp
 import numpy as np
 
-import training.simrunner as sr
 import training.vector_helper as vh
+import training.simrunner_core as src
 
 
 @dataclass(frozen=True)
@@ -18,6 +22,13 @@ class Interval:
 class CollisionIntervals:
     inner: list[Interval]
     end: Interval | None
+
+
+@dataclass(frozen=True)
+class Sim:
+    states: list[src.SimulationState]
+    properties1: list[list]
+    properties2: list[list]
 
 
 class SimWinner(Enum):
@@ -115,7 +126,7 @@ def collisions_count(
 
 
 def see_intervals(
-    states: list[sr.SimulationState],
+    states: list[src.SimulationState],
 ) -> tuple[list[Interval], list[Interval]]:
     r1_see = [bool(can_see(s.robot1, s.robot2)) for s in states]
     r2_see = [bool(can_see(s.robot2, s.robot1)) for s in states]
@@ -129,7 +140,7 @@ def see_intervals(
     )
 
 
-def can_see(robot1: sr.PosDir, robot2: sr.PosDir) -> float | None:
+def can_see(robot1: src.PosDir, robot2: src.PosDir) -> float | None:
     def are_clockwise(v1, v2):
         return (-(v1[0] * v2[1]) + (v1[1] * v2[0])) < 0.0
 
@@ -184,7 +195,7 @@ def end_push_events(
     return RobotPushEvents.NONE, RobotPushEvents.NONE
 
 
-def dist(state: sr.SimulationState) -> float:
+def dist(state: src.SimulationState) -> float:
     r1 = state.robot1
     r2 = state.robot2
     dx = r1.xpos - r2.xpos
@@ -280,3 +291,13 @@ def parse_sim_winner(properties_robot1: list[list[(str, str)]]) -> SimWinner:
         elif properties_robot1[0][0] == "winner":
             return SimWinner.ROBOT1
     return SimWinner.ROBOT2
+
+
+def read_sim_from_file(file: Path) -> Sim:
+    with file.open() as f:
+        data_dict = json.load(f)
+        states_object = data_dict["states"]
+        states = [src.SimulationState.from_dict(s) for s in states_object]
+        properties1 = data_dict["winner"]["r1"]
+        properties2 = data_dict["winner"]["r2"]
+        return Sim(states, properties1, properties2)

@@ -1,4 +1,5 @@
 import training.simrunner as sr
+import training.simrunner_core as src
 
 
 def test_format_command_start():
@@ -23,7 +24,7 @@ def test_format_diff_drive_2():
 def test_parse_sensor():
     expected = sr.CombiSensorCommand(
         robot1_sensor=sr.CombiSensorDto(
-            pos_dir=sr.PosDir(-80.0, 0.0, 0.1396),
+            pos_dir=src.PosDir(-80.0, 0.0, 0.1396),
             combi_sensor=sr.CombiSensor(
                 left_distance=357.6570,
                 front_distance=506.4382,
@@ -32,7 +33,7 @@ def test_parse_sensor():
             ),
         ),
         robot2_sensor=sr.CombiSensorDto(
-            pos_dir=sr.PosDir(-80.0, 0.0, 0.0),
+            pos_dir=src.PosDir(-80.0, 0.0, 0.0),
             combi_sensor=sr.CombiSensor(
                 left_distance=385.7849,
                 front_distance=462.9790,

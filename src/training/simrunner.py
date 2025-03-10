@@ -1,6 +1,5 @@
 import datetime as dt
 import importlib
-from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from enum import Enum
 
@@ -8,6 +7,8 @@ from dataclasses_json import dataclass_json
 
 import training.simdb as db
 import training.udp as udp
+import training.simrunner_core as src
+import training.reward.reward_core as rhc
 
 
 @dataclass_json
@@ -20,14 +21,6 @@ class SimInfo:
     port: int
     sim_name: str
     max_simulation_steps: int
-
-
-@dataclass_json
-@dataclass
-class PosDir:
-    xpos: float
-    ypos: float
-    direction: float
 
 
 class SendCommand:
@@ -47,25 +40,11 @@ class ControllerName(str, Enum):
     SGYM_SAMPLE = ("sgym-sample",)
 
 
-class RewardHandlerName(str, Enum):
-    CONTINUOUS_CONSIDER_ALL = "continuous-consider-all"
-    END_CONSIDER_ALL = "end-consider-all"
-    REDUCED_PUSH_REWARD = "reduced-push-reward"
-    SPEED_BONUS = "speed-bonus"
-
-
 class SectorName(Enum):
     UNDEF = "undef"
     LEFT = "left"
     CENTER = "center"
     RIGHT = "right"
-
-
-@dataclass_json
-@dataclass
-class SimulationState:
-    robot1: PosDir
-    robot2: PosDir
 
 
 @dataclass
@@ -84,7 +63,7 @@ class DiffDriveValues:
 
 @dataclass
 class CombiSensorDto:
-    pos_dir: PosDir
+    pos_dir: src.PosDir
     combi_sensor: CombiSensor
 
 
@@ -135,7 +114,7 @@ class Response:
 
 @dataclass(frozen=True)
 class SensorResponse(Response):
-    simulation_states: list[SimulationState]
+    simulation_states: list[src.SimulationState]
     sensor1: CombiSensor
     sensor2: CombiSensor
     reward1: float
@@ -159,28 +138,8 @@ class FinishedResponse(Response):
 class ActionRequest:
     diffDrive1: DiffDriveValues
     diffDrive2: DiffDriveValues
-    simulation_states: list[SimulationState]
+    simulation_states: list[src.SimulationState]
     cnt: int
-
-
-class RewardHandler(ABC):
-    @abstractmethod
-    def name(self) -> str:
-        pass
-
-    @abstractmethod
-    def calculate_reward(self, state: SimulationState) -> (float, float):
-        pass
-
-    @abstractmethod
-    def calculate_end_reward(
-        self,
-        states: list[SimulationState],
-        properties1: list[list],
-        properties2: list[list],
-        max_simulation_count: int,
-    ) -> (float, float):
-        pass
 
 
 def reset(
@@ -189,7 +148,7 @@ def reset(
     db_host: str,
     db_port: int,
     max_simulation_steps: int,
-    reward_handler: RewardHandler,
+    reward_handler: rhc.RewardHandler,
 ) -> Response:
     return _step(
         StartCommand(),
@@ -207,7 +166,7 @@ def reset(
 
 def step(
     request: ActionRequest,
-    reward_handler: RewardHandler,
+    reward_handler: rhc.RewardHandler,
     sim_host: str,
     sim_port: int,
     db_host: str,
@@ -236,17 +195,19 @@ def step(
     )
 
 
-def calculate_reward(reward_handler: RewardHandler, state: SimulationState) -> float:
+def calculate_reward(
+    reward_handler: rhc.RewardHandler, state: src.SimulationState
+) -> tuple[float, float]:
     return reward_handler.calculate_reward(state)
 
 
 def calculate_end_reward(
-    reward_handler: RewardHandler,
-    states: list[SimulationState],
+    reward_handler: rhc.RewardHandler,
+    states: list[src.SimulationState],
     properties1: list[list],
     properties2: list[list],
     max_simulation_steps: int,
-) -> (float, float):
+) -> tuple[float, float]:
     return reward_handler.calculate_end_reward(
         states, properties1, properties2, max_simulation_steps
     )
@@ -254,8 +215,8 @@ def calculate_end_reward(
 
 def _step(
     command: SendCommand,
-    reward_handler: RewardHandler,
-    simulation_states: list[SimulationState],
+    reward_handler: rhc.RewardHandler,
+    simulation_states: list[src.SimulationState],
     sim_host: str,
     sim_port: int,
     db_host: str,
@@ -267,7 +228,7 @@ def _step(
     response: ReceiveCommand = _send_command_and_wait(command, sim_host, sim_port)
     match response:
         case CombiSensorCommand(s1, s2):
-            state = SimulationState(s1.pos_dir, s2.pos_dir)
+            state = src.SimulationState(s1.pos_dir, s2.pos_dir)
             simulation_states.append(state)
             reward1, reward2 = calculate_reward(reward_handler, state)
             return SensorResponse(
@@ -320,7 +281,7 @@ def _db_insert_new_sim(
     sim_info: SimInfo,
     properties1: list[list[str]],
     properties2: list[list[str]],
-    simulation_states: list[SimulationState],
+    simulation_states: list[src.SimulationState],
     reward_handler: str,
     reward1: float,
     reward2: float,
@@ -393,7 +354,7 @@ def _parse_command(data: str) -> ReceiveCommand:
         ds = sensor_data.split(";")
         # noinspection PyTypeChecker
         return CombiSensorDto(
-            pos_dir=PosDir(float(ds[0]), float(ds[1]), float(ds[2])),
+            pos_dir=src.PosDir(float(ds[0]), float(ds[1]), float(ds[2])),
             combi_sensor=CombiSensor(
                 left_distance=float(ds[3]),
                 front_distance=float(ds[4]),
@@ -465,26 +426,6 @@ class ControllerProvider:
                 return class_()
             case _:
                 raise RuntimeError(f"Unknown controller {name}")
-
-
-class RewardHandlerProvider:
-    @staticmethod
-    def get(name: RewardHandlerName) -> RewardHandler:
-        match name:
-            case RewardHandlerName.CONTINUOUS_CONSIDER_ALL:
-                module = importlib.import_module("training.reward.reward1")
-                class_ = module.ConsiderAllRewardHandler
-                return class_()
-            case RewardHandlerName.REDUCED_PUSH_REWARD:
-                module = importlib.import_module("training.reward.reward1")
-                class_ = module.ReducedPushRewardHandler
-                return class_()
-            case RewardHandlerName.SPEED_BONUS:
-                module = importlib.import_module("training.reward.reward1")
-                class_ = module.SpeedBonusRewardHandler
-                return class_()
-            case _:
-                raise RuntimeError(f"Unknown reward handler {name}")
 
 
 def sector_mapping(sector_name: SectorName) -> int:

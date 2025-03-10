@@ -9,7 +9,7 @@ import pandas as pd
 import training.consts
 import training.helper as hlp
 import training.simrunner as sr
-from training.simrunner import SimInfo
+import training.reward.reward_core as rhc
 
 
 class RewardCollector:
@@ -41,7 +41,7 @@ def tournament(
     db_port: int,
     name: str,
     controller_names: list[sr.ControllerName],
-    reward_handler_name: sr.RewardHandlerName,
+    reward_handler_name: rhc.RewardHandlerName,
     combination_type: CombinationType.WITHOUT_REPLACEMENT,
     max_simulation_steps: int,
     epoch_count: int,
@@ -119,13 +119,13 @@ def run_epoch(
     epoch_number: int,
     controller_name1: sr.ControllerName,
     controller_name2: sr.ControllerName,
-    reward_handler_name: sr.RewardHandlerName,
+    reward_handler_name: rhc.RewardHandlerName,
     record: bool,
-) -> (float, float):
+) -> tuple[float, float]:
     sim_name = f"{name}-{combination_number:03d}-{epoch_number:04d}"
     controller1 = sr.ControllerProvider.get(controller_name1)
     controller2 = sr.ControllerProvider.get(controller_name2)
-    reward_handler = sr.RewardHandlerProvider.get(reward_handler_name)
+    reward_handler = rhc.RewardHandlerProvider.get(reward_handler_name)
 
     def apply_policies(sensor_response: sr.SensorResponse) -> sr.ActionRequest:
         diff_drive1 = controller1.take_step(sensor_response.sensor1)
@@ -139,7 +139,7 @@ def run_epoch(
 
     sim_info = None
     if record:
-        sim_info = SimInfo(
+        sim_info = sr.SimInfo(
             sim_name=sim_name,
             port=sim_port,
             name1=controller1.name(),
