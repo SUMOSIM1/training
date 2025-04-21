@@ -682,3 +682,91 @@
     &#x200B;        | R0                      
     --------------- | ----------------------- 
     reward handler  | can-see             
+- class_name: training.parallel.ParallelConfig
+  value: q-fetch-0
+  desc: |
+    Cross validation for lazy fetching
+    
+    &#x200B;        | L0  | L1   | L2         
+    --------------- | --- | ---- | ----          
+    learning rate   | 0.2 | 0.2  | 0.2        
+
+    &#x200B; | E0           
+    -------- | ----           
+    epsilon  | 0.01     
+
+    &#x200B; | D0           
+    -------- | -----         
+    discount | 0.3      
+
+    &#x200B; | M0          
+    -------- | ------------ 
+    mapping  | non-linear-3
+
+    &#x200B;        | R0                      
+    --------------- | ----------------------- 
+    reward handler  | can-see             
+
+    &#x200B;    | F0     | F1     | F2                      
+    ----------- | ------ | ------ | ---- 
+    fetch mode  | lazy-s | lazy-m | lazy-l             
+- class_name: training.parallel.ParallelConfig
+  value: q-fetch-1
+  desc: |
+    Cross validation for lazy fetching
+    
+    &#x200B;        | L0  | L1   | L2         
+    --------------- | --- | ---- | ----          
+    learning rate   | 0.2 | 0.2  | 0.2        
+
+    &#x200B; | E0   | E1   | E2    | E3        
+    -------- | ---- | ---- | :---- | ----          
+    epsilon  | 0.01 | 0.01 | 0.01  | 0.01    
+
+    &#x200B; | D0    | D1       
+    -------- | ----- | -----        
+    discount | 0.3   | 0.3    
+
+    &#x200B; | M0          
+    -------- | ------------ 
+    mapping  | non-linear-3
+
+    &#x200B;        | R0                      
+    --------------- | ----------------------- 
+    reward handler  | can-see             
+
+    &#x200B;    | F0     | F1     | F2                      
+    ----------- | ------ | ------ | ---- 
+    fetch mode  | lazy-s | lazy-m | lazy-l             
+- class_name: training.parallel.ParallelConfig
+  value: q-fetch-2
+  desc: |
+    Cross validation for lazy fetching with topped selection
+    
+    &#x200B;        | L0  | L1        
+    --------------- | --- | ----           
+    learning rate   | 0.2 | 0.2          
+
+    &#x200B; | E0   | E1   | E2          
+    -------- | ---- | ---- | ----           
+    epsilon  | 0.01 | 0.01 | 0.01     
+
+    &#x200B; | D0    | D1       
+    -------- | ----- | -----        
+    discount | 0.3   | 0.3    
+
+    &#x200B; | M0          
+    -------- | ------------ 
+    mapping  | non-linear-3
+
+    &#x200B;        | R0                      
+    --------------- | ----------------------- 
+    reward handler  | can-see             
+
+    &#x200B;    | F0         | F1        | F2         | F3         | F4                      
+    ----------- | ---------- | --------- | ---------- | ---------- | ---------  
+    fetch mode  | lazy-s-t2  | lazy-s-t5 | lazy-s-t10 | lazy-m-t2  | lazy-m-t5                
+    ----------- | ---------- | --------- | ---------- | ---------- | -----------
+    &#x200B;    | F5         | F6        | F7         | F8         |              
+    ----------- | ---------- | --------- | ---------- | ---------- | -----------
+    fetch mode  | lazy-m-t10 | lazy-l-t2 | lazy-l-t5  | lazy-l-t10 |              

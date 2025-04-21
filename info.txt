@@ -27,36 +27,6 @@ sumot parallel \
 --parallel-config q-map-2
 
 sumot report \
--d $HOME/tmp/sumosim/results/results-2025-01/results \
--d $HOME/tmp/sumosim/results/results-2025-003 \
--d $HOME/tmp/sumosim/results/results-2025-01-002  \
--d $HOME/tmp/sumosim/results/results-2025-02-Q-CV5/  \
--d $HOME/tmp/sumosim/results/results-2025-02-Q-CV7/  \
--d $HOME/tmp/sumosim/results/results-2025-02-QMAP01/  \
--o $HOME/tmp/sumosim/reports/r6
-
-sumot report \
--d $HOME/tmp/sumosim/results/results-2025-01/results \
--d $HOME/tmp/sumosim/results/results-2025-003 \
--d $HOME/tmp/sumosim/results/results-2025-01-002  \
--d $HOME/tmp/sumosim/results/results-2025-02-Q-CV5/  \
--d $HOME/tmp/sumosim/results/results-2025-02-Q-CV7/  \
--d $HOME/tmp/sumosim/results/results-2025-02-QMAP01/  \
--d $HOME/tmp/sumosim/results/results-2025-02-QMAP02/  \
--o $HOME/tmp/sumosim/reports/r7
-
-sumot report \
--d $HOME/tmp/sumosim/results/results-2025-01/results \
--d $HOME/tmp/sumosim/results/results-2025-003 \
--d $HOME/tmp/sumosim/results/results-2025-01-002  \
--d $HOME/tmp/sumosim/results/results-2025-02-Q-CV5/  \
--d $HOME/tmp/sumosim/results/results-2025-02-Q-CV7/  \
--d $HOME/tmp/sumosim/results/results-2025-02-QMAP01/  \
--d $HOME/tmp/sumosim/results/results-2025-02-QMAP02/  \
--d $HOME/tmp/sumosim/results/results-2025-02-QMAP03/  \
--o $HOME/tmp/sumosim/reports/r9
-
-sumot report \
 -d $HOME/tmp/sumosim/results/results-2025-01-000 \
 -d $HOME/tmp/sumosim/results/results-2025-01-003 \
 -d $HOME/tmp/sumosim/results/results-2025-01-002 \
@@ -130,6 +100,22 @@ sumot parallel --db-host ben.local --record --keep-container --max-parallel 15 \
   --out-dir ~/tmp/sumosim/results/results-2025-02-QSEE02 \
   --parallel-config q-see-1
 
+sumot parallel \
+--db-host ben.local --record --keep-container --max-parallel 10 \
+--epoch-count 20000 \
+--name QFETCH05 \
+--out-dir ~/tmp/sumosim/results/results-2025-05-QFETCH05 \
+--parallel-config q-fetch-2
+
+sumot parallel \
+--db-host wallace.local --record --keep-container --max-parallel 2 \
+--epoch-count 50 \
+--name QTEST1 \
+--out-dir ~/tmp/sumosim/results/results-2025-05-QTEST1 \
+--parallel-config q-test
+
+
+
 sumot report \
--d $HOME/tmp/sumosim/results/results-2025-02-QSEE02  \
+-d $HOME/tmp/sumosim/results/ \
 -o $HOME/tmp/sumosim/reports/r10

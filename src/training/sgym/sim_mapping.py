@@ -38,6 +38,8 @@ def senv_mapping(mapping: SEnvMappingName, cfg: sgym.SEnvConfig) -> sgym.SEnvMap
             return create_senv_mapping(-3)
         case SEnvMappingName.NON_LINEAR_4:
             return create_senv_mapping(-4)
+        case _:
+            raise ValueError(f"Unknown SEnvMappingName {mapping}")
 
 
 def _q_act_space(config: sgym.SEnvConfig) -> gym.Space:

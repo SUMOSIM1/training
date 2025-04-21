@@ -28,17 +28,21 @@ class ParallelConfig(Enum):
     Q_SEE_0 = "q-see-0"
     Q_SEE_1 = "q-see-1"
     Q_SEE_2 = "q-see-2"
+    Q_FETCH_0 = "q-fetch-0"
+    Q_FETCH_1 = "q-fetch-1"
+    Q_FETCH_2 = "q-fetch-2"
+    Q_TEST = "q-test"
 
 
 @dataclass(frozen=True)
-class TrainConfig:
+class ParallelSessionConfig:
     name: str
     values: dict
 
 
-def create_train_configs1(
+def create_parallel_session_configs(
     parallel_config: ParallelConfig, max_parallel: int
-) -> list[list[TrainConfig]]:
+) -> list[list[ParallelSessionConfig]]:
     match parallel_config:
         case ParallelConfig.Q_CROSS_0:
             values_dict = {
@@ -46,14 +50,14 @@ def create_train_configs1(
                 "E": [0.5, 0.7, 0.1, 0.2],
                 "D": [0.2, 0.7, 0.8, 0.9, 0.99],
             }
-            return create_train_configs(values_dict, max_parallel)
+            return _create_parallel_session_configs(values_dict, max_parallel)
         case ParallelConfig.Q_CROSS_1:
             values_dict = {
                 "L": [0.7, 0.8, 0.9],
                 "E": [0.01, 0.05, 0.1],
                 "D": [0.95, 0.99, 0.995, 0.999],
             }
-            return create_train_configs(values_dict, max_parallel)
+            return _create_parallel_session_configs(values_dict, max_parallel)
         case ParallelConfig.Q_MAP_0:
             values_dict = {
                 "L": [0.7],
@@ -61,7 +65,7 @@ def create_train_configs1(
                 "D": [0.5, 0.8],
                 "M": ["non-linear-1", "non-linear-2", "non-linear-3", "non-linear-4"],
             }
-            return create_train_configs(values_dict, max_parallel)
+            return _create_parallel_session_configs(values_dict, max_parallel)
         case ParallelConfig.Q_MAP_1:
             values_dict = {
                 "L": [0.01, 0.1, 0.5],
@@ -69,7 +73,7 @@ def create_train_configs1(
                 "D": [0.4, 0.6, 0.9],
                 "M": ["non-linear-1", "non-linear-2"],
             }
-            return create_train_configs(values_dict, max_parallel)
+            return _create_parallel_session_configs(values_dict, max_parallel)
         case ParallelConfig.Q_MAP_2:
             values_dict = {
                 "L": [0.2, 0.4, 0.6],
@@ -77,7 +81,7 @@ def create_train_configs1(
                 "D": [0.3, 0.4, 0.5],
                 "M": ["non-linear-1", "non-linear-2", "non-linear-3", "non-linear-4"],
             }
-            return create_train_configs(values_dict, max_parallel)
+            return _create_parallel_session_configs(values_dict, max_parallel)
         case ParallelConfig.Q_MAP_3:
             values_dict = {
                 "L": [0.05, 0.1, 0.15],
@@ -85,7 +89,7 @@ def create_train_configs1(
                 "D": [0.25, 0.3, 0.35],
                 "M": ["non-linear-2", "non-linear-3", "non-linear-4"],
             }
-            return create_train_configs(values_dict, max_parallel)
+            return _create_parallel_session_configs(values_dict, max_parallel)
         case ParallelConfig.Q_MAP_4:
             values_dict = {
                 "L": [0.12, 0.12, 0.12],
@@ -93,7 +97,7 @@ def create_train_configs1(
                 "D": [0.3, 0.3, 0.3],
                 "M": ["non-linear-3", "non-linear-3", "non-linear-3"],
             }
-            return create_train_configs(values_dict, max_parallel)
+            return _create_parallel_session_configs(values_dict, max_parallel)
         case ParallelConfig.Q_RW_0:
             values_dict = {
                 "L": [0.12, 0.12],
@@ -102,7 +106,7 @@ def create_train_configs1(
                 "M": ["non-linear-3", "non-linear-3"],
                 "R": ["continuous-consider-all", "reduced-push-reward"],
             }
-            return create_train_configs(values_dict, max_parallel)
+            return _create_parallel_session_configs(values_dict, max_parallel)
         case ParallelConfig.Q_RW_1:
             values_dict = {
                 "L": [0.12, 0.12],
@@ -111,7 +115,7 @@ def create_train_configs1(
                 "M": ["non-linear-3", "non-linear-3"],
                 "R": ["continuous-consider-all", "reduced-push-reward", "speed-bonus"],
             }
-            return create_train_configs(values_dict, max_parallel)
+            return _create_parallel_session_configs(values_dict, max_parallel)
         case ParallelConfig.Q_RW_2:
             values_dict = {
                 "L": [0.15, 0.1, 0.05],
@@ -120,7 +124,7 @@ def create_train_configs1(
                 "M": ["non-linear-3"],
                 "R": ["speed-bonus", "speed-bonus", "speed-bonus"],
             }
-            return create_train_configs(values_dict, max_parallel)
+            return _create_parallel_session_configs(values_dict, max_parallel)
         case ParallelConfig.Q_RW_3:
             values_dict = {
                 "L": [0.25, 0.2, 0.15],
@@ -129,7 +133,7 @@ def create_train_configs1(
                 "M": ["non-linear-3"],
                 "R": ["speed-bonus", "speed-bonus", "speed-bonus"],
             }
-            return create_train_configs(values_dict, max_parallel)
+            return _create_parallel_session_configs(values_dict, max_parallel)
         case ParallelConfig.Q_LOW_0:
             values_dict = {
                 "L": [0.001, 0.0001],
@@ -138,7 +142,7 @@ def create_train_configs1(
                 "M": ["non-linear-3"],
                 "R": ["speed-bonus", "speed-bonus", "speed-bonus"],
             }
-            return create_train_configs(values_dict, max_parallel)
+            return _create_parallel_session_configs(values_dict, max_parallel)
         case ParallelConfig.Q_LOW_1:
             values_dict = {
                 "L": [0.01, 0.005, 0.001],
@@ -147,7 +151,7 @@ def create_train_configs1(
                 "M": ["non-linear-3"],
                 "R": ["speed-bonus"],
             }
-            return create_train_configs(values_dict, max_parallel)
+            return _create_parallel_session_configs(values_dict, max_parallel)
         case ParallelConfig.Q_LOW_2:
             values_dict = {
                 "L": [0.01, 0.005, 0.001],
@@ -156,7 +160,7 @@ def create_train_configs1(
                 "M": ["non-linear-3"],
                 "R": ["speed-bonus"],
             }
-            return create_train_configs(values_dict, max_parallel)
+            return _create_parallel_session_configs(values_dict, max_parallel)
 
         case ParallelConfig.Q_SEE_0:
             values_dict = {
@@ -166,7 +170,7 @@ def create_train_configs1(
                 "M": ["non-linear-3"],
                 "R": ["speed-bonus"],
             }
-            return create_train_configs(values_dict, max_parallel)
+            return _create_parallel_session_configs(values_dict, max_parallel)
         case ParallelConfig.Q_SEE_1:
             values_dict = {
                 "L": [0.2, 0.2, 0.2, 0.2, 0.2],
@@ -175,7 +179,7 @@ def create_train_configs1(
                 "M": ["non-linear-3"],
                 "R": ["can-see"],
             }
-            return create_train_configs(values_dict, max_parallel)
+            return _create_parallel_session_configs(values_dict, max_parallel)
         case ParallelConfig.Q_SEE_2:
             values_dict = {
                 "L": [0.2, 0.2, 0.2, 0.2, 0.2],
@@ -184,14 +188,64 @@ def create_train_configs1(
                 "M": ["non-linear-3"],
                 "R": ["can-see"],
             }
-            return create_train_configs(values_dict, max_parallel)
+            return _create_parallel_session_configs(values_dict, max_parallel)
+        case ParallelConfig.Q_FETCH_0:
+            values_dict = {
+                "L": [0.2, 0.2, 0.2],
+                "E": [0.01],
+                "D": [0.3],
+                "M": ["non-linear-3"],
+                "R": ["can-see"],
+                "F": ["lazy-s", "lazy-m", "lazy-l"],
+            }
+            return _create_parallel_session_configs(values_dict, max_parallel)
+        case ParallelConfig.Q_FETCH_1:
+            values_dict = {
+                "L": [0.2, 0.2, 0.2],
+                "E": [0.01, 0.01, 0.01],
+                "D": [0.3, 0.3],
+                "M": ["non-linear-3"],
+                "R": ["can-see"],
+                "F": ["lazy-s", "lazy-m", "lazy-l"],
+            }
+            return _create_parallel_session_configs(values_dict, max_parallel)
+        case ParallelConfig.Q_FETCH_2:
+            values_dict = {
+                "L": [0.2, 0.2],
+                "E": [0.01, 0.01],
+                "D": [0.3, 0.3],
+                "M": ["non-linear-3"],
+                "R": ["can-see"],
+                "F": [
+                    "lazy-s-t2",
+                    "lazy-s-t5",
+                    "lazy-s-t10",
+                    "lazy-m-t2",
+                    "lazy-m-t5",
+                    "lazy-m-t10",
+                    "lazy-l-t2",
+                    "lazy-l-t5",
+                    "lazy-l-t10",
+                ],
+            }
+            return _create_parallel_session_configs(values_dict, max_parallel)
+        case ParallelConfig.Q_TEST:
+            values_dict = {
+                "L": [0.2, 0.2],
+                "E": [0.01],
+                "D": [0.3],
+                "M": ["non-linear-3"],
+                "R": ["can-see"],
+                "F": ["lazy-s-t2", "eager"],
+            }
+            return _create_parallel_session_configs(values_dict, max_parallel)
         case _:
             raise ValueError(f"Invalid Parallel Config {parallel_config.value}")
 
 
-def create_train_configs(
+def _create_parallel_session_configs(
     values_dict: dict, max_parallel: int
-) -> list[list[TrainConfig]]:
+) -> list[list[ParallelSessionConfig]]:
     def to_dict(keys: list, batch_values: list) -> list[dict]:
         return [dict(zip(keys, value)) for value in batch_values]
 
@@ -217,7 +271,7 @@ def create_train_configs(
 
     double_zipped = [zip(a, b) for a, b in (zip(batched_dicts, ids))]
     return [
-        [TrainConfig(values=values, name=name) for values, name in zipped]
+        [ParallelSessionConfig(values=values, name=name) for values, name in zipped]
         for zipped in double_zipped
     ]
 
@@ -259,7 +313,7 @@ def start_simulator(sim_name: str, network_name: str) -> str:
 def parse_parallel_indexes(
     parallel_indexes: str, parallel_config: ParallelConfig, max_parallel: int
 ) -> list[int]:
-    configs = create_train_configs1(parallel_config, max_parallel)
+    configs = create_parallel_session_configs(parallel_config, max_parallel)
     if parallel_indexes.lower() == "all":
         return list(range(len(configs)))
     indexes = hlp.parse_integers(parallel_indexes)
@@ -312,7 +366,7 @@ def start_training(
         "uv",
         "run",
         "sumot",
-        "qconfig",
+        "parallel-session",
         "--name",
         name,
         "--record" if record else None,

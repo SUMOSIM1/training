@@ -1,8 +1,9 @@
 import json
 from collections import defaultdict
-from dataclasses import dataclass, replace, asdict
+from dataclasses import dataclass, asdict
 from typing import cast
 from pathlib import Path
+from enum import Enum
 
 import gymnasium as gym
 import matplotlib.pyplot as plt
@@ -16,20 +17,86 @@ import pprint as pp
 import training.helper as hlp
 import training.sgym.core as sgym
 import training.simrunner as sr
-import training.parallel as parallel
 import training.sgym.sim_mapping as sm
 import training.sgym.qtables as qt
 import training.reward.reward_core as rhc
 
 
+class FetchType(str, Enum):
+    EAGER = "eager"
+    LAZY_S = "lazy-s"
+    LAZY_M = "lazy-m"
+    LAZY_L = "lazy-l"
+    LAZY_S_T2 = "lazy-s-t2"
+    LAZY_S_T5 = "lazy-s-t5"
+    LAZY_S_T10 = "lazy-s-t10"
+    LAZY_M_T2 = "lazy-m-t2"
+    LAZY_M_T5 = "lazy-m-t5"
+    LAZY_M_T10 = "lazy-m-t10"
+    LAZY_L_T2 = "lazy-l-t2"
+    LAZY_L_T5 = "lazy-l-t5"
+    LAZY_L_T10 = "lazy-l-t10"
+
+    def fetch(self, row: np.array) -> int:
+        match self:
+            case FetchType.EAGER:
+                return int(np.argmax(row))
+            case FetchType.LAZY_S:
+                return self.lazy(0.0005, row)
+            case FetchType.LAZY_M:
+                return self.lazy(0.005, row)
+            case FetchType.LAZY_L:
+                return self.lazy(0.01, row)
+            case FetchType.LAZY_S_T2:
+                return self.lazy_top(0.0005, 2, row)
+            case FetchType.LAZY_S_T5:
+                return self.lazy_top(0.0005, 5, row)
+            case FetchType.LAZY_S_T10:
+                return self.lazy_top(0.0005, 10, row)
+            case FetchType.LAZY_M_T2:
+                return self.lazy_top(0.005, 2, row)
+            case FetchType.LAZY_M_T5:
+                return self.lazy_top(0.005, 5, row)
+            case FetchType.LAZY_M_T10:
+                return self.lazy_top(0.005, 10, row)
+            case FetchType.LAZY_L_T2:
+                return self.lazy_top(0.01, 2, row)
+            case FetchType.LAZY_L_T5:
+                return self.lazy_top(0.01, 5, row)
+            case FetchType.LAZY_L_T10:
+                return self.lazy_top(0.01, 10, row)
+            case _:
+                raise RuntimeError(
+                    f"Action for fetch type {self.value} not yet implemented"
+                )
+
+    @staticmethod
+    def lazy(eps: float, row: np.array) -> int:
+        q_max = np.max(row)
+        border = q_max - eps
+        filtered = np.where(row > border)
+        return np.random.choice(filtered[0])
+
+    @staticmethod
+    def lazy_top(eps: float, top: int, row: np.array) -> int:
+        q_max = np.max(row)
+        border = q_max - eps
+        ixs = np.where(row > border)[0]
+        tuples = [(ix, row[ix]) for ix in ixs]
+        _sorted = sorted(tuples, key=lambda t: -t[1])
+        _top = [t[0] for t in _sorted[0:top]]
+        return np.random.choice(_top)
+
+
 @dataclass(frozen=True)
-class QTrainConfig:
+class QLearnConfig:
     learning_rate: float
     epsilon: float
     discount_factor: float
     mapping_name: str
     opponent_name: str
     reward_handler_name: str
+    fetch_type: str
 
 
 default_senv_config = sgym.SEnvConfig(
@@ -43,84 +110,18 @@ default_senv_config = sgym.SEnvConfig(
 )
 
 
-def parallel_to_qtrain_config(parallel_train_config: parallel.TrainConfig):
-    q_learn_config = default_q_learn_config
-    parallel_config_values: dict = parallel_train_config.values
-    if parallel_config_values.get("L") is not None:
-        q_learn_config = replace(
-            q_learn_config, learning_rate=parallel_config_values["L"]
-        )
-    if parallel_config_values.get("E") is not None:
-        q_learn_config = replace(
-            q_learn_config,
-            epsilon=parallel_config_values["E"],
-        )
-    if parallel_config_values.get("D") is not None:
-        q_learn_config = replace(
-            q_learn_config, discount_factor=parallel_config_values["D"]
-        )
-    if parallel_config_values.get("M") is not None:
-        q_learn_config = replace(
-            q_learn_config,
-            mapping_name=parallel_config_values["M"],
-        )
-    if parallel_config_values.get("R") is not None:
-        q_learn_config = replace(
-            q_learn_config,
-            reward_handler_name=parallel_config_values["R"],
-        )
-    return q_learn_config
-
-
-default_q_learn_config = QTrainConfig(
+default_q_learn_config = QLearnConfig(
     learning_rate=0.1,
     epsilon=0.1,
     discount_factor=0.8,
     mapping_name=sm.SEnvMappingName.NON_LINEAR_3.value,
     opponent_name=sr.ControllerName.STAND_STILL.value,
     reward_handler_name=rhc.RewardHandlerName.CONTINUOUS_CONSIDER_ALL.value,
+    fetch_type=FetchType.LAZY_S.value,
 )
 
 
-def q_config(
-    name: str,
-    record: bool,
-    parallel_config: parallel.ParallelConfig,
-    max_parallel: int,
-    parallel_index: int,
-    sim_host: str,
-    sim_port: int,
-    db_host: str,
-    db_port: int,
-    epoch_count: int,
-    out_dir: str,
-):
-    def call_q_train_with_config(parallel_train_config: parallel.TrainConfig):
-        q_train_config = parallel_to_qtrain_config(parallel_train_config)
-        q_train(
-            name=f"{name}-{parallel_train_config.name}",
-            epoch_count=epoch_count,
-            sim_host=sim_host,
-            sim_port=sim_port,
-            db_host=db_host,
-            db_port=db_port,
-            record=record,
-            out_dir=out_dir,
-            q_train_config=q_train_config,
-        )
-
-    configs = parallel.create_train_configs1(parallel_config, max_parallel)
-    if parallel_index >= len(configs):
-        raise ValueError(
-            f"Cannot run 'q_config' because the parallel index {parallel_index} exceeds the maximum index for parallel_config {parallel_config.value}. Max index is {len(configs) - 1}"
-        )
-    _configs: list[parallel.TrainConfig] = configs[parallel_index]
-    for c in _configs:
-        call_q_train_with_config(c)
-    print(f"Finished parallel training n:{name}")
-
-
-def q_train(
+def q_learn(
     name: str,
     epoch_count: int,
     sim_host: str,
@@ -129,13 +130,14 @@ def q_train(
     db_port: int,
     record: bool,
     out_dir: str,
-    q_train_config: QTrainConfig,
+    q_learn_config: QLearnConfig,
 ) -> int:
-    print(f"--- q_train {name} {pp.pformat(q_train_config)}")
+    print(f"--- q_learn {name} {pp.pformat(q_learn_config)}")
     senv_config: sgym.SEnvConfig = default_senv_config
     reward_handler = rhc.RewardHandlerProvider.get(
-        rhc.RewardHandlerName(q_train_config.reward_handler_name)
+        rhc.RewardHandlerName(q_learn_config.reward_handler_name)
     )
+    fetch_type = FetchType(q_learn_config.fetch_type)
     results = []
     out_path = Path(out_dir)
     out_path.mkdir(parents=True, exist_ok=True)
@@ -146,14 +148,14 @@ def q_train(
     record_count = calc_record_count(epoch_count)
 
     record_interval = max(1, epoch_count // record_count)
-    document_config(name, epoch_count, record, q_train_config, out_path)
+    document_config(name, epoch_count, record, q_learn_config, out_path)
     opponent = sr.ControllerProvider.get(
-        sr.ControllerName(q_train_config.opponent_name)
+        sr.ControllerName(q_learn_config.opponent_name)
     )
     env = sgym.SEnv(
         senv_config=senv_config,
         senv_mapping=sm.senv_mapping(
-            sm.SEnvMappingName(q_train_config.mapping_name), senv_config
+            sm.SEnvMappingName(q_learn_config.mapping_name), senv_config
         ),
         sim_host=sim_host,
         sim_port=sim_port,
@@ -164,12 +166,13 @@ def q_train(
     )
     agent = QAgent(
         env=env,
-        reward_handler=rhc.RewardHandlerName(q_train_config.reward_handler_name),
-        learning_rate=q_train_config.learning_rate,
-        initial_epsilon=q_train_config.epsilon,
+        reward_handler=rhc.RewardHandlerName(q_learn_config.reward_handler_name),
+        learning_rate=q_learn_config.learning_rate,
+        initial_epsilon=q_learn_config.epsilon,
         epsilon_decay=0.0,
-        final_epsilon=q_train_config.epsilon,
-        discount_factor=q_train_config.discount_factor,
+        final_epsilon=q_learn_config.epsilon,
+        discount_factor=q_learn_config.discount_factor,
+        fetch_type=fetch_type,
     )
     for epoch_nr in range(epoch_count):
         sim_name = f"{name}-{epoch_nr:06d}"
@@ -219,7 +222,7 @@ def q_train(
         if (epoch_nr % doc_interval == 0 and epoch_nr > 0) or is_last(
             epoch_count, epoch_nr
         ):
-            document(name, results, epoch_nr, q_train_config, out_path)
+            document(name, results, epoch_nr, q_learn_config, out_path)
     env.close()
     print(f"Finished training {name} {loop_name} p:{sim_port}")
     return sim_port
@@ -298,6 +301,7 @@ class QAgent:
         self,
         env: gym.Env,
         reward_handler: rhc.RewardHandlerName,
+        fetch_type: FetchType,
         learning_rate: float,
         initial_epsilon: float,
         epsilon_decay: float,
@@ -322,6 +326,7 @@ class QAgent:
         self.lr = learning_rate
         self.discount_factor = discount_factor
         self.reward_handler = reward_handler
+        self.fetch_type = fetch_type
 
         self.epsilon = initial_epsilon
         self.epsilon_decay = epsilon_decay
@@ -339,7 +344,8 @@ class QAgent:
             return self.env.action_space.sample()
         # with probability (1 - epsilon) act greedily (exploit)
         else:
-            return int(np.argmax(self.q_values[obs]))
+            q_values_row = self.q_values[obs]
+            return self.fetch_type.fetch(q_values_row)
 
     def update(
         self,
@@ -389,7 +395,7 @@ def document_q_values(
 
 
 def document(
-    name: str, results: list[dict], epoch_nr: int, config: QTrainConfig, work_dir: Path
+    name: str, results: list[dict], epoch_nr: int, config: QLearnConfig, work_dir: Path
 ):
     data_path = work_dir / f"{name}.json"
     df = pd.DataFrame(results)
@@ -403,7 +409,7 @@ def document_config(
     name: str,
     epoch_count: int,
     record: bool,
-    q_train_config: QTrainConfig,
+    q_learn_config: QLearnConfig,
     out_dir: Path,
 ):
     out_file = out_dir / f" {name}-config.yml"
@@ -411,7 +417,7 @@ def document_config(
         "name": name,
         "epoch_count": epoch_count,
         "record": record,
-        "config": asdict(cast(dataclass(), q_train_config)),
+        "config": asdict(cast(dataclass(), q_learn_config)),
     }
     with out_file.open("w") as f:
         yaml.dump(conf_dict, f)
@@ -456,7 +462,7 @@ def plot_q_values(
     return out_path
 
 
-def title(column: str, name: str, config: QTrainConfig) -> str:
+def title(column: str, name: str, config: QLearnConfig) -> str:
     lines = [
         f"{column} {name} ",
     ]
@@ -464,7 +470,7 @@ def title(column: str, name: str, config: QTrainConfig) -> str:
 
 
 def plot_boxplot(
-    data: pd.DataFrame, name: str, config: QTrainConfig, work_dir: Path
+    data: pd.DataFrame, name: str, config: QLearnConfig, work_dir: Path
 ) -> Path:
     matplotlib.use("agg")
     column = "reward"
@@ -494,7 +500,7 @@ def plot_boxplot(
 
 
 def plot_all(
-    data: pd.DataFrame, name: str, config: QTrainConfig, work_dir: Path
+    data: pd.DataFrame, name: str, config: QLearnConfig, work_dir: Path
 ) -> Path:
     matplotlib.use("agg")
     column = "reward"
@@ -516,7 +522,7 @@ def plot_all(
 
 
 def plot_plain(
-    data: pd.DataFrame, name: str, epoch_nr: int, config: QTrainConfig, work_dir: Path
+    data: pd.DataFrame, name: str, epoch_nr: int, config: QLearnConfig, work_dir: Path
 ) -> Path:
     matplotlib.use("agg")
     column = "reward"

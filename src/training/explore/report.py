@@ -1,4 +1,5 @@
 from pathlib import Path
+
 import yaml
 import dominate
 import dominate.tags as dt
@@ -6,21 +7,34 @@ import dominate.util as du
 import shutil
 from dataclasses import dataclass
 import training.helper as hlp
+import training.parallel as pa
 import training.explore.enumdescs as edesc
 import re
 
 from dominate.dom_tag import dom_tag
 
+from training.explore.allvideos import AllVideoNames
+
 
 @dataclass(frozen=True)
 class Resources:
     videos: list[Path]
-    q_values_heat: list[Path]
+    q_values: list[Path]
     boxplots: list[Path]
 
 
 @dataclass
-class ResourceLinks:
+class CombiLinks1:
+    text: str
+    boxplots: list[str]
+    q_values: list[str]
+    videos: list[str]
+
+
+@dataclass
+class CombiLinks:
+    prefix: str
+    combi: str
     text: str
     boxplots: list[str]
     q_values: list[str]
@@ -37,6 +51,28 @@ def extract_combis(lead_resources: list[Path], prefix: str) -> list[str]:
     return sorted(list(keys_set))
 
 
+def extract_combis_from_enum(report_data: dict) -> list[str]:
+    enum_names = [
+        enum_name
+        for enum_name in report_data["enumdescs"]
+        if enum_name.startswith("training.parallel.ParallelConfig")
+    ]
+    combi_keys = []
+    if enum_names:
+        pc_name = enum_names[0].split(".")[3]
+        values = [x.value for x in pa.ParallelConfig]
+        # print(pc_name, values)
+        if pc_name in values:
+            pc = pa.ParallelConfig(pc_name)
+            a = pa.create_parallel_session_configs(pc, 10)
+            combi_keys = []
+            for b in a:
+                for c in b:
+                    combi_keys.append(c.name)
+            combi_keys = sorted(list(combi_keys))
+    return combi_keys
+
+
 def collect_resources(results_dirs: list[Path], result_name: str) -> list[Path]:
     out = []
     for result_path in results_dirs:
@@ -46,11 +82,19 @@ def collect_resources(results_dirs: list[Path], result_name: str) -> list[Path]:
     return sorted(out)
 
 
-def create_report(reports_data: dict, result_dir_paths: list[Path], out_path: Path):
+def create_report(
+    reports_data: dict,
+    result_dir_paths: list[Path],
+    out_path: Path,
+    all_video_names: AllVideoNames,
+):
     videos = collect_resources(result_dir_paths, "sumosim-video")
     q_values = collect_resources(result_dir_paths, "q-values-heat")
     boxplots = collect_resources(result_dir_paths, "boxplot")
-    resources = Resources(videos=videos, q_values_heat=q_values, boxplots=boxplots)
+    resources = Resources(videos=videos, q_values=q_values, boxplots=boxplots)
+    # print(f"### resources v:{len(resources.videos)}")
+    # print(f"### resources qv:{len(resources.q_values)}")
+    # print(f"### resources b:{len(resources.boxplots)}")
 
     # Copy style .css
     style_path = Path(__file__).parent.parent.parent.parent / "resources" / "styles.css"
@@ -65,16 +109,21 @@ def create_report(reports_data: dict, result_dir_paths: list[Path], out_path: Pa
     analysis_target = out_path / "analysis"
     shutil.copytree(analysis_path, analysis_target, dirs_exist_ok=True)
 
-    create_report_index(reports_data, out_path, resources)
+    create_report_index(reports_data, out_path, resources, all_video_names)
 
     print(f"Created reports in {out_path.absolute()}")
 
 
 # noinspection DuplicatedCode
-def create_report_index(report_dict: dict, out_path: Path, resources: Resources):
+def create_report_index(
+    report_dict: dict,
+    out_path: Path,
+    resources: Resources,
+    all_video_names: AllVideoNames,
+):
     out_file = out_path / "index.html"
     method_tuples = [
-        create_report_method(method_dict, i, out_path, resources)
+        create_report_method(method_dict, i, out_path, resources, all_video_names)
         for i, method_dict in enumerate(report_dict["methods"])
     ]
     doc = dominate.document(title=report_dict["title"])
@@ -93,12 +142,16 @@ def create_report_index(report_dict: dict, out_path: Path, resources: Resources)
 
 # noinspection DuplicatedCode
 def create_report_method(
-    method_dict: dict, index: int, out_path: Path, resources: Resources
+    method_dict: dict,
+    index: int,
+    out_path: Path,
+    resources: Resources,
+    all_video_names: AllVideoNames,
 ) -> tuple[str, str]:
     out_file_name = f"method-{index:02d}.html"
     out_file = out_path / out_file_name
     training_tuples = [
-        create_report_training(method_dict, i, out_path, resources)
+        create_report_training(method_dict, i, out_path, resources, all_video_names)
         for i, method_dict in enumerate(method_dict["trainings"])
     ]
 
@@ -123,9 +176,14 @@ def create_report_method(
 
 
 def create_report_training(
-    training_dict: dict, index: int, out_path: Path, resources: Resources
+    training_dict: dict,
+    index: int,
+    out_path: Path,
+    resources: Resources,
+    all_video_names: AllVideoNames,
 ) -> tuple[str, str] | None:
     prefix = training_dict["prefix"]
+    color = training_dict["color"]
 
     def tags_for_enumdescs(training_dict: dict) -> dom_tag:
         enum_keys = training_dict.get("enumdescs")
@@ -141,24 +199,8 @@ def create_report_training(
         )
 
     def tags_for_combis(
-        resources: Resources, combis: list[str], out_path: Path
+        resources: Resources, combis: list[CombiLinks], out_path: Path
     ) -> dom_tag:
-        def filter_copy_resource(
-            resources: list[Path], prefix: str, out_path: Path
-        ) -> list[str]:
-            res_path = out_path / prefix
-            res_path.mkdir(parents=True, exist_ok=True)
-
-            filtered_res = [res for res in resources if res.stem.startswith(prefix)]
-            links = []
-            for res in filtered_res:
-                target_path = res_path / res.name
-                if not target_path.exists():
-                    shutil.copy(res, target_path)
-                    print(f"Copied {res.name} to {res_path}")
-                links.append(f"{prefix}/{res.name}")
-            return links
-
         def match_resource_name(name: str, combi: str) -> bool:
             name_rest = name[len(prefix) + 1 :]
             split_name = name_rest.split("-")
@@ -177,7 +219,8 @@ def create_report_training(
                 return (dt.br(), dt.a(f"video {index}", href=link))
             return dt.a(f"video {index}", href=link)
 
-        def tags_for_resource(resourceLinks: ResourceLinks) -> dom_tag:
+        def tags_for_resource(resourceLinks: CombiLinks) -> dom_tag:
+            # print(f"#### tags_for_resource {resourceLinks.text} {len(resourceLinks.videos)}")
             return dt.div(
                 resourceLinks.text,
                 dt.br(),
@@ -193,39 +236,113 @@ def create_report_training(
                     for i, link in enumerate(resourceLinks.videos)
                 ],
                 _class="box",
+                _style=f"background-color:{color}",
             )
 
-        def create_resource_links(combi: str) -> ResourceLinks:
-            text = f"Results for: {prefix} {combi}"
-            boxplots = [
-                res
-                for res in resources.boxplots
-                if match_resource_name(res.name, combi)
-            ]
-            q_values = [
-                res
-                for res in resources.q_values_heat
-                if match_resource_name(res.name, combi)
-            ]
-            _videos = filter_and_sort_videos(combi)
-            return ResourceLinks(
-                text=text,
-                boxplots=filter_copy_resource(boxplots, prefix, out_path),
-                q_values=filter_copy_resource(q_values, prefix, out_path),
-                videos=filter_copy_resource(_videos, prefix, out_path),
-            )
+        return dt.div(
+            [tags_for_resource(combi_link) for combi_link in combi_links],
+            _class="container",
+        )
 
-        links = [create_resource_links(combi) for combi in combis]
-        return dt.div([tags_for_resource(cv) for cv in links], _class="container")
+    def filter_combi_resources(
+        resources: Resources, prefix: str, combi: str
+    ) -> Resources | None:
+        def match_resource_name(name: str) -> bool:
+            name_rest = name[len(prefix) + 1 :]
+            split_name = name_rest.split("-")
+            return name.startswith(prefix) and split_name[0] == combi
+
+        def filter_and_sort_videos() -> list[Path]:
+            _videos = [
+                _res for _res in resources.videos if match_resource_name(_res.name)
+            ]
+            return sorted(_videos)
+
+        boxplots = [res for res in resources.boxplots if match_resource_name(res.name)]
+        if not boxplots:
+            return None
+        q_values = [res for res in resources.q_values if match_resource_name(res.name)]
+        _videos = filter_and_sort_videos()
+        # print(f"-- filter {prefix} {combi}")
+        # pp.pprint(boxplots)
+        # pp.pprint(_videos)
+        return Resources(boxplots=boxplots, q_values=q_values, videos=_videos)
+
+    def copy_missing_resources(resources: Resources, out_path: Path):
+        def cp(res_list: list[Path]):
+            res_path = out_path / prefix
+            res_path.mkdir(parents=True, exist_ok=True)
+            for res in res_list:
+                target_path = res_path / res.name
+                if not target_path.exists():
+                    shutil.copy(res, target_path)
+                    print(f"Copied {res.name} to {res_path}")
+
+        cp(resources.boxplots)
+        cp(resources.q_values)
+        cp(resources.videos)
+
+    def resource_to_url(res: Path) -> str:
+        return f"{prefix}/{res.name}"
 
     out_file_name = f"training-{index:02d}.html"
     out_file = out_path / out_file_name
-    _combis = extract_combis(resources.boxplots, prefix)
+    _combis = extract_combis_from_enum(training_dict)
 
+    prefix = training_dict["prefix"]
     if not _combis:
+        print(f"Found no combis for {prefix}")
         return None
 
-    t_id = training_dict["prefix"]
+    combi_resources = [
+        cr
+        for cr in [filter_combi_resources(resources, prefix, c) for c in _combis]
+        if cr is not None
+    ]
+    if combi_resources:
+
+        def create_combi_link(combi: str, _resources: Resources) -> CombiLinks:
+            return CombiLinks(
+                prefix=prefix,
+                combi=combi,
+                text=training_dict["title"],
+                boxplots=[resource_to_url(_res) for _res in _resources.boxplots],
+                q_values=[resource_to_url(_res) for _res in _resources.q_values],
+                videos=[resource_to_url(_res) for _res in _resources.videos],
+            )
+
+        print(f"Found combi resources for {prefix}")
+        for res in combi_resources:
+            copy_missing_resources(res, out_path)
+        print(f"Copied missing combi resources for {prefix}")
+        combi_links = [
+            create_combi_link(c, res) for c, res in zip(_combis, combi_resources)
+        ]
+    else:
+
+        def create_combi_link(combi: str) -> CombiLinks | None:
+            key = AllVideoNames.create_key(prefix, combi)
+            video_names = all_video_names.video_names(key)
+            if video_names is None:
+                return None
+            return CombiLinks(
+                prefix=prefix,
+                combi=combi,
+                text=training_dict["title"],
+                boxplots=[f"{prefix}/{prefix}-{combi}-boxplot.png"],
+                q_values=[f"{prefix}/{prefix}-{combi}-q-values-heat.mp4"],
+                videos=video_names,
+            )
+
+        print(f"Create report links for {prefix} using AllVideoNames")
+        combi_links = [
+            combi_link
+            for combi_link in [
+                create_combi_link(_combi_link) for _combi_link in _combis
+            ]
+            if combi_link is not None
+        ]
+
     doc = dominate.document(title=training_dict["title"])
 
     with doc.head:
@@ -233,17 +350,17 @@ def create_report_training(
         dt.link(rel="stylesheet", href="styles.css")
 
     with doc.body:
-        dt.h1().add(f"{t_id} {training_dict['title']}")
+        dt.h1().add(f"{prefix} {training_dict['title']}")
         dt.p().add(du.raw(hlp.parse_markdown(training_dict["description"].strip())))
         tags_for_enumdescs(training_dict)
-        tags_for_combis(resources, _combis, out_path)
+        tags_for_combis(resources, combi_links, out_path)
 
     with out_file.open("w") as f:
         f.write(str(doc))
-    return f"{t_id} {training_dict['title']}", out_file_name
+    return f"{prefix} {training_dict['title']}", out_file_name
 
 
-def create_final_ressources(reports_data: dict, result_dir_paths: list[Path]):
+def create_final_resources(reports_data: dict, result_dir_paths: list[Path]):
     def create(result_dir_path: Path, prefix: str):
         all_resources = list(
             [r for r in result_dir_path.iterdir() if r.stem.startswith(prefix)]
@@ -252,12 +369,9 @@ def create_final_ressources(reports_data: dict, result_dir_paths: list[Path]):
             if r.name.startswith(prefix) and r.name.endswith("mp4"):
                 pass
                 # print("### ", r.name)
-        lead_ressources = [r for r in all_resources if r.stem.endswith("boxplot")]
-        if lead_ressources:
-            combis = extract_combis(lead_ressources, prefix)
-            print(
-                f"-- create final ressources {len(all_resources)} {prefix} in {result_dir_path}"
-            )
+        lead_resources = [r for r in all_resources if r.stem.endswith("boxplot")]
+        if lead_resources:
+            combis = extract_combis(lead_resources, prefix)
             for combi in combis:
                 create_heat_video(all_resources, combi, prefix, result_dir_path)
                 create_simulation_video(all_resources, combi, prefix, result_dir_path)
@@ -331,6 +445,7 @@ def create_final_ressources(reports_data: dict, result_dir_paths: list[Path]):
 
 def report(result_dir: Path, out_dir: Path):
     out_dir.mkdir(parents=True, exist_ok=True)
+    all_video_names = AllVideoNames()
     report_path = (
         Path(__file__).parent.parent.parent.parent / "resources" / "report.yml"
     )
@@ -338,5 +453,5 @@ def report(result_dir: Path, out_dir: Path):
     with report_path.open() as f:
         reports_data = yaml.safe_load(f)
     # pprint(reports_data)
-    create_final_ressources(reports_data, result_dir_paths)
-    create_report(reports_data, result_dir_paths, out_dir)
+    create_final_resources(reports_data, result_dir_paths)
+    create_report(reports_data, result_dir_paths, out_dir, all_video_names)

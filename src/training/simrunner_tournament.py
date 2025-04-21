@@ -191,7 +191,7 @@ def run_epoch(
                 case _:
                     raise RuntimeError(f"Could not match response:{response}")
     except BaseException as ex:
-        print(f"### Error running {sim_name} {ex}")
+        print(f"Error running {sim_name} {ex}")
         raise ex
 
 

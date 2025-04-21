@@ -17,77 +17,9 @@ methods:
     (hence "model-free"), and it can handle problems with stochastic
     transitions and rewards without requiring adaptations. [wiki]
   trainings:
-  - prefix: Q0-DISC0
-    title: Cross validation over discount
-    enumdescs:
-      - training.simrunner.RewardHandlerName.continuous-consider-all
-      - training.parallel.ParallelConfig.q-disc-0
-    description: |
-      Number of epochs: 5000
-
-      Rewards are limited by a lower and upper limit. This might cause problems.
-  - prefix: Q0-LR2
-    title: Cross validation over learning rate 5k
-    enumdescs:
-      - training.simrunner.RewardHandlerName.continuous-consider-all
-      - training.parallel.ParallelConfig.q-lr-0
-    description: |
-      Number of epochs: 5000
-
-      Rewards are limited by a lower and upper limit. This might cause problems.
-  - prefix: Q0-EPS0
-    title: Cross validation over epsilon 5k
-    enumdescs:
-      - training.simrunner.RewardHandlerName.continuous-consider-all
-      - training.parallel.ParallelConfig.q-eps-0
-    description: |
-      Number of epochs: 5000
-
-      Rewards are limited by a lower and upper limit. This might cause problems.
-  - prefix: Q0-DISC3
-    title: Cross validation over discount 2
-    enumdescs:
-      - training.simrunner.RewardHandlerName.continuous-consider-all
-      - training.parallel.ParallelConfig.q-disc-1
-    description: |
-      Number of epochs: 10000
-
-      Rewards are limited by a lower and upper limit. This might cause problems.
-  - prefix: Q0-LR3
-    title: Cross validation over learning rate 10k
-    enumdescs:
-      - training.simrunner.RewardHandlerName.continuous-consider-all
-      - training.parallel.ParallelConfig.q-lr-1
-    description: |
-      Number of epochs: 10000  Q_LR_1
-
-      Rewards are limited by a lower and upper limit. This might cause problems.
-  - prefix: Q0-EPS3
-    title: Cross validation over epsilon 10k
-    enumdescs:
-      - training.simrunner.RewardHandlerName.continuous-consider-all
-      - training.parallel.ParallelConfig.q-eps-1
-    description: |
-      Number of epochs: 10000 Q_EPS_1
-  - prefix: T-CROSS-1
-    title: Cross validation on all Parameters 1 1000 epochs
-    enumdescs:
-      - training.simrunner.RewardHandlerName.continuous-consider-all
-    description: |
-      number of epochs 1k
-
-      Rewards are limited by a lower and upper limit. This might cause problems.
-  - prefix: T-CROSS2
-    title: Cross validation on all Parameters 1k epochs
-    enumdescs:
-      - training.simrunner.RewardHandlerName.continuous-consider-all
-      - training.parallel.ParallelConfig.q-cross-0
-    description: |
-      Number of epochs 1k
-
-      Rewards are limited by a lower and upper limit. This might cause problems.
   - prefix: Q-CV4
     title: Cross validation on all Parameters 20k epochs
+    color: GreenYellow
     enumdescs:
       - training.simrunner.RewardHandlerName.continuous-consider-all
       - training.parallel.ParallelConfig.q-cross-0
@@ -97,6 +29,7 @@ methods:
       Rewards are limited by a lower and upper limit. This might cause problems.
   - prefix: Q-CV5
     title: Cross validation reward unlimited
+    color: GreenYellow
     enumdescs:
       - training.simrunner.RewardHandlerName.continuous-consider-all
       - training.parallel.ParallelConfig.q-cross-1
@@ -109,6 +42,7 @@ methods:
       from the results of Q-CV4
   - prefix: Q-CV7
     title: Cross validation reward at end
+    color: GreenYellow
     enumdescs:
       - training.simrunner.RewardHandlerName.end-consider-all
       - training.parallel.ParallelConfig.q-cross-1
@@ -124,6 +58,7 @@ methods:
       from the results of Q-CV4
   - prefix: QMAP01
     title: Cross validation mapping
+    color: LightPink
     enumdescs:
       - training.simrunner.RewardHandlerName.continuous-consider-all
       - training.parallel.ParallelConfig.q-map-0
@@ -138,6 +73,7 @@ methods:
       All values for mapping are used.
   - prefix: QMAP02
     title: Cross validation mapping
+    color: LightPink
     enumdescs:
       - training.simrunner.RewardHandlerName.continuous-consider-all
       - training.parallel.ParallelConfig.q-map-1
@@ -149,6 +85,7 @@ methods:
       For the training start performance see: [Training start performance](analysis/StartPerformance.html)
   - prefix: QMAP03
     title: Cross validation mapping 2k epochs
+    color: LightPink
     enumdescs:
       - training.simrunner.RewardHandlerName.continuous-consider-all
       - training.parallel.ParallelConfig.q-map-2
@@ -157,6 +94,7 @@ methods:
       Based on the results of QMAP02
   - prefix: QMAP04
     title: Cross validation mapping 10k epochs
+    color: LightPink
     enumdescs:
       - training.simrunner.RewardHandlerName.continuous-consider-all
       - training.parallel.ParallelConfig.q-map-2
@@ -165,6 +103,7 @@ methods:
       Based on the results of QMAP02
   - prefix: QMAP05
     title: Cross validation mapping 2k epochs
+    color: LightPink
     enumdescs:
       - training.simrunner.RewardHandlerName.continuous-consider-all
       - training.parallel.ParallelConfig.q-map-3
@@ -173,6 +112,7 @@ methods:
       Based on the results of QMAP03 and QMAP04
   - prefix: QMAP06
     title: Cross validation mapping 5k epochs
+    color: LightPink
     enumdescs:
       - training.simrunner.RewardHandlerName.continuous-consider-all
       - training.parallel.ParallelConfig.q-map-3
@@ -181,6 +121,7 @@ methods:
       Based on the results of QMAP03 and QMAP04
   - prefix: QMAP08
     title: Check variance of equal parameters
+    color: LightPink
     enumdescs:
       - training.simrunner.RewardHandlerName.continuous-consider-all
       - training.parallel.ParallelConfig.q-map-4
@@ -191,6 +132,7 @@ methods:
     epoch count: 5000
   - prefix: QRW04
     title: Compare reward handler, reduced push reward
+    color: PaleGreen
     enumdescs:
       - training.simrunner.RewardHandlerName.continuous-consider-all
       - training.simrunner.RewardHandlerName.reduced-push-reward
@@ -211,6 +153,7 @@ methods:
     epoch count: 5000
   - prefix: QRW05
     title: Compare reward handlers with speed-bonus
+    color: PaleGreen
     enumdescs:
       - training.simrunner.RewardHandlerName.continuous-consider-all
       - training.simrunner.RewardHandlerName.reduced-push-reward
@@ -232,6 +175,7 @@ methods:
       epoch count: 5000
   - prefix: QRW06
     title: Cross validation for speed-bonus (L,E)
+    color: PaleGreen
     enumdescs:
       - training.simrunner.RewardHandlerName.speed-bonus
       - training.parallel.ParallelConfig.q-rw-2
@@ -248,6 +192,7 @@ methods:
       epoch count: 10k
   - prefix: QRW07
     title: Cross validation for speed-bonus (L,E) take 2
+    color: PaleGreen
     enumdescs:
       - training.simrunner.RewardHandlerName.speed-bonus
       - training.parallel.ParallelConfig.q-rw-3
@@ -263,6 +208,7 @@ methods:
       epoch count: 10k
   - prefix: QLOW00
     title: Very low values for L and E test
+    color: Plum
     enumdescs:
       - training.parallel.ParallelConfig.q-low-0
     description: |
@@ -271,6 +217,7 @@ methods:
       Goal: Find better values for L and E based on the results of QRW07
   - prefix: QLOW03
     title: Very low values for L and E 30k epochs
+    color: Plum
     enumdescs:
       - training.parallel.ParallelConfig.q-low-0
     description: |
@@ -280,6 +227,7 @@ methods:
 
   - prefix: QLOW04
     title: Very low values for L, E 1k epochs
+    color: Plum
     enumdescs:
       - training.parallel.ParallelConfig.q-low-1
     description: |
@@ -288,6 +236,7 @@ methods:
       Goal: Find better values for L and E based on the results of QLOW03
   - prefix: QLOW05
     title: Very low values for L E wit D 1k epochs
+    color: Plum
     enumdescs:
       - training.parallel.ParallelConfig.q-low-2
     description: |
@@ -295,6 +244,7 @@ methods:
 
   - prefix: QSEE00
     title: Zero reward for 'seeing' as a baseline 1k epochs
+    color: Salmon
     enumdescs:
       - training.parallel.ParallelConfig.q-see-0
     description: |
@@ -302,27 +252,45 @@ methods:
       Based on the values from QRW07
   - prefix: QSEE02
     title: Can see. 1k epochs
+    color: Salmon
     enumdescs:
       - training.parallel.ParallelConfig.q-see-1
     description: |
-      First usge of the 'can-see' reward handler      
+      First usage of the 'can-see' reward handler
   - prefix: QSEE03
     title: Can see. 5k epochs
+    color: Salmon
     enumdescs:
       - training.parallel.ParallelConfig.q-see-1
     description: |
-      Uasge of the 'can-see' reward handler
+      Usage of the 'can-see' reward handler
   - prefix: QSEE06
     title: Can see. 20k epochs
+    color: DarkOrange
     enumdescs:
       - training.parallel.ParallelConfig.q-see-1
     description: |
-      Uasge of the 'can-see' reward handler with 20k epochs
+      Usage of the 'can-see' reward handler with 20k epochs
   - prefix: QSEE07
     title: Can see. 10k epochs small E
+    color: Salmon
     enumdescs:
       - training.parallel.ParallelConfig.q-see-2
     description: |
-      Uasge of the 'can-see' reward handler with 20k epochs.  
+      Usage of the 'can-see' reward handler with 20k epochs.  
       Small epsilon
-                                                            
+  - prefix: QFETCH04
+    title: Lazy fetch 20k
+    color: Thistle
+    enumdescs:
+      - training.parallel.ParallelConfig.q-fetch-1
+    description: |
+      Lazy fetch cross validation. 20k epochs.
+  - prefix: QFETCH05
+    title: Lazy fetch top values 20k
+    color: Thistle
+    enumdescs:
+      - training.parallel.ParallelConfig.q-fetch-2
+    description: |
+      Lazy fetch top values cross validation. 20k epochs. 
+      

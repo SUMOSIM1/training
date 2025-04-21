@@ -5,6 +5,7 @@ from typing_extensions import Annotated
 
 import training.reward.reward_core as rhc
 import training.sgym.qlearn as sgym_qlearn
+import training.sgym.parallel_session as _ps
 import training.sgym.sample as sgym_sample
 import training.simdb
 import training.simrunner as sr
@@ -156,7 +157,7 @@ def sample(
 
 
 @app.command(help="Gymnasium q-learning session")
-def qtrain(
+def qlearn(
     name: Annotated[str, typer.Option("--name", "-n", help="Name of the run")],
     epoch_count: Annotated[
         int,
@@ -197,7 +198,7 @@ def qtrain(
         typer.Option("--out-dir", "-o", help="Output directory. Must be absolute"),
     ] = "/tmp",
 ):
-    sgym_qlearn.q_train(
+    sgym_qlearn.q_learn(
         name=name,
         epoch_count=epoch_count,
         sim_host=sim_host,
@@ -206,12 +207,12 @@ def qtrain(
         db_port=db_port,
         record=record,
         out_dir=out_dir,
-        q_train_config=sgym_qlearn.default_q_learn_config,
+        q_learn_config=sgym_qlearn.default_q_learn_config,
     )
 
 
 @app.command(help="Q-learning session. Used by 'parallel'")
-def qconfig(
+def parallel_session(
     name: Annotated[str, typer.Option("--name", help="Name of the run")],
     parallel_config: Annotated[
         _parallel.ParallelConfig,
@@ -272,7 +273,7 @@ def qconfig(
         typer.Option("--out-dir", help="Output directory. Must be absolute"),
     ] = "/tmp",
 ):
-    sgym_qlearn.q_config(
+    _ps.parallel_session(
         name=name,
         record=record,
         parallel_config=parallel_config,

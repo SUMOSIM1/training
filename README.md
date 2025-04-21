@@ -49,14 +49,15 @@ TODO
 
 Test at work
 ```
-sumot parallel -n M04 \
---parallel-config q-map-0 -e 1000 \
---db-host 10.133.20.219 \
---record \
---out-dir ~/tmp/sumosim/test/results/m04 --max-parallel 15
+sumot parallel \
+--db-host 192.168.0.171 --record --keep-container --max-parallel 20 \
+--epoch-count 2000 \
+--name QMAP03 \
+--out-dir ~/tmp/sumosim/results/results-2025-02-QMAP03 \
+--parallel-config q-map-2
 ```
 
-
+Test at ben
 ```
 sumot parallel -n QMAP01 \
 --parallel-config q-map-0 -e 20000 \
@@ -65,13 +66,16 @@ sumot parallel -n QMAP01 \
 --out-dir ~/tmp/sumosim/results/results-2025-02-QMAP01 --max-parallel 15
 ```
 
+Create reports
+- Define report in report.yml and enumdescs.yml
 ```
 sumot report \
--d $HOME/tmp/sumosim/results-2025-01/results \
--d $HOME/tmp/sumosim/results-2025-003 -d $HOME/tmp/sumosim/results-2025-01-002 \
--d $HOME/tmp/sumosim/results-2025-02-Q-CV5/ \
--d $HOME/tmp/sumosim/results/results-2025-02-QMAP01 \
--d $HOME/tmp/sumosim/results-2025-02-Q-CV7 \
--o $HOME/tmp/sumosim/reports/r4 
+-d $HOME/tmp/sumosim/results/ \
+-o $HOME/tmp/sumosim/reports/r10
 ```
+- If videos are created, delete the images from results/q-heat-maps
+- Zip the results directory and store it on Google Drive
+
+Upload (rsync) the reports to entelijan
+`TODO cmd form ben`
 

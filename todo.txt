@@ -1,39 +1,17 @@
 sumosim
 
-    unlimited: run another cross validation with unlimited reward values Q-CV5.
-        * Create branch Q-CV5 
-        * Change description of existing trainings as limited, where limited means 
-          that reward values were limited by min/max values.
-        * Define new ParallelConfig based on the results of Q-CV4
-        * Describe new training as unlimited.
-        - Run new cross validation Q-CV5 
 
-        sumot parallel -n Q-CV5 --parallel-config q-cross-1 --max-parallel 10 --epoch-count 20000 \
-          --db-host ben.local --keep-container --record --out-dir $HOME/tmp/sumosim/results-2025-02-Q-CV5
+OPEN
 
-    mapping
-        * call qtrain
-        - extract mapping code to separate module sim_mapping.py with abstract Class SimMapping and implementation InitialSimMapping
-        - qtrain still working ?
-        - define SimMappingName
-        - add SimMappingName to cmd-line
-        - implement new simulation mapping NearBorderSimMapping near-border
-        - Describe the mappings
-        - Extend the calculation of configs that values defining only one value are not considered.
-        - add configuration values RewardHandler, SensorMapping, ... to parallel configs. e.g. 
-          for sensor mapping SM values initial, near-border
+    reward2
+        - record the sim-actions during a run with differente fetch types.
+            fetch-types: eager, lazy-s-t2, lazy-s-t5
+        - record the reward increase during a run
+        - Add the results to the online reports
 
-    sumot qtrain --auto-naming -o $HOME/tmp/sumosim/mapping --record -e 100 -n M01
-
-    fetch-action 
-        - currently eager: fetches the first max value. 
-        - random max: Fetches a random value from all found max values.
-        
     near-border-reward
         - reward a push higher if it takes place near the border.
             
-    reports
-        - 
 
 doctus
     remove package.scala
