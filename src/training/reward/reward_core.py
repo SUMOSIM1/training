@@ -11,6 +11,7 @@ class RewardHandlerName(str, Enum):
     END_CONSIDER_ALL = "end-consider-all"
     REDUCED_PUSH_REWARD = "reduced-push-reward"
     SPEED_BONUS = "speed-bonus"
+    CAN_SEE = "can-see"
 
 
 class RewardHandler(ABC):
@@ -48,6 +49,10 @@ class RewardHandlerProvider:
             case RewardHandlerName.SPEED_BONUS:
                 module = importlib.import_module("training.reward.reward")
                 class_ = module.SpeedBonusRewardHandler
+                return class_()
+            case RewardHandlerName.CAN_SEE:
+                module = importlib.import_module("training.reward.reward")
+                class_ = module.CanSeeRewardHandler
                 return class_()
             case _:
                 raise RuntimeError(f"Unknown reward handler {name}")

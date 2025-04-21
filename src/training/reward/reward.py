@@ -19,6 +19,7 @@ class RobotContinuousEndEvents:
 @dataclass
 class RobotContinuousEvents:
     robot_push_events: rh.RobotPushEvents
+    robot_can_see: bool
 
 
 class EventMapper(ABC):
@@ -34,7 +35,7 @@ class EventMapper(ABC):
 
 
 @dataclass
-class AbstractEventMapperPoperties:
+class EventMapperProperties:
     win_by_push_reward: float
     max_win_by_push_duration_reward: float
     loose_unforced_penalty: float
@@ -42,14 +43,15 @@ class AbstractEventMapperPoperties:
     loose_forced_penalty: float
     push_reward: float
     is_pushed_penalty: float
+    can_see_reward: float = 0.0
 
 
 class AbstractEventMapper(EventMapper):
     @abstractmethod
-    def properties(self) -> AbstractEventMapperPoperties:
+    def properties(self) -> EventMapperProperties:
         pass
 
-    def win_by_push_duratin_reward(self, events: RobotContinuousEndEvents) -> float:
+    def win_by_push_duration_reward(self, events: RobotContinuousEndEvents) -> float:
         r = (
             1.0 - events.steps_count_relative
         ) * self.properties().max_win_by_push_duration_reward
@@ -76,6 +78,8 @@ class AbstractEventMapper(EventMapper):
                 # pp.pprint(events)
                 return self.properties().is_pushed_penalty
             case rh.RobotPushEvents.NONE:
+                if events.robot_can_see:
+                    return self.properties().can_see_reward
                 return 0.0
             case _:
                 raise ValueError(f"Unknown RobotPushEvents;{events.robot_push_events}")
@@ -92,7 +96,7 @@ class AbstractEventMapper(EventMapper):
                         # Return the highest possible reward extras for fast winning
                         return (
                             self.properties().win_by_push_reward
-                            + self.win_by_push_duratin_reward(events)
+                            + self.win_by_push_duration_reward(events)
                         )
                     case rh.RobotPushEvents.NONE:
                         return 0.0
@@ -155,7 +159,7 @@ class ContinuousRewardHandler(rhc.RewardHandler):
 
 class ConsiderAllRewardHandler(ContinuousRewardHandler):
     class Mapper(AbstractEventMapper):
-        mapper_props = AbstractEventMapperPoperties(
+        mapper_props = EventMapperProperties(
             win_by_push_reward=100.0,
             max_win_by_push_duration_reward=50.0,
             loose_unforced_penalty=-100.0,
@@ -180,7 +184,7 @@ class ConsiderAllRewardHandler(ContinuousRewardHandler):
 
 class ReducedPushRewardHandler(ContinuousRewardHandler):
     class Mapper(AbstractEventMapper):
-        mapper_props = AbstractEventMapperPoperties(
+        mapper_props = EventMapperProperties(
             win_by_push_reward=100.0,
             max_win_by_push_duration_reward=50.0,
             loose_unforced_penalty=-100.0,
@@ -205,7 +209,7 @@ class ReducedPushRewardHandler(ContinuousRewardHandler):
 
 class SpeedBonusRewardHandler(ContinuousRewardHandler):
     class Mapper(AbstractEventMapper):
-        mapper_props = AbstractEventMapperPoperties(
+        mapper_props = EventMapperProperties(
             win_by_push_reward=100.0,
             max_win_by_push_duration_reward=150.0,
             loose_unforced_penalty=-100.0,
@@ -213,6 +217,32 @@ class SpeedBonusRewardHandler(ContinuousRewardHandler):
             loose_forced_penalty=-10.0,
             push_reward=0.05,
             is_pushed_penalty=-0.01,
+        )
+
+        def properties(self):
+            return self.mapper_props
+
+    def __init__(self):
+        self.em: EventMapper = self.Mapper()
+
+    def event_mapper(self) -> EventMapper:
+        return self.em
+
+    def name(self) -> str:
+        return rhc.RewardHandlerName.SPEED_BONUS.value
+
+
+class CanSeeRewardHandler(ContinuousRewardHandler):
+    class Mapper(AbstractEventMapper):
+        mapper_props = EventMapperProperties(
+            win_by_push_reward=100.0,
+            max_win_by_push_duration_reward=150.0,
+            loose_unforced_penalty=-100.0,
+            max_loose_unforced_duration_penalty=-150.0,
+            loose_forced_penalty=-10.0,
+            push_reward=0.05,
+            is_pushed_penalty=-0.01,
+            can_see_reward=0.02,
         )
 
         def properties(self):
@@ -282,6 +312,10 @@ def continuous_events_from_simulation_state(
     robot2_can_see = rh.can_see(state.robot2, state.robot1)
     robot1_push_events = push_events(_dist, bool(robot1_can_see), bool(robot2_can_see))
     robot2_push_events = push_events(_dist, bool(robot2_can_see), bool(robot1_can_see))
-    e1 = RobotContinuousEvents(robot_push_events=robot1_push_events)
-    e2 = RobotContinuousEvents(robot_push_events=robot2_push_events)
+    e1 = RobotContinuousEvents(
+        robot_push_events=robot1_push_events, robot_can_see=bool(robot1_can_see)
+    )
+    e2 = RobotContinuousEvents(
+        robot_push_events=robot2_push_events, robot_can_see=bool(robot1_can_see)
+    )
     return e1, e2

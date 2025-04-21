@@ -614,3 +614,71 @@
     &#x200B;        | R0          
     --------------- | ----------- 
     reward handler  | speed-bonus 
+- class_name: training.parallel.ParallelConfig
+  value: q-see-0
+  desc: |
+    &#x200B;        | L0  | L1   | L2   | L3   | L4      
+    --------------- | --- | ---- | ---- | ---- | ----         
+    learning rate   | 0.2 | 0.2  | 0.2  | 0.2  | 0.2      
+
+    &#x200B; | E0   | E1   | E2   | E3   | E1     
+    -------- | ---- | ---- | ---- | ---- | ----         
+    epsilon  | 0.02 | 0.02 | 0.02 | 0.02 | 0.02   
+
+    &#x200B; | D0    | D1    | D2    | D3    | D4    
+    -------- | ----- | ----- | ----- | ----- | -----       
+    discount | 0.3   | 0.3   | 0.3   | 0.3   | 0.3  
+
+    &#x200B; | M0          
+    -------- | ------------ 
+    mapping  | non-linear-3
+
+    &#x200B;        | R0                      
+    --------------- | ----------------------- 
+    reward handler  | speed-bonus             
+- class_name: training.parallel.ParallelConfig
+  value: q-see-1
+  desc: |
+    &#x200B;        | L0  | L1   | L2   | L3   | L4      
+    --------------- | --- | ---- | ---- | ---- | ----         
+    learning rate   | 0.2 | 0.2  | 0.2  | 0.2  | 0.2      
+
+    &#x200B; | E0   | E1   | E2   | E3   | E1     
+    -------- | ---- | ---- | :---- | ---- | ----         
+    epsilon  | 0.02 | 0.02 | 0.02 | 0.02 | 0.02   
+
+    &#x200B; | D0    | D1    | D2    | D3    | D4    
+    -------- | ----- | ----- | ----- | ----- | -----       
+    discount | 0.3   | 0.3   | 0.3   | 0.3   | 0.3  
+
+    &#x200B; | M0          
+    -------- | ------------ 
+    mapping  | non-linear-3
+
+    &#x200B;        | R0                      
+    --------------- | ----------------------- 
+    reward handler  | can-see             
+- class_name: training.parallel.ParallelConfig
+  value: q-see-2
+  desc: |
+    Same as 'q-see-1' but smaller epsilon
+    
+    &#x200B;        | L0  | L1   | L2   | L3   | L4      
+    --------------- | --- | ---- | ---- | ---- | ----         
+    learning rate   | 0.2 | 0.2  | 0.2  | 0.2  | 0.2      
+
+    &#x200B; | E0   | E1   | E2   | E3   | E1     
+    -------- | ---- | ---- | :---- | ---- | ----         
+    epsilon  | 0.01 | 0.01 | 0.01 | 0.01 | 0.01   
+
+    &#x200B; | D0    | D1    | D2    | D3    | D4    
+    -------- | ----- | ----- | ----- | ----- | -----       
+    discount | 0.3   | 0.3   | 0.3   | 0.3   | 0.3  
+
+    &#x200B; | M0          
+    -------- | ------------ 
+    mapping  | non-linear-3
+
+    &#x200B;        | R0                      
+    --------------- | ----------------------- 
+    reward handler  | can-see             

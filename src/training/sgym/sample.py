@@ -125,9 +125,7 @@ def sample(
             episode_over = terminated or truncated
             cnt += 1
 
-        print(
-            f"finished epoch {sim_name} " f"reward:{cuml_reward:10.2f} record:{record}"
-        )
+        print(f"finished epoch {sim_name} reward:{cuml_reward:10.2f} record:{record}")
         rewards.append(cuml_reward)
         env.close()
 

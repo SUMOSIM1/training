@@ -1,101 +1,67 @@
-import training.sgym.qlearn as ql
-import training.helper as hlp
+from enum import Enum
+from pathlib import Path
+from typing import Callable
+
+import math
 import matplotlib.pyplot as plt
 import pandas as pd
-from pathlib import Path
 import seaborn as sb
+import seaborn as sbn
+import numpy as np
 
-from enum import Enum
+import training.reward.reward as rw
+import training.reward.reward_helper as rh
+import training.simrunner_core as src
+import training.sgym.qlearn as ql
+import training.helper as hlp
 
 
 class AnalysisName(Enum):
     NEXT_Q_VALUE = "next-q-value"
     ADJUST_REWARD = "adjust-reward"
+    VISUALIZE_REWARD = "visualize-reward"
+    VISUALIZE_CAN_SEE = "visualize-can-see"
 
 
-class AnalysisReportName(Enum):
-    VIDEOS = "videos"
-
-
-def analysis_report_main(
-    analysis_report_name: AnalysisReportName, base_dir: str, prefix: str
-):
-    match analysis_report_name:
-        case AnalysisReportName.VIDEOS:
-            videos(base_dir, prefix)
-        case _:
-            raise ValueError(f"Unknown analysis name {analysis_report_name}")
-
-
-def videos(base_dir: str, prefix: str):
-    def video(name: str, video_dir: Path, out_dir: Path) -> Path:
-        infiles = f"{str(video_dir)}/*.png"
-        outfile = f"{str(out_dir)}/{name}.mp4"
-        print(
-            f"name: {name} vd: {video_dir} od: {out_dir} ifs: {infiles}  of: {outfile}"
-        )
-        cmd = [
-            "ffmpeg",
-            "-framerate",
-            "200",
-            "-pattern_type",
-            "glob",
-            "-i",
-            f"{str(infiles)}",
-            "-c:v",
-            "libx264",
-            "-pix_fmt",
-            "yuv420p",
-            str(outfile),
-        ]
-        print(f"calling: '{' '.join(cmd)}'")
-        hlp.call(cmd, ignore_stderr=True)
-        print(f"Created video: {outfile}")
-
-    base_path = Path(base_dir)
-    if not base_path.exists():
-        raise ValueError(f"Base directory does not exist {base_path.absolute()}")
-    files = [p for p in base_path.iterdir() if p.name.startswith(prefix)]
-    files_sorted = sorted(files, key=lambda p: p.name)
-    for f in files_sorted:
-        video(f.name, f / "v", base_dir)
-
-
-def analysis_main(analysis_name: AnalysisName):
+def analysis_main(analysis_name: AnalysisName, out_dir: Path):
     match analysis_name:
         case AnalysisName.NEXT_Q_VALUE:
-            next_q_value()
+            next_q_value(out_dir)
         case AnalysisName.ADJUST_REWARD:
-            adjust_reward()
+            adjust_reward(out_dir)
+        case AnalysisName.VISUALIZE_REWARD:
+            visualize_reward(out_dir)
+        case AnalysisName.VISUALIZE_CAN_SEE:
+            visualize_can_see(out_dir)
         case _:
             raise ValueError(f"Unknown analysis name {analysis_name}")
 
 
-def adjust_reward():
+def adjust_reward(out_dir: Path):
     from training.sgym.qlearn import adjust_end
     from training.sgym.qlearn import adjust_cont
 
     rewards = hlp.create_values(100, -200, 800)
-    ends = [adjust_end(x) for x in rewards]
-    conts = [adjust_cont(x) for x in rewards]
+    end_rewards = [adjust_end(x) for x in rewards]
+    continuous_rewards = [adjust_cont(x) for x in rewards]
 
     fig, ax = plt.subplots(figsize=(20, 20))
     sb.lineplot(x=rewards, y=rewards, ax=ax)
-    sb.lineplot(x=rewards, y=ends, ax=ax)
-    sb.lineplot(x=rewards, y=conts, ax=ax)
+    sb.lineplot(x=rewards, y=end_rewards, ax=ax)
+    sb.lineplot(x=rewards, y=continuous_rewards, ax=ax)
     ax.set_ylim(-0.1, 1.1)
 
-    work_dir = Path.home() / "tmp" / "sumosim" / "adjust-reward"
+    work_dir = out_dir / "adjust-reward"
     work_dir.mkdir(parents=True, exist_ok=True)
     file = work_dir / "adjust-reward-001.png"
     fig.savefig(file)
     print(f"Wrote analysis 'adjust-reward to {file}'")
 
 
-def next_q_value():
+def next_q_value(out_dir: Path):
     n_rows = 3
     n_cols = 3
-    work_dir = Path.home() / "tmp" / "sumosim" / "tryout"
+    work_dir = out_dir / "next-q-value"
     discount_factor = 0.95
     learning_rate = 0.1
 
@@ -147,3 +113,71 @@ def next_q_value():
     file = work_dir / "next_q_value.png"
     fig.savefig(file)
     print(f"Wrote next q value analysis to {file}")
+
+
+def visualize_reward(out_dir: Path):
+    reward_handler = rw.CanSeeRewardHandler()
+
+    def _calc_reward(robot1: src.PosDir, robot2: src.PosDir) -> float:
+        state = src.SimulationState(robot1, robot2)
+        return reward_handler.calculate_reward(state)[0]
+
+    _visualize_see(
+        out_dir / "continuous-reward", _calc_reward, (-500, 500), "Continuous Reward"
+    )
+
+
+def visualize_can_see(out_dir: Path):
+    def _calc_can_see(robot1: src.PosDir, robot2: src.PosDir) -> float:
+        distance = rh.can_see(robot1, robot2)
+        return 0.0 if distance is None else distance
+
+    _visualize_see(out_dir / "can-see", _calc_can_see, (-500, 500), "Can See")
+
+
+def _visualize_see(
+    out_dir: Path,
+    f: Callable[[src.PosDir, src.PosDir], float],
+    see_range: tuple[float, float],
+    title: str,
+):
+    def tick_labels(values: list[float]) -> list[str]:
+        def fmt(index: int, num: float) -> str:
+            return f"{num:.0f}" if index % 50 == 0 else ""
+
+        return [fmt(i, v) for i, v in enumerate(values)]
+
+    def save_heat_map(index: int, angle: float, out_dir: Path):
+        robot1 = src.PosDir(0, 0, angle * math.pi / 180.0)
+        ys = np.linspace(see_range[0], see_range[1], num=200)
+        matrix = []
+        for y in ys:
+            xs = np.linspace(see_range[0], see_range[1], num=200)
+            row = []
+            for x in xs:
+                robot2 = src.PosDir(x, y, 0)
+                result = f(robot1, robot2)
+                (row.append(result),)
+            matrix.append(row)
+        # pp.pprint(m)
+        fig, ax = plt.subplots(figsize=(12, 12))
+        sbn.heatmap(
+            matrix,
+            xticklabels=(tick_labels(xs)),
+            yticklabels=(tick_labels(ys)),
+            square=True,
+            ax=ax,
+        )
+        ax.set_title(f"{title} - angle: {angle:.2f}")
+        ax.set_xlabel(f"x {see_range[0]}, {see_range[0]}")
+        ax.set_ylabel(f"y {see_range[0]}, {see_range[0]}")
+
+        out_path = out_dir / f"a-{i:05d}.png"
+        fig.savefig(out_path)
+        plt.close(fig)
+        print(f"Wrote to {out_path}")
+
+    out_dir.mkdir(parents=True, exist_ok=True)
+    angles = [0, 45, 90, 135, 170, 180, 190, 225, 260, 315]
+    for i, a in enumerate(angles):
+        save_heat_map(i, a, out_dir)
