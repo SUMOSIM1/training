@@ -293,4 +293,60 @@ methods:
       - training.parallel.ParallelConfig.q-fetch-2
     description: |
       Lazy fetch top values cross validation. 20k epochs. 
-      
+  - prefix: QED5
+    title: Epsilon decay 10k
+    color: DarkSeaGreen
+    enumdescs:
+      - training.parallel.ParallelConfig.q-ed-1
+    description: |
+      Find the optimal epsilon decay  
+  - prefix: QED6
+    title: Epsilon decay long decay 10k
+    color: DarkSeaGreen
+    enumdescs:
+      - training.parallel.ParallelConfig.q-ed-2
+    description: |
+      Find the optimal epsilon decay for decay of 1000 and 3000 epochs  
+  - prefix: QE7
+    title: Epsilon decay big decay 10k
+    color: DarkSeaGreen
+    enumdescs:
+      - training.parallel.ParallelConfig.q-ed-3
+    description: |
+      Find the optimal epsilon decay for decay of 1000 and 3000 epochs  
+  - prefix: QEDEXP1
+    title: Epsilon exponential decay 10k epochs
+    color: ForestGreen
+    enumdescs:
+      - training.parallel.ParallelConfig.q-edexp-1
+    description: |
+      Find the optimal exponential epsilon decay   
+      epochs: 10000
+  - prefix: QEDEXP2
+    title: Epsilon exponential decay 20k epochs
+    color: ForestGreen
+    enumdescs:
+      - training.parallel.ParallelConfig.q-edexp-1
+    description: |
+      Find the optimal exponential epsilon decay   
+      epochs: 20000
+  - prefix: QEDC1
+    title: Cross validation learning rate, epsilon and discount
+    color: Lavender
+    enumdescs:
+      - training.parallel.ParallelConfig.q-edc-1
+    description: |
+      Find the optimal learning rate, epsilon and discount with exponential decay for epsilon   
+      epochs: 20000
+      epsilon decay: exponential half time: 1000 epochs
+  - prefix: QEDC2
+    title: Cross validation learning rate, epsilon and discount. Based on QEDC1
+    color: Lavender
+    enumdescs:
+      - training.parallel.ParallelConfig.q-edc-2
+    description: |
+      Find the optimal learning rate, epsilon and discount with exponential decay for epsilon   
+      epochs: 20000
+      epsilon decay: exponential half time: 1000 epochs
+      The value ranges are based on the results of QWDC1
+  

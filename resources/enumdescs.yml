@@ -766,7 +766,201 @@
     &#x200B;    | F0         | F1        | F2         | F3         | F4                      
     ----------- | ---------- | --------- | ---------- | ---------- | ---------  
     fetch mode  | lazy-s-t2  | lazy-s-t5 | lazy-s-t10 | lazy-m-t2  | lazy-m-t5                
-    ----------- | ---------- | --------- | ---------- | ---------- | -----------
     &#x200B;    | F5         | F6        | F7         | F8         |              
-    ----------- | ---------- | --------- | ---------- | ---------- | -----------
-    fetch mode  | lazy-m-t10 | lazy-l-t2 | lazy-l-t5  | lazy-l-t10 |              
+    fetch mode  | lazy-m-t10 | lazy-l-t2 | lazy-l-t5  | lazy-l-t10 |
+- class_name: training.parallel.ParallelConfig
+  value: q-ed-1
+  desc: |
+    Cross validation for epsilon decay
+    
+    &#x200B;        | L0  | L1   | L2   | L3        
+    --------------- | --- | ---- | ---- | ----           
+    learning rate   | 0.2 | 0.2  | 0.2  | 0.2          
+
+    &#x200B; | E0            
+    -------- | ---- 
+    epsilon  | 0.05 
+
+    &#x200B;      | ED0        | ED1           | ED2           | ED3                    
+    ------------- | ---------- | ------------- | ------------- | -------------  
+    epsilon decay | none       | decay-100-80  | decay-100-50  | decay-100-20        
+
+    &#x200B; | D0    
+    -------- | -----        
+    discount | 0.3     
+
+    &#x200B; | M0          
+    -------- | ------------ 
+    mapping  | non-linear-3
+
+    &#x200B;        | R0                      
+    --------------- | ----------------------- 
+    reward handler  | can-see             
+
+    &#x200B;    | F0         
+    ----------- | ---------- 
+    fetch mode  | eager      
+- class_name: training.parallel.ParallelConfig
+  value: q-ed-2
+  desc: |
+    Cross validation for epsilon decay
+    
+    &#x200B;        | L0  | L1   | L2   | L3        
+    --------------- | --- | ---- | ---- | ----           
+    learning rate   | 0.2 | 0.2  | 0.2  | 0.2          
+
+    &#x200B; | E0            
+    -------- | ---- 
+    epsilon  | 0.05 
+
+    &#x200B;      | ED0        | ED1            | ED2            | ED3                    
+    ------------- | ---------- | -------------- | -------------- | -------------  
+    epsilon decay | none       | decay-1000-80  | decay-1000-50  | decay-1000-20        
+    &#x200B;      | ED4        | ED5            | ED6            | ED7                    
+    &#x200B;      | none       | decay-3000-80  | decay-3000-50  | decay-3000-20        
+
+    &#x200B; | D0    
+    -------- | -----        
+    discount | 0.3     
+
+    &#x200B; | M0          
+    -------- | ------------ 
+    mapping  | non-linear-3
+
+    &#x200B;        | R0                      
+    --------------- | ----------------------- 
+    reward handler  | can-see             
+
+    &#x200B;    | F0         
+    ----------- | ---------- 
+    fetch mode  | eager      
+- class_name: training.parallel.ParallelConfig
+  value: q-ed-3
+  desc: |
+    Cross validation for epsilon decay with big decay. 20% 10% and 5% of the inital epsilon 
+    
+    &#x200B;        | L0  | L1   | L2   | L3    
+    --------------- | --- | ---- | ---- | ----           
+    learning rate   | 0.2 | 0.2  | 0.2  | 0.2          
+
+    &#x200B; | E0            
+    -------- | ---- 
+    epsilon  | 0.05 
+
+    &#x200B;      | ED0           | ED1            | ED2                              
+    ------------- | ------------- | -------------- | --------------   
+    epsilon decay | decay-1000-20 | decay-1000-10  | decay-1000-05          
+    &#x200B;      | ED3           | ED4            | ED5                                
+    &#x200B;      | decay-3000-20 | decay-3000-10  | decay-3000-05          
+
+    &#x200B; | D0    
+    -------- | -----        
+    discount | 0.3     
+
+    &#x200B; | M0          
+    -------- | ------------ 
+    mapping  | non-linear-3
+
+    &#x200B;        | R0                      
+    --------------- | ----------------------- 
+    reward handler  | can-see             
+
+    &#x200B;    | F0         
+    ----------- | ---------- 
+    fetch mode  | eager      
+- class_name: training.parallel.ParallelConfig
+  value: q-edexp-1
+  desc: |
+    Cross validation for epsilon exponential decay. 
+    
+    &#x200B;        | L0  | L1   | L2   | L3        
+    --------------- | --- | ---- | ---- | ----           
+    learning rate   | 0.2 | 0.2  | 0.2  | 0.2          
+
+    &#x200B; | E0            
+    -------- | ---- 
+    epsilon  | 0.05 
+
+    &#x200B;      | ED0      | ED1            | ED2            | ED3                              
+    ------------- | -------- | -------------- | -------------- | --------------   
+    epsilon decay | NONE     | decay-exp-100  | decay-exp-1000 | decay-exp-5000          
+
+    &#x200B; | D0    
+    -------- | -----        
+    discount | 0.3     
+
+    &#x200B; | M0          
+    -------- | ------------ 
+    mapping  | non-linear-3
+
+    &#x200B;        | R0                      
+    --------------- | ----------------------- 
+    reward handler  | can-see             
+
+    &#x200B;    | F0         
+    ----------- | ---------- 
+    fetch mode  | eager      
+- class_name: training.parallel.ParallelConfig
+  value: q-edc-1
+  desc: |
+    Cross validation for epsilon start value, learning rate and discount. 
+    
+    &#x200B;        | L0   | L1    | L2   | L3        
+    --------------- | ---- | ----- | ---- | ----           
+    learning rate   | 0.01 | 0.05  | 0.1  | 0.5          
+
+    &#x200B; | E0   | E1   | E2   | E3            
+    -------- | ---- | ---- | ---- | ---- 
+    epsilon  | 0.01 | 0.05 | 0.1 | 0.5 
+
+    &#x200B;      | ED0                                   
+    ------------- | ----------------   
+    epsilon decay | decay-exp-1000           
+
+    &#x200B; | D0    | D1    | D2    | D3    
+    -------- | ----- | ----- | ----- | -----        
+    discount | 0.2   | 0.3   | 0.5   | 0.8     
+
+    &#x200B; | M0          
+    -------- | ------------ 
+    mapping  | non-linear-3
+
+    &#x200B;        | R0                      
+    --------------- | ----------------------- 
+    reward handler  | can-see             
+
+    &#x200B;    | F0         
+    ----------- | ---------- 
+    fetch mode  | eager      
+- class_name: training.parallel.ParallelConfig
+  value: q-edc-2
+  desc: |
+    Cross validation for epsilon start value, learning rate and discount, based on q-edc-1 
+    
+    &#x200B;        | L0   | L1    | L2   | L3        
+    --------------- | ---- | ----- | ---- | ----           
+    learning rate   | 0.1 | 0.5  | 0.8  | 1.0          
+
+    &#x200B; | E0   | E1   | E2   | E3            
+    -------- | ---- | ---- | ---- | ---- 
+    epsilon  | 0.01 | 0.05 | 0.1 | 0.5 
+
+    &#x200B;      | ED0                                   
+    ------------- | ----------------   
+    epsilon decay | decay-exp-1000           
+
+    &#x200B; | D0    | D1    | D2    | D3    
+    -------- | ----- | ----- | ----- | -----        
+    discount | 0.05   | 0.1   | 0.2   | 0.3     
+
+    &#x200B; | M0          
+    -------- | ------------ 
+    mapping  | non-linear-3
+
+    &#x200B;        | R0         
+    --------------- | ----------------------- 
+    reward handler  | can-see             
+
+    &#x200B;    | F0         
+    ----------- | ---------- 
+    fetch mode  | eager      

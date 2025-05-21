@@ -88,10 +88,93 @@ class FetchType(str, Enum):
         return np.random.choice(_top)
 
 
+class EpsilonDecay(str, Enum):
+    NONE = "none"
+    DECAY_100_80 = "decay-100-80"
+    DECAY_100_50 = "decay-100-50"
+    DECAY_100_20 = "decay-100-20"
+    DECAY_100_10 = "decay-100-10"
+    DECAY_100_05 = "decay-100-05"
+    DECAY_1000_80 = "decay-1000-80"
+    DECAY_1000_50 = "decay-1000-50"
+    DECAY_1000_20 = "decay-1000-20"
+    DECAY_1000_10 = "decay-1000-10"
+    DECAY_1000_05 = "decay-1000-05"
+    DECAY_3000_80 = "decay-3000-80"
+    DECAY_3000_50 = "decay-3000-50"
+    DECAY_3000_20 = "decay-3000-20"
+    DECAY_3000_10 = "decay-3000-10"
+    DECAY_3000_05 = "decay-3000-05"
+    DECAY_EXP_100 = "decay-exp-100"
+    DECAY_EXP_1000 = "decay-exp-1000"
+    DECAY_EXP_5000 = "decay-exp-5000"
+
+    def epsilon(self, epoch: int, initial_epsilon: float) -> float:
+        match self:
+            case EpsilonDecay.NONE:
+                return self._epsilon_decay_linear(epoch, initial_epsilon, 0, 1.0)
+            case EpsilonDecay.DECAY_100_05:
+                return self._epsilon_decay_linear(epoch, initial_epsilon, 100, 0.05)
+            case EpsilonDecay.DECAY_100_10:
+                return self._epsilon_decay_linear(epoch, initial_epsilon, 100, 0.1)
+            case EpsilonDecay.DECAY_100_20:
+                return self._epsilon_decay_linear(epoch, initial_epsilon, 100, 0.2)
+            case EpsilonDecay.DECAY_100_50:
+                return self._epsilon_decay_linear(epoch, initial_epsilon, 100, 0.5)
+            case EpsilonDecay.DECAY_100_80:
+                return self._epsilon_decay_linear(epoch, initial_epsilon, 100, 0.8)
+            case EpsilonDecay.DECAY_1000_05:
+                return self._epsilon_decay_linear(epoch, initial_epsilon, 1000, 0.05)
+            case EpsilonDecay.DECAY_1000_10:
+                return self._epsilon_decay_linear(epoch, initial_epsilon, 1000, 0.1)
+            case EpsilonDecay.DECAY_1000_20:
+                return self._epsilon_decay_linear(epoch, initial_epsilon, 1000, 0.2)
+            case EpsilonDecay.DECAY_1000_50:
+                return self._epsilon_decay_linear(epoch, initial_epsilon, 1000, 0.5)
+            case EpsilonDecay.DECAY_1000_80:
+                return self._epsilon_decay_linear(epoch, initial_epsilon, 1000, 0.8)
+            case EpsilonDecay.DECAY_3000_05:
+                return self._epsilon_decay_linear(epoch, initial_epsilon, 3000, 0.05)
+            case EpsilonDecay.DECAY_3000_10:
+                return self._epsilon_decay_linear(epoch, initial_epsilon, 3000, 0.1)
+            case EpsilonDecay.DECAY_3000_20:
+                return self._epsilon_decay_linear(epoch, initial_epsilon, 3000, 0.2)
+            case EpsilonDecay.DECAY_3000_50:
+                return self._epsilon_decay_linear(epoch, initial_epsilon, 3000, 0.5)
+            case EpsilonDecay.DECAY_3000_80:
+                return self._epsilon_decay_linear(epoch, initial_epsilon, 3000, 0.8)
+            case EpsilonDecay.DECAY_EXP_100:
+                return self._epsilon_decay_exp(epoch, initial_epsilon, 100)
+            case EpsilonDecay.DECAY_EXP_1000:
+                return self._epsilon_decay_exp(epoch, initial_epsilon, 1000)
+            case EpsilonDecay.DECAY_EXP_5000:
+                return self._epsilon_decay_exp(epoch, initial_epsilon, 5000)
+            case _:
+                raise RuntimeError(f"EpsilonDecay for {self.value} not yet implemented")
+
+    @staticmethod
+    def _epsilon_decay_linear(
+        epoch: int, initial_epsilon: float, decay_epochs: int, decay_factor: float
+    ):
+        if epoch >= decay_epochs:
+            return initial_epsilon * decay_factor
+        k = (initial_epsilon * (1.0 - decay_factor)) / decay_epochs
+        d = k * epoch
+        _re = initial_epsilon - d
+        return _re
+
+    @staticmethod
+    def _epsilon_decay_exp(epoch: int, initial_epsilon: float, half_time: float):
+        return hlp.descending_exponential(
+            start_value=initial_epsilon, half_time=half_time, time=float(epoch)
+        )
+
+
 @dataclass(frozen=True)
 class QLearnConfig:
     learning_rate: float
     epsilon: float
+    epsilon_decay_name: str
     discount_factor: float
     mapping_name: str
     opponent_name: str
@@ -113,11 +196,12 @@ default_senv_config = sgym.SEnvConfig(
 default_q_learn_config = QLearnConfig(
     learning_rate=0.1,
     epsilon=0.1,
+    epsilon_decay_name=EpsilonDecay.NONE.value,
     discount_factor=0.8,
     mapping_name=sm.SEnvMappingName.NON_LINEAR_3.value,
     opponent_name=sr.ControllerName.STAND_STILL.value,
     reward_handler_name=rhc.RewardHandlerName.CONTINUOUS_CONSIDER_ALL.value,
-    fetch_type=FetchType.LAZY_S.value,
+    fetch_type=FetchType.EAGER.value,
 )
 
 
@@ -169,8 +253,7 @@ def q_learn(
         reward_handler=rhc.RewardHandlerName(q_learn_config.reward_handler_name),
         learning_rate=q_learn_config.learning_rate,
         initial_epsilon=q_learn_config.epsilon,
-        epsilon_decay=0.0,
-        final_epsilon=q_learn_config.epsilon,
+        epsilon_decay=EpsilonDecay(q_learn_config.epsilon_decay_name),
         discount_factor=q_learn_config.discount_factor,
         fetch_type=fetch_type,
     )
@@ -194,7 +277,7 @@ def q_learn(
         episode_over = False
         cuml_reward = 0.0
         while not episode_over:
-            action = agent.get_action(obs)
+            action = agent.get_action(obs, epoch_nr)
             next_obs, reward, terminated, truncated, info = env.step(action)
             # print(f"# obs:{obs} a:{action} next_obs:{next_obs}")
             agent.update(obs, action, float(reward), terminated, next_obs)
@@ -304,8 +387,7 @@ class QAgent:
         fetch_type: FetchType,
         learning_rate: float,
         initial_epsilon: float,
-        epsilon_decay: float,
-        final_epsilon: float,
+        epsilon_decay: EpsilonDecay,
         discount_factor: float = 0.95,
     ):
         """Initialize a Reinforcement Learning agent with an empty dictionary
@@ -328,19 +410,18 @@ class QAgent:
         self.reward_handler = reward_handler
         self.fetch_type = fetch_type
 
-        self.epsilon = initial_epsilon
+        self.initial_epsilon = initial_epsilon
         self.epsilon_decay = epsilon_decay
-        self.final_epsilon = final_epsilon
 
         self.training_error = []
 
-    def get_action(self, obs: tuple) -> int:
+    def get_action(self, obs: tuple, epoch: int) -> int:
         """
         Returns the best action with probability (1 - epsilon)
         otherwise a random action with probability epsilon to ensure exploration.
         """
         # with probability epsilon return a random action to explore the environment
-        if np.random.random() < self.epsilon:
+        if np.random.random() < self.epsilon_decay.epsilon(epoch, self.initial_epsilon):
             return self.env.action_space.sample()
         # with probability (1 - epsilon) act greedily (exploit)
         else:
@@ -372,9 +453,6 @@ class QAgent:
             self.lr,
         )
         self.training_error.append(temporal_difference)
-
-    def decay_epsilon(self):
-        self.epsilon = max(self.final_epsilon, self.epsilon - self.epsilon_decay)
 
 
 def do_plot_q_values(n: int, interval: int, duration: int) -> bool:
