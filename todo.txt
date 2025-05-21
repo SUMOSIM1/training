@@ -1,19 +1,27 @@
-sumosim
-
-
+sumosim training
 OPEN
 
-    reward2
-        - record the sim-actions during a run with differente fetch types.
-            fetch-types: eager, lazy-s-t2, lazy-s-t5
-        - record the reward increase during a run
-        - Add the results to the online reports
+    decreasing epsilon
+        - Use the already implemented code of decreasing epsilon.
+          combine the decreasing config in a number of enums combining the following.
+          - epsilon value: e-high, e-medium, e-low
+          - amount of decrease d-big, d-medium, d-small
+          - speed of decrease s-fast, s-medium, s-slow
+          The actual enums are combinations of the values above. E.g. e-high-d-big-s-medium
 
     near-border-reward
         - reward a push higher if it takes place near the border.
-            
 
+DONE
+    can see
+        - Extra reward for just seeing the opponent
+
+
+
+-------------------------------------------------------------------------------------------------------------
 doctus
+
+OPEN
     remove package.scala
     remove split into trait and impl. e.g. DoctusSwing and DoctusSwingImpl
     combine DoctusSwingUtil and DoctusSchedulerJvm in DoctusJvmUtil. Beware DoctusJvmUtil in sumosim
