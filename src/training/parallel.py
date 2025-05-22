@@ -31,7 +31,7 @@ class ParallelConfig(Enum):
     Q_FETCH_0 = "q-fetch-0"
     Q_FETCH_1 = "q-fetch-1"
     Q_FETCH_2 = "q-fetch-2"
-    Q_TEST = "q-test"
+    Q_ED_1 = "q-ed-1"
 
 
 @dataclass(frozen=True)
@@ -229,14 +229,15 @@ def create_parallel_session_configs(
                 ],
             }
             return _create_parallel_session_configs(values_dict, max_parallel)
-        case ParallelConfig.Q_TEST:
+        case ParallelConfig.Q_ED_1:
             values_dict = {
-                "L": [0.2, 0.2],
-                "E": [0.01],
+                "L": [0.2, 0.2, 0.2, 0.2],
+                "E": [0.05],
+                "ED": ["none", "decay-100-80", "decay-100-50", "decay-100-20"],
                 "D": [0.3],
                 "M": ["non-linear-3"],
                 "R": ["can-see"],
-                "F": ["lazy-s-t2", "eager"],
+                "F": ["eager"],
             }
             return _create_parallel_session_configs(values_dict, max_parallel)
         case _:

@@ -30,6 +30,11 @@ def parallel_session(
                 q_learn_config,
                 epsilon=parallel_config_values["E"],
             )
+        if parallel_config_values.get("ED") is not None:
+            q_learn_config = replace(
+                q_learn_config,
+                epsilon_decay_name=parallel_config_values["ED"],
+            )
         if parallel_config_values.get("D") is not None:
             q_learn_config = replace(
                 q_learn_config, discount_factor=parallel_config_values["D"]

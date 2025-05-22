@@ -141,7 +141,7 @@ class EpsilonDecay(str, Enum):
 class QLearnConfig:
     learning_rate: float
     epsilon: float
-    epsilon_decay: EpsilonDecay
+    epsilon_decay_name: str
     discount_factor: float
     mapping_name: str
     opponent_name: str
@@ -163,7 +163,7 @@ default_senv_config = sgym.SEnvConfig(
 default_q_learn_config = QLearnConfig(
     learning_rate=0.1,
     epsilon=0.1,
-    epsilon_decay=EpsilonDecay.NONE,
+    epsilon_decay_name=EpsilonDecay.NONE.value,
     discount_factor=0.8,
     mapping_name=sm.SEnvMappingName.NON_LINEAR_3.value,
     opponent_name=sr.ControllerName.STAND_STILL.value,
@@ -220,7 +220,7 @@ def q_learn(
         reward_handler=rhc.RewardHandlerName(q_learn_config.reward_handler_name),
         learning_rate=q_learn_config.learning_rate,
         initial_epsilon=q_learn_config.epsilon,
-        epsilon_decay=q_learn_config.epsilon_decay,
+        epsilon_decay=EpsilonDecay(q_learn_config.epsilon_decay_name),
         discount_factor=q_learn_config.discount_factor,
         fetch_type=fetch_type,
     )
@@ -388,7 +388,7 @@ class QAgent:
         otherwise a random action with probability epsilon to ensure exploration.
         """
         # with probability epsilon return a random action to explore the environment
-        if np.random.random() < self.calculate_epsilon(epoch):
+        if np.random.random() < self.epsilon_decay.epsilon(epoch, self.initial_epsilon):
             return self.env.action_space.sample()
         # with probability (1 - epsilon) act greedily (exploit)
         else:
@@ -420,9 +420,6 @@ class QAgent:
             self.lr,
         )
         self.training_error.append(temporal_difference)
-
-    def calculate_epsilon(self, epoch: int):
-        return self.epsilon_decay.epsilon(epoch, self.initial_epsilon)
 
 
 def do_plot_q_values(n: int, interval: int, duration: int) -> bool:

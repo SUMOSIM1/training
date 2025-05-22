@@ -108,11 +108,11 @@ sumot parallel \
 --parallel-config q-fetch-2
 
 sumot parallel \
---db-host wallace.local --record --keep-container --max-parallel 2 \
---epoch-count 50 \
---name QTEST1 \
---out-dir ~/tmp/sumosim/results/results-2025-05-QTEST1 \
---parallel-config q-test
+--db-host ben.local --record --keep-container --max-parallel 10 \
+--epoch-count 10000 \
+--name QED5 \
+--out-dir ~/tmp/sumosim/results/results-2025-05-QED5 \
+--parallel-config q-ed-1
 
 
 
