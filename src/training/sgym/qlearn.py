@@ -141,6 +141,7 @@ class EpsilonDecay(str, Enum):
 class QLearnConfig:
     learning_rate: float
     epsilon: float
+    epsilon_decay: EpsilonDecay
     discount_factor: float
     mapping_name: str
     opponent_name: str
@@ -162,6 +163,7 @@ default_senv_config = sgym.SEnvConfig(
 default_q_learn_config = QLearnConfig(
     learning_rate=0.1,
     epsilon=0.1,
+    epsilon_decay=EpsilonDecay.NONE,
     discount_factor=0.8,
     mapping_name=sm.SEnvMappingName.NON_LINEAR_3.value,
     opponent_name=sr.ControllerName.STAND_STILL.value,
@@ -218,8 +220,7 @@ def q_learn(
         reward_handler=rhc.RewardHandlerName(q_learn_config.reward_handler_name),
         learning_rate=q_learn_config.learning_rate,
         initial_epsilon=q_learn_config.epsilon,
-        epsilon_decay=0.0,
-        final_epsilon=q_learn_config.epsilon,
+        epsilon_decay=q_learn_config.epsilon_decay,
         discount_factor=q_learn_config.discount_factor,
         fetch_type=fetch_type,
     )
@@ -243,7 +244,7 @@ def q_learn(
         episode_over = False
         cuml_reward = 0.0
         while not episode_over:
-            action = agent.get_action(obs)
+            action = agent.get_action(obs, epoch_nr)
             next_obs, reward, terminated, truncated, info = env.step(action)
             # print(f"# obs:{obs} a:{action} next_obs:{next_obs}")
             agent.update(obs, action, float(reward), terminated, next_obs)
@@ -353,8 +354,7 @@ class QAgent:
         fetch_type: FetchType,
         learning_rate: float,
         initial_epsilon: float,
-        epsilon_decay: float,
-        final_epsilon: float,
+        epsilon_decay: EpsilonDecay,
         discount_factor: float = 0.95,
     ):
         """Initialize a Reinforcement Learning agent with an empty dictionary
@@ -377,19 +377,18 @@ class QAgent:
         self.reward_handler = reward_handler
         self.fetch_type = fetch_type
 
-        self.epsilon = initial_epsilon
+        self.initial_epsilon = initial_epsilon
         self.epsilon_decay = epsilon_decay
-        self.final_epsilon = final_epsilon
 
         self.training_error = []
 
-    def get_action(self, obs: tuple) -> int:
+    def get_action(self, obs: tuple, epoch: int) -> int:
         """
         Returns the best action with probability (1 - epsilon)
         otherwise a random action with probability epsilon to ensure exploration.
         """
         # with probability epsilon return a random action to explore the environment
-        if np.random.random() < self.epsilon:
+        if np.random.random() < self.calculate_epsilon(epoch):
             return self.env.action_space.sample()
         # with probability (1 - epsilon) act greedily (exploit)
         else:
@@ -422,8 +421,8 @@ class QAgent:
         )
         self.training_error.append(temporal_difference)
 
-    def decay_epsilon(self):
-        self.epsilon = max(self.final_epsilon, self.epsilon - self.epsilon_decay)
+    def calculate_epsilon(self, epoch: int):
+        return self.epsilon_decay.epsilon(epoch, self.initial_epsilon)
 
 
 def do_plot_q_values(n: int, interval: int, duration: int) -> bool:
