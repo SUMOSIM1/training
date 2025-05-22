@@ -3,11 +3,6 @@ OPEN
 
     decreasing epsilon
         - Use the already implemented code of decreasing epsilon.
-          combine the decreasing config in a number of enums combining the following.
-          - epsilon value: e-high, e-medium, e-low
-          - amount of decrease d-big, d-medium, d-small
-          - speed of decrease s-fast, s-medium, s-slow
-          The actual enums are combinations of the values above. E.g. e-high-d-big-s-medium
 
     near-border-reward
         - reward a push higher if it takes place near the border.

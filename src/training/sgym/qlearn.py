@@ -88,6 +88,55 @@ class FetchType(str, Enum):
         return np.random.choice(_top)
 
 
+class EpsilonDecay(str, Enum):
+    NONE = "none"
+    DECAY_100_80 = "decay-100-80"
+    DECAY_100_50 = "decay-100-50"
+    DECAY_100_20 = "decay-100-20"
+    DECAY_1000_80 = "decay-1000-80"
+    DECAY_1000_50 = "decay-1000-50"
+    DECAY_1000_20 = "decay-1000-20"
+    DECAY_3000_80 = "decay-3000-80"
+    DECAY_3000_50 = "decay-3000-50"
+    DECAY_3000_20 = "decay-3000-20"
+
+    def epsilon(self, epoch: int, initial_epsilon: float) -> float:
+        match self:
+            case EpsilonDecay.NONE:
+                return self._epsilon(epoch, initial_epsilon, 0, 1.0)
+            case EpsilonDecay.DECAY_100_20:
+                return self._epsilon(epoch, initial_epsilon, 100, 0.2)
+            case EpsilonDecay.DECAY_100_50:
+                return self._epsilon(epoch, initial_epsilon, 100, 0.5)
+            case EpsilonDecay.DECAY_100_80:
+                return self._epsilon(epoch, initial_epsilon, 100, 0.8)
+            case EpsilonDecay.DECAY_1000_20:
+                return self._epsilon(epoch, initial_epsilon, 1000, 0.2)
+            case EpsilonDecay.DECAY_1000_50:
+                return self._epsilon(epoch, initial_epsilon, 1000, 0.5)
+            case EpsilonDecay.DECAY_1000_80:
+                return self._epsilon(epoch, initial_epsilon, 1000, 0.8)
+            case EpsilonDecay.DECAY_3000_20:
+                return self._epsilon(epoch, initial_epsilon, 3000, 0.2)
+            case EpsilonDecay.DECAY_3000_50:
+                return self._epsilon(epoch, initial_epsilon, 3000, 0.5)
+            case EpsilonDecay.DECAY_3000_80:
+                return self._epsilon(epoch, initial_epsilon, 3000, 0.8)
+            case _:
+                raise RuntimeError(f"EpsilonDecay for {self.value} not yet implemented")
+
+    @staticmethod
+    def _epsilon(
+        epoch: int, initial_epsilon: float, decay_epocs: int, decay_factor: float
+    ):
+        if epoch >= decay_epocs:
+            return initial_epsilon * decay_factor
+        k = (initial_epsilon * (1.0 - decay_factor)) / decay_epocs
+        d = k * epoch
+        _re = initial_epsilon - d
+        return _re
+
+
 @dataclass(frozen=True)
 class QLearnConfig:
     learning_rate: float
@@ -117,7 +166,7 @@ default_q_learn_config = QLearnConfig(
     mapping_name=sm.SEnvMappingName.NON_LINEAR_3.value,
     opponent_name=sr.ControllerName.STAND_STILL.value,
     reward_handler_name=rhc.RewardHandlerName.CONTINUOUS_CONSIDER_ALL.value,
-    fetch_type=FetchType.LAZY_S.value,
+    fetch_type=FetchType.EAGER.value,
 )
 
 

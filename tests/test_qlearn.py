@@ -1,6 +1,7 @@
 import training.sgym.qlearn as _ql
 import pytest
 
+
 max_value = 10.0
 min_eps = 0.0005
 max_eps = 0.01
@@ -133,3 +134,42 @@ create_test_data_data = [
 def test_create_test_data(indexes_in_range: list[int], expected_test_data):
     test_data = _create_test_data(indexes_in_range)
     assert test_data == expected_test_data
+
+
+epsilon_decay_data = [
+    (0, 1.0, _ql.EpsilonDecay.NONE, 1.0),
+    (0, 2.0, _ql.EpsilonDecay.NONE, 2.0),
+    (10, 1.0, _ql.EpsilonDecay.NONE, 1.0),
+    (20000, 1.0, _ql.EpsilonDecay.NONE, 1.0),
+    (0, 2.0, _ql.EpsilonDecay.DECAY_100_50, 2.0),
+    (100, 2.0, _ql.EpsilonDecay.DECAY_100_50, 1.0),
+    (101, 2.0, _ql.EpsilonDecay.DECAY_100_50, 1.0),
+    (1000, 2.0, _ql.EpsilonDecay.DECAY_100_50, 1.0),
+    (50000, 2.0, _ql.EpsilonDecay.DECAY_100_50, 1.0),
+    (25, 2.0, _ql.EpsilonDecay.DECAY_100_50, 1.75),
+    (50, 2.0, _ql.EpsilonDecay.DECAY_100_50, 1.5),
+    (75, 2.0, _ql.EpsilonDecay.DECAY_100_50, 1.25),
+    (50, 1.0, _ql.EpsilonDecay.DECAY_100_80, 0.9),
+    (100, 1.0, _ql.EpsilonDecay.DECAY_100_80, 0.8),
+    (250, 1.0, _ql.EpsilonDecay.DECAY_100_80, 0.8),
+    (50, 1.0, _ql.EpsilonDecay.DECAY_100_20, 0.6),
+    (500, 1.0, _ql.EpsilonDecay.DECAY_1000_80, 0.9),
+    (750, 2.0, _ql.EpsilonDecay.DECAY_1000_50, 1.25),
+    (500, 1.0, _ql.EpsilonDecay.DECAY_1000_20, 0.6),
+    (1500, 1.0, _ql.EpsilonDecay.DECAY_3000_80, 0.9),
+    (2250, 2.0, _ql.EpsilonDecay.DECAY_3000_50, 1.25),
+    (1500, 1.0, _ql.EpsilonDecay.DECAY_3000_20, 0.6),
+]
+
+
+@pytest.mark.parametrize(
+    "epochs, initial_epsilon, epsilon_decay, expected_epsilon", epsilon_decay_data
+)
+def test_epsilon_decay(
+    epochs: int,
+    initial_epsilon: float,
+    epsilon_decay: _ql.EpsilonDecay,
+    expected_epsilon: float,
+):
+    epsilon = epsilon_decay.epsilon(epochs, initial_epsilon)
+    assert epsilon == expected_epsilon
