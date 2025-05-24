@@ -222,7 +222,7 @@ def create_report_training(
         def tags_for_resource(combi_links: CombiLinks) -> dom_tag:
             # print(f"#### tags_for_resource {combi_links.text} {len(combi_links.videos)}")
             return dt.div(
-                combi_links.combi,
+                format_combi_id(combi_links.combi),
                 dt.br(),
                 [
                     dt.a(dt.img(src=link, width=400), href=link)
@@ -455,3 +455,43 @@ def report(result_dir: Path, out_dir: Path):
     # pprint(reports_data)
     create_final_resources(reports_data, result_dir_paths)
     create_report(reports_data, result_dir_paths, out_dir, all_video_names)
+
+
+def format_combi_id(combi_id: str) -> str:
+    def index_of_first_number(start: int) -> int:
+        cnt = start
+        for c in combi_id[start:]:
+            if c.isnumeric():
+                return cnt
+            cnt += 1
+        return -1
+
+    def index_of_first_non_number(start: int) -> int:
+        cnt = start
+        for c in combi_id[start:]:
+            if not c.isnumeric():
+                return cnt
+            cnt += 1
+        return -1
+
+    result = ""
+    i1 = index_of_first_non_number(0)
+    i2 = index_of_first_number(i1)
+    i3 = index_of_first_non_number(i2)
+    cnt = 0
+    while i1 >= 0:
+        a = combi_id[i1:i2]
+        if i3 < 0:
+            b = combi_id[i2:]
+            i1 = i3
+        else:
+            b = combi_id[i2:i3]
+        x = f"{a}{b} "
+        result = result + x
+        i1 = index_of_first_non_number(i3)
+        i2 = index_of_first_number(i1)
+        i3 = index_of_first_non_number(i2)
+        cnt += 1
+        if cnt > 10:
+            return "ERROR"
+    return result.strip()
