@@ -293,4 +293,11 @@ methods:
       - training.parallel.ParallelConfig.q-fetch-2
     description: |
       Lazy fetch top values cross validation. 20k epochs. 
+  - prefix: QED5
+    title: Epsilon decay 10k
+    color: DarkSeaGreen
+    enumdescs:
+      - training.parallel.ParallelConfig.q-ed-1
+    description: |
+      Find the optimal epsilon decay  
       
