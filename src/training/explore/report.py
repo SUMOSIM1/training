@@ -219,21 +219,21 @@ def create_report_training(
                 return (dt.br(), dt.a(f"video {index}", href=link))
             return dt.a(f"video {index}", href=link)
 
-        def tags_for_resource(resourceLinks: CombiLinks) -> dom_tag:
-            # print(f"#### tags_for_resource {resourceLinks.text} {len(resourceLinks.videos)}")
+        def tags_for_resource(combi_links: CombiLinks) -> dom_tag:
+            # print(f"#### tags_for_resource {combi_links.text} {len(combi_links.videos)}")
             return dt.div(
-                resourceLinks.text,
+                combi_links.combi,
                 dt.br(),
                 [
                     dt.a(dt.img(src=link, width=400), href=link)
-                    for link in resourceLinks.boxplots
+                    for link in combi_links.boxplots
                 ],
                 dt.br(),
-                [dt.a("q-values", href=link) for link in resourceLinks.q_values],
+                [dt.a("q-values", href=link) for link in combi_links.q_values],
                 dt.br(),
                 [
                     tags_for_video_links(i, link)
-                    for i, link in enumerate(resourceLinks.videos)
+                    for i, link in enumerate(combi_links.videos)
                 ],
                 _class="box",
                 _style=f"background-color:{color}",
