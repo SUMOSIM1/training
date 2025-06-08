@@ -110,9 +110,9 @@ sumot parallel \
 sumot parallel \
 --db-host ben.local --record --keep-container --max-parallel 10 \
 --epoch-count 10000 \
---name QED5 \
---out-dir ~/tmp/sumosim/results/results-2025-05-QED5 \
---parallel-config q-ed-1
+--name QEDEXP1 \
+--out-dir ~/tmp/sumosim/results/results-2025-06-QEDEXP1 \
+--parallel-config q-edexp-1
 
 
 
