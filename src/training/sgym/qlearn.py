@@ -145,7 +145,7 @@ class EpsilonDecay(str, Enum):
                 return self._epsilon_decay_linear(epoch, initial_epsilon, 3000, 0.8)
             case EpsilonDecay.DECAY_EXP_100:
                 return self._epsilon_decay_exp(epoch, initial_epsilon, 100)
-            case EpsilonDecay.DECAY_EXP_100:
+            case EpsilonDecay.DECAY_EXP_1000:
                 return self._epsilon_decay_exp(epoch, initial_epsilon, 1000)
             case EpsilonDecay.DECAY_EXP_5000:
                 return self._epsilon_decay_exp(epoch, initial_epsilon, 5000)
