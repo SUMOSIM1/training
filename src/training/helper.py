@@ -171,10 +171,10 @@ def split_data(
     return xs_str, split, medians
 
 
-def descending_exponential(start_value, half_time, t):
+def descending_exponential(start_value: float, half_time: float, time: float):
     if half_time <= 0:
         raise ValueError("Half-time must be a positive number.")
 
     # The formula for a descending exponential function with a half-time is:
     # f(t) = start_value * (1/2)^(t / half_time)
-    return start_value * (0.5) ** (t / half_time)
+    return start_value * (0.5) ** (time / half_time)
