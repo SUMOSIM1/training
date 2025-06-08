@@ -307,3 +307,10 @@ methods:
       - training.parallel.ParallelConfig.q-ed-2
     description: |
       Find the optimal epsilon decay for decay of 1000 and 3000 epochs  
+  - prefix: QE7
+    title: Epsilon decay big decay 10k
+    color: DarkSeaGreen
+    enumdescs:
+      - training.parallel.ParallelConfig.q-ed-3
+    description: |
+      Find the optimal epsilon decay for decay of 1000 and 3000 epochs  

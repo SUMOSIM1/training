@@ -93,12 +93,18 @@ class EpsilonDecay(str, Enum):
     DECAY_100_80 = "decay-100-80"
     DECAY_100_50 = "decay-100-50"
     DECAY_100_20 = "decay-100-20"
+    DECAY_100_10 = "decay-100-10"
+    DECAY_100_05 = "decay-100-05"
     DECAY_1000_80 = "decay-1000-80"
     DECAY_1000_50 = "decay-1000-50"
     DECAY_1000_20 = "decay-1000-20"
+    DECAY_1000_10 = "decay-1000-10"
+    DECAY_1000_05 = "decay-1000-05"
     DECAY_3000_80 = "decay-3000-80"
     DECAY_3000_50 = "decay-3000-50"
     DECAY_3000_20 = "decay-3000-20"
+    DECAY_3000_10 = "decay-3000-10"
+    DECAY_3000_05 = "decay-3000-05"
     DECAY_EXP_100 = "decay-exp-100"
     DECAY_EXP_1000 = "decay-exp-1000"
     DECAY_EXP_5000 = "decay-exp-5000"
@@ -107,18 +113,30 @@ class EpsilonDecay(str, Enum):
         match self:
             case EpsilonDecay.NONE:
                 return self._epsilon_decay_linear(epoch, initial_epsilon, 0, 1.0)
+            case EpsilonDecay.DECAY_100_05:
+                return self._epsilon_decay_linear(epoch, initial_epsilon, 100, 0.05)
+            case EpsilonDecay.DECAY_100_10:
+                return self._epsilon_decay_linear(epoch, initial_epsilon, 100, 0.1)
             case EpsilonDecay.DECAY_100_20:
                 return self._epsilon_decay_linear(epoch, initial_epsilon, 100, 0.2)
             case EpsilonDecay.DECAY_100_50:
                 return self._epsilon_decay_linear(epoch, initial_epsilon, 100, 0.5)
             case EpsilonDecay.DECAY_100_80:
                 return self._epsilon_decay_linear(epoch, initial_epsilon, 100, 0.8)
+            case EpsilonDecay.DECAY_1000_05:
+                return self._epsilon_decay_linear(epoch, initial_epsilon, 1000, 0.05)
+            case EpsilonDecay.DECAY_1000_10:
+                return self._epsilon_decay_linear(epoch, initial_epsilon, 1000, 0.1)
             case EpsilonDecay.DECAY_1000_20:
                 return self._epsilon_decay_linear(epoch, initial_epsilon, 1000, 0.2)
             case EpsilonDecay.DECAY_1000_50:
                 return self._epsilon_decay_linear(epoch, initial_epsilon, 1000, 0.5)
             case EpsilonDecay.DECAY_1000_80:
                 return self._epsilon_decay_linear(epoch, initial_epsilon, 1000, 0.8)
+            case EpsilonDecay.DECAY_3000_05:
+                return self._epsilon_decay_linear(epoch, initial_epsilon, 3000, 0.05)
+            case EpsilonDecay.DECAY_3000_10:
+                return self._epsilon_decay_linear(epoch, initial_epsilon, 3000, 0.1)
             case EpsilonDecay.DECAY_3000_20:
                 return self._epsilon_decay_linear(epoch, initial_epsilon, 3000, 0.2)
             case EpsilonDecay.DECAY_3000_50:
@@ -136,7 +154,7 @@ class EpsilonDecay(str, Enum):
 
     @staticmethod
     def _epsilon_decay_linear(
-            epoch: int, initial_epsilon: float, decay_epochs: int, decay_factor: float
+        epoch: int, initial_epsilon: float, decay_epochs: int, decay_factor: float
     ):
         if epoch >= decay_epochs:
             return initial_epsilon * decay_factor
@@ -146,13 +164,9 @@ class EpsilonDecay(str, Enum):
         return _re
 
     @staticmethod
-    def _epsilon_decay_exp(
-            epoch: int, initial_epsilon: float, half_time: float
-    ):
+    def _epsilon_decay_exp(epoch: int, initial_epsilon: float, half_time: float):
         return hlp.descending_exponential(
-            start_value=initial_epsilon,
-            half_time=half_time,
-            time=float(epoch)
+            start_value=initial_epsilon, half_time=half_time, time=float(epoch)
         )
 
 

@@ -834,3 +834,37 @@
     &#x200B;    | F0         
     ----------- | ---------- 
     fetch mode  | eager      
+- class_name: training.parallel.ParallelConfig
+  value: q-ed-3
+  desc: |
+    Cross validation for epsilon decay with big decay. 20% 10% and 5% of the inital epsilon 
+    
+    &#x200B;        | L0  | L1   | L2   | L3        
+    --------------- | --- | ---- | ---- | ----           
+    learning rate   | 0.2 | 0.2  | 0.2  | 0.2          
+
+    &#x200B; | E0            
+    -------- | ---- 
+    epsilon  | 0.05 
+
+    &#x200B;      | ED0           | ED1            | ED2                              
+    ------------- | ------------- | -------------- | --------------   
+    epsilon decay | decay-1000-20 | decay-1000-10  | decay-1000-05          
+    &#x200B;      | ED3           | ED4            | ED5                                
+    &#x200B;      | decay-3000-20 | decay-3000-10  | decay-3000-05          
+
+    &#x200B; | D0    
+    -------- | -----        
+    discount | 0.3     
+
+    &#x200B; | M0          
+    -------- | ------------ 
+    mapping  | non-linear-3
+
+    &#x200B;        | R0                      
+    --------------- | ----------------------- 
+    reward handler  | can-see             
+
+    &#x200B;    | F0         
+    ----------- | ---------- 
+    fetch mode  | eager      

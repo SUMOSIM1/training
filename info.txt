@@ -114,8 +114,16 @@ sumot parallel \
 --out-dir ~/tmp/sumosim/results/results-2025-06-QEDEXP1 \
 --parallel-config q-edexp-1
 
+docker container ls -a -f name=sumo- -q | xargs docker container rm -f
 
+docker compose -f ../sumosim/docker-compose.yml  up -d mongo
+
+docker buildx build -t sumot .
 
 sumot report \
 -d $HOME/tmp/sumosim/results/ \
 -o $HOME/tmp/sumosim/reports/r10
+
+rsync -arv \
+$HOME/tmp/sumosim/reports/r10 \
+root@entelijan.net:/root/app/hp-wolfi-kube/pages/sumosim-rl/reports
