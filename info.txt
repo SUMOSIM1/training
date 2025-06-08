@@ -124,6 +124,7 @@ sumot report \
 -d $HOME/tmp/sumosim/results/ \
 -o $HOME/tmp/sumosim/reports/r10
 
-rsync -arv \
-$HOME/tmp/sumosim/reports/r10 \
+
+cd $HOME/tmp/sumosim/reports/r10 &&
+rsync -arv . \
 root@entelijan.net:/root/app/hp-wolfi-kube/pages/sumosim-rl/reports
