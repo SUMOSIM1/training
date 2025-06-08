@@ -107,18 +107,18 @@ sumot parallel \
 --out-dir ~/tmp/sumosim/results/results-2025-05-QFETCH05 \
 --parallel-config q-fetch-2
 
-sumot parallel \
---db-host ben.local --record --keep-container --max-parallel 10 \
---epoch-count 10000 \
---name QEDEXP1 \
---out-dir ~/tmp/sumosim/results/results-2025-06-QEDEXP1 \
---parallel-config q-edexp-1
-
-docker container ls -a -f name=sumo- -q | xargs docker container rm -f
-
 docker compose -f ../sumosim/docker-compose.yml  up -d mongo
 
 docker buildx build -t sumot .
+
+docker container ls -a -f name=sumo- -q | xargs docker container rm -f
+
+sumot parallel \
+--db-host ben.local --record --keep-container --max-parallel 10 \
+--epoch-count 20000 \
+--name QEDEXP2 \
+--out-dir ~/tmp/sumosim/results/results-2025-06-QEDEXP2 \
+--parallel-config q-edexp-1
 
 sumot report \
 -d $HOME/tmp/sumosim/results/ \

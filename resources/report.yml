@@ -315,10 +315,18 @@ methods:
     description: |
       Find the optimal epsilon decay for decay of 1000 and 3000 epochs  
   - prefix: QEDEXP1
-    title: Epsilon exponential decay
+    title: Epsilon exponential decay 10k epochs
     color: ForestGreen
     enumdescs:
       - training.parallel.ParallelConfig.q-edexp-1
     description: |
       Find the optimal exponential epsilon decay   
       epochs: 10000
+  - prefix: QEDEXP2
+    title: Epsilon exponential decay 20k epochs
+    color: ForestGreen
+    enumdescs:
+      - training.parallel.ParallelConfig.q-edexp-1
+    description: |
+      Find the optimal exponential epsilon decay   
+      epochs: 20000
