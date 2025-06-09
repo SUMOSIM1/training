@@ -1,117 +1,13 @@
-sumot parallel \
---db-host ben.local --record --keep-container --max-parallel 15 \
---epoch-count 20000 \
---name QMAP01 \
---out-dir ~/tmp/sumosim/results/results-2025-02-QMAP01 \
---parallel-config q-map-0
-
-sumot parallel \
---db-host ben.local --record --keep-container --max-parallel 15 \
---epoch-count 20000 \
---name QMAP02 \
---out-dir ~/tmp/sumosim/results/results-2025-02-QMAP02 \
---parallel-config q-map-1
-
-sumot parallel \
---db-host 192.168.0.171 --record --keep-container --max-parallel 20 \
---epoch-count 2000 \
---name QMAP03 \
---out-dir ~/tmp/sumosim/results/results-2025-02-QMAP03 \
---parallel-config q-map-2
-
-sumot parallel \
---db-host ben.local --record --keep-container --max-parallel 15 \
---epoch-count 10000 \
---name QMAP04 \
---out-dir ~/tmp/sumosim/results/results-2025-02-QMAP04 \
---parallel-config q-map-2
-
-sumot report \
--d $HOME/tmp/sumosim/results/results-2025-01-000 \
--d $HOME/tmp/sumosim/results/results-2025-01-003 \
--d $HOME/tmp/sumosim/results/results-2025-01-002 \
--d $HOME/tmp/sumosim/results/results-2025-02-Q-CV5 \
--d $HOME/tmp/sumosim/results/results-2025-02-Q-CV7 \
--d $HOME/tmp/sumosim/results/results-2025-02-QMAP01 \
--d $HOME/tmp/sumosim/results/results-2025-02-QMAP02 \
--d $HOME/tmp/sumosim/results/results-2025-02-QMAP03 \
--d $HOME/tmp/sumosim/results/results-2025-02-QMAP05 \
--d $HOME/tmp/sumosim/results/results-2025-02-QMAP06 \
--d $HOME/tmp/sumosim/results/results-2025-02-QMAP08 \
--o $HOME/tmp/sumosim/reports/r16
-
-docker container ls -a -f name=sumo-train -q | xargs docker container rm -f
-
-### WORK
-
-docker buildx build --build-arg DOCKERREG=dockerregistry.seu.test.sozvers.at/ -t sumot .
-docker buildx build -t sumot .
-
-sumot parallel \
---db-host 192.168.0.171 --record --keep-container --max-parallel 25 \
---epoch-count 2000 \
---name QMAP05 \
---out-dir ~/tmp/sumosim/results/results-2025-02-QMAP05 \
---parallel-config q-map-3
-
-sumot parallel \
---db-host 192.168.0.171 --record --keep-container --max-parallel 30 \
---epoch-count 5000 \
---name QMAP08 \
---out-dir ~/tmp/sumosim/results/results-2025-02-QMAP08 \
---parallel-config q-map-4
-
-sumot parallel \
---db-host 192.168.0.171 --record --keep-container --max-parallel 30 \
---epoch-count 5000 \
---name QRW00 \
---out-dir ~/tmp/sumosim/results/results-2025-02-QRW00 \
---parallel-config q-rw-0
-
-sumot report \
--d $HOME/tmp/sumosim/results/results-2025-02-QMAP03a  \
--o $HOME/tmp/sumosim/reports/r10
-
-sumot report \
--d $HOME/tmp/sumosim/results/results-2025-02-QMAP05 \
--d $HOME/tmp/sumosim/results/results-2025-02-QMAP06 \
--d $HOME/tmp/sumosim/results/results-2025-02-QMAP08 \
--o $HOME/tmp/sumosim/reports/r11
-
-sumot report -d ~/tmp/sumosim/results -o ~/tmp/sumosim/reports/r15
-
-
-rsync -arv . root@entelijan.net:/root/app/hp-wolfi-kube/pages/sumosim-rl/reports
-
-sumot parallel \
---db-host ben.local --record --keep-container --max-parallel 15 \
---epoch-count 1000 \
---name QLOW04 \
---out-dir ~/tmp/sumosim/results/results-2025-03-QLOW04 \
---parallel-config q-low-1
-
-docker buildx build -t sumot .
-
-docker container ls -a -f name=sumo-train -q | xargs docker container rm -f
-
-
-sumot parallel --db-host ben.local --record --keep-container --max-parallel 15 \
-  --epoch-count 1000 --name QSEE02 \
-  --out-dir ~/tmp/sumosim/results/results-2025-02-QSEE02 \
-  --parallel-config q-see-1
-
-sumot parallel \
---db-host ben.local --record --keep-container --max-parallel 10 \
---epoch-count 20000 \
---name QFETCH05 \
---out-dir ~/tmp/sumosim/results/results-2025-05-QFETCH05 \
---parallel-config q-fetch-2
-
 docker compose -f ../sumosim/docker-compose.yml  up -d mongo
 
 docker buildx build -t sumot .
+## work
+docker buildx build --build-arg DOCKERREG=dockerregistry.seu.test.sozvers.at/ -t sumot .
 
 docker container ls -a -f name=sumo- -q | xargs docker container rm -f
+
+## work
+--db-host 192.168.0.171 --record --keep-container --max-parallel 25 \
 
 sumot parallel \
 --db-host ben.local --record --keep-container --max-parallel 10 \
