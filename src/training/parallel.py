@@ -35,6 +35,7 @@ class ParallelConfig(Enum):
     Q_ED_2 = "q-ed-2"
     Q_ED_3 = "q-ed-3"
     Q_EDEXP_1 = "q-edexp-1"
+    Q_EDC_1 = "q-edc-1"
 
 
 @dataclass(frozen=True)
@@ -292,6 +293,17 @@ def create_parallel_session_configs(
                     "decay-exp-5000",
                 ],
                 "D": [0.3],
+                "M": ["non-linear-3"],
+                "R": ["can-see"],
+                "F": ["eager"],
+            }
+            return _create_parallel_session_configs(values_dict, max_parallel)
+        case ParallelConfig.Q_EDC_1:
+            values_dict = {
+                "L": [0.01, 0.1, 0.2, 0.5],
+                "E": [0.01, 0.05, 0.1, 0.5],
+                "ED": ["decay-exp-1000"],
+                "D": [0.2, 0.3, 0.5, 0.8],
                 "M": ["non-linear-3"],
                 "R": ["can-see"],
                 "F": ["eager"],
