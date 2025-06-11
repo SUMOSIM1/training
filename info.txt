@@ -17,10 +17,9 @@ sumot parallel \
 --parallel-config q-edc-1
 
 sumot report \
--d $HOME/tmp/sumosim/results/ \
--o $HOME/tmp/sumosim/reports/r10
+-d $HOME/tmp/sumosim/results \
+-o $HOME/tmp/sumosim/reports
 
 
-cd $HOME/tmp/sumosim/reports/r10 &&
-rsync -arv . \
+rsync -arv $HOME/tmp/sumosim/reports/  \
 root@entelijan.net:/root/app/hp-wolfi-kube/pages/sumosim-rl/reports
