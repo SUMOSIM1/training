@@ -336,7 +336,17 @@ methods:
     enumdescs:
       - training.parallel.ParallelConfig.q-edc-1
     description: |
-      Find the optimal learning rate, epsilon and discount with    
+      Find the optimal learning rate, epsilon and discount with exponential decay for epsilon   
       epochs: 20000
       epsilon decay: exponential half time: 1000 epochs
+  - prefix: QEDC2
+    title: Cross validation learning rate, epsilon and discount. Based on QEDC1
+    color: Lavender
+    enumdescs:
+      - training.parallel.ParallelConfig.q-edc-2
+    description: |
+      Find the optimal learning rate, epsilon and discount with exponential decay for epsilon   
+      epochs: 20000
+      epsilon decay: exponential half time: 1000 epochs
+      The value ranges are based on the results of QWDC1
   

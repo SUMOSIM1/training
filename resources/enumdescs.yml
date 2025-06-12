@@ -932,3 +932,35 @@
     &#x200B;    | F0         
     ----------- | ---------- 
     fetch mode  | eager      
+- class_name: training.parallel.ParallelConfig
+  value: q-edc-2
+  desc: |
+    Cross validation for epsilon start value, learning rate and discount, based on q-edc-1 
+    
+    &#x200B;        | L0   | L1    | L2   | L3        
+    --------------- | ---- | ----- | ---- | ----           
+    learning rate   | 0.1 | 0.5  | 0.8  | 1.0          
+
+    &#x200B; | E0   | E1   | E2   | E3            
+    -------- | ---- | ---- | ---- | ---- 
+    epsilon  | 0.01 | 0.05 | 0.1 | 0.5 
+
+    &#x200B;      | ED0                                   
+    ------------- | ----------------   
+    epsilon decay | decay-exp-1000           
+
+    &#x200B; | D0    | D1    | D2    | D3    
+    -------- | ----- | ----- | ----- | -----        
+    discount | 0.05   | 0.1   | 0.2   | 0.3     
+
+    &#x200B; | M0          
+    -------- | ------------ 
+    mapping  | non-linear-3
+
+    &#x200B;        | R0         
+    --------------- | ----------------------- 
+    reward handler  | can-see             
+
+    &#x200B;    | F0         
+    ----------- | ---------- 
+    fetch mode  | eager      
