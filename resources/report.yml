@@ -332,7 +332,7 @@ methods:
       epochs: 20000
   - prefix: QEDC1
     title: Cross validation learning rate, epsilon and discount
-    color: Green
+    color: Lavender
     enumdescs:
       - training.parallel.ParallelConfig.q-edc-1
     description: |
