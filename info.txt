@@ -12,9 +12,9 @@ docker container ls -a -f name=sumo- -q | xargs docker container rm -f
 sumot parallel \
 --db-host ben.local --record --keep-container --max-parallel 10 \
 --epoch-count 20000 \
---name QEDC1 \
---out-dir ~/tmp/sumosim/results/results-2025-06-QEDC1 \
---parallel-config q-edc-1
+--name QEDC2 \
+--out-dir ~/tmp/sumosim/results/results-2025-06-QEDC2 \
+--parallel-config q-edc-2
 
 sumot report \
 -d $HOME/tmp/sumosim/results \
