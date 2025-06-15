@@ -7,8 +7,8 @@ description: |
 
   Sumosim is inspired by [Robot-sumo](https://en.wikipedia.org/wiki/Robot-sumo)
 methods:
-- title: Q-Learning
-  abstract: Use Q-learning to train sumo agents
+- title: Q-Learning stand-still
+  abstract: Use Q-learning to train sumo agent. Opponent is stand-still
   description: |
     Q-learning is a model-free reinforcement learning algorithm
     that teaches an agent to assign values to each action it
@@ -16,6 +16,13 @@ methods:
     particular state. It does not require a model of the environment
     (hence "model-free"), and it can handle problems with stochastic
     transitions and rewards without requiring adaptations. [wiki]
+    
+    The opponent of the agent to be trained is 'stand-stll'. That means it does not reat to the agent
+    and also it does not move on its own. 
+    
+    The agent has to learn to:
+     - Stay in the field.
+     - Push the opponent as fast as possible out of the field.
   trainings:
   - prefix: Q-CV4
     title: Cross validation on all Parameters 20k epochs
