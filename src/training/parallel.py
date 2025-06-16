@@ -22,6 +22,7 @@ class ParallelConfig(Enum):
     Q_RW_1 = "q-rw-1"
     Q_RW_2 = "q-rw-2"
     Q_RW_3 = "q-rw-3"
+    Q_RW_4 = "q-rw-4"
     Q_LOW_0 = "q-low-0"
     Q_LOW_1 = "q-low-1"
     Q_LOW_2 = "q-low-2"
@@ -318,6 +319,22 @@ def create_parallel_session_configs(
                 "D": [0.05, 0.1, 0.2, 0.3],
                 "M": ["non-linear-3"],
                 "R": ["can-see"],
+                "F": ["eager"],
+            }
+            return _create_parallel_session_configs(values_dict, max_parallel)
+        case ParallelConfig.Q_RW_4:
+            values_dict = {
+                "L": [0.8, 0.8, 0.8, 0.8],
+                "E": [0.08],
+                "ED": ["decay-exp-1000"],
+                "D": [0.25],
+                "M": ["non-linear-3"],
+                "R": [
+                    "continuous-consider-all",
+                    "reduced-push-reward",
+                    "speed-bonus",
+                    "can-see",
+                ],
                 "F": ["eager"],
             }
             return _create_parallel_session_configs(values_dict, max_parallel)

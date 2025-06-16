@@ -964,3 +964,35 @@
     &#x200B;    | F0         
     ----------- | ---------- 
     fetch mode  | eager      
+- class_name: training.parallel.ParallelConfig
+  value: q-rw-4
+  desc: |
+    Cross validation for reward handler 
+    
+    &#x200B;        | L0   | L1    | L2   | L3        
+    --------------- | ---- | ----- | ---- | ----           
+    learning rate   | 0.8  | 0.8   | 0.8  | 0.8            
+
+    &#x200B; | E0               
+    -------- | ---- 
+    epsilon  | 0.08 
+
+    &#x200B;      | ED0                                   
+    ------------- | ----------------   
+    epsilon decay | decay-exp-1000           
+
+    &#x200B; | D0        
+    -------- | -----         
+    discount | 0.25       
+
+    &#x200B; | M0          
+    -------- | ------------ 
+    mapping  | non-linear-3
+
+    &#x200B;        | R0                       | R1                   | R2       | R3         
+    --------------- | ------------------------ | -------------------- | -------- | ------ 
+    reward handler  | continuous-consider-all  | reduced-push-reward  | can-see  | can-see             
+
+    &#x200B;    | F0         
+    ----------- | ---------- 
+    fetch mode  | eager      

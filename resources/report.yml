@@ -356,4 +356,21 @@ methods:
       epochs: 20000
       epsilon decay: exponential half time: 1000 epochs
       The value ranges are based on the results of QWDC1
-  
+  - prefix: QRW104
+    title: Cross validation reward handler. Based on QEDC2 2k
+    color: Lavender
+    enumdescs:
+      - training.parallel.ParallelConfig.q-rw-4
+    description: |
+      Find the optimal reward handler   
+      epochs: 2000
+      The other values are based on the results of QWDC2
+  - prefix: QRW105
+    title: Cross validation reward handler. Based on QEDC2 20k
+    color: Lavender
+    enumdescs:
+      - training.parallel.ParallelConfig.q-rw-4
+    description: |
+      Find the optimal reward handler   
+      epochs: 2000
+      The other values are based on the results of QWDC2
