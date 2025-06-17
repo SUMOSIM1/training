@@ -374,3 +374,20 @@ methods:
       Find the optimal reward handler   
       epochs: 2000
       The other values are based on the results of QWDC2
+- title: Q1-Learning stay-in-field
+  abstract: Use Q-learning to train sumo agent. Opponent is stay-in-field
+  description: |
+    The opponent of the agent to be trained is 'stand-stll'. That means it does not reat to the agent
+    and also it does not move on its own. 
+    
+    The agent has to learn to:
+     - Stay in the field.
+     - Push the opponent as fast as possible out of the field.
+  trainings:
+  - prefix: Q1_TEST_1
+    title: First experiments with the stay-in-field controller as opponent
+    color: Yellow
+    enumdescs:
+      - training.parallel.ParallelConfig.q1-test-1
+    description: |
+      First experiments with the stay-in-field controller as opponent

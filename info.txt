@@ -12,14 +12,13 @@ docker container ls -a -f name=sumo- -q | xargs docker container rm -f
 sumot parallel \
 --db-host ben.local --record --keep-container --max-parallel 10 \
 --epoch-count 2000 \
---name QRW104 \
---out-dir ~/tmp/sumosim/results/results-2025-06-QRW104 \
---parallel-config q-rw-4
+--name Q1TEST1 \
+--out-dir ~/tmp/sumosim/results/results-2025-06-Q1TEST1 \
+--parallel-config q1-test-1
 
 sumot report \
 -d $HOME/tmp/sumosim/results \
 -o $HOME/tmp/sumosim/reports
-
 
 rsync -arv $HOME/tmp/sumosim/reports/  \
 root@entelijan.net:/root/app/hp-wolfi-kube/pages/sumosim-rl/reports

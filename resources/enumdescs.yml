@@ -996,3 +996,11 @@
     &#x200B;    | F0         
     ----------- | ---------- 
     fetch mode  | eager      
+- class_name: training.parallel.ParallelConfig
+  value: q1-test-1
+  desc: |
+    First tests with the 'stay-in-field' opponent 
+    
+    &#x200B;        | L0   | L1    | L2   | L3        
+    --------------- | ---- | ----- | ---- | ----           
+    learning rate   | 0.8  | 0.8   | 0.8  | 0.8            

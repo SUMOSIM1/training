@@ -54,6 +54,11 @@ def parallel_session(
                 q_learn_config,
                 fetch_type=parallel_config_values["F"],
             )
+        if parallel_config_values.get("C") is not None:
+            q_learn_config = replace(
+                q_learn_config,
+                opponent_name=parallel_config_values["C"],
+            )
         return q_learn_config
 
     def call_q_learn(parallel_train_config: _p.ParallelSessionConfig):

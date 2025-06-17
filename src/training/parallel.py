@@ -38,6 +38,7 @@ class ParallelConfig(Enum):
     Q_EDEXP_1 = "q-edexp-1"
     Q_EDC_1 = "q-edc-1"
     Q_EDC_2 = "q-edc-2"
+    Q1_TEST_1 = "q1-test-1"
 
 
 @dataclass(frozen=True)
@@ -336,6 +337,11 @@ def create_parallel_session_configs(
                     "can-see",
                 ],
                 "F": ["eager"],
+            }
+            return _create_parallel_session_configs(values_dict, max_parallel)
+        case ParallelConfig.Q1_TEST_1:
+            values_dict = {
+                "L": [0.8, 0.8, 0.8, 0.8],
             }
             return _create_parallel_session_configs(values_dict, max_parallel)
         case _:

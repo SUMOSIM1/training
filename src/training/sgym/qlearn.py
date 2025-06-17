@@ -192,8 +192,8 @@ default_senv_config = sgym.SEnvConfig(
     dtype=np.float32,
 )
 
-
-default_q_learn_config = QLearnConfig(
+# Used f for all parallel configs starting with Q_
+default_q_learn_config_0 = QLearnConfig(
     learning_rate=0.1,
     epsilon=0.1,
     epsilon_decay_name=EpsilonDecay.NONE.value,
@@ -201,6 +201,18 @@ default_q_learn_config = QLearnConfig(
     mapping_name=sm.SEnvMappingName.NON_LINEAR_3.value,
     opponent_name=sr.ControllerName.STAND_STILL.value,
     reward_handler_name=rhc.RewardHandlerName.CONTINUOUS_CONSIDER_ALL.value,
+    fetch_type=FetchType.EAGER.value,
+)
+
+# Used f for all parallel configs starting with Q1_
+default_q_learn_config = QLearnConfig(
+    learning_rate=0.8,
+    epsilon=0.08,
+    epsilon_decay_name=EpsilonDecay.DECAY_EXP_1000.value,
+    discount_factor=0.25,
+    mapping_name=sm.SEnvMappingName.NON_LINEAR_3.value,
+    opponent_name=sr.ControllerName.STAY_IN_FIELD,
+    reward_handler_name=rhc.RewardHandlerName.CAN_SEE.value,
     fetch_type=FetchType.EAGER.value,
 )
 
